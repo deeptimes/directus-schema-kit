@@ -93,7 +93,7 @@ export interface CollectionGroupDefinition extends CollectionDefinition {
   schema: null
 }
 
-export type ResourceType = 'folders' | 'roles' | 'policies' | 'access' | 'permissions' | 'flows' | 'dashboards' | 'presets'
+export type ResourceType = 'folders' | 'roles' | 'policies' | 'access' | 'permissions' | 'presets'
 
 export interface ResourceDefinition {
   type: ResourceType
@@ -280,4 +280,31 @@ export interface ClearResult {
   completed: ClearOperation[]
   failures: Array<ClearOperation & { message: string }>
   reason?: string
+}
+
+export interface DoctorCheck {
+  name: string
+  status: 'pass' | 'warn' | 'fail'
+  message: string
+}
+
+export interface DoctorResult {
+  doctorVersion: 1
+  ok: boolean
+  project: {
+    root: string
+    directusVersion: string
+    packageManager: 'pnpm' | 'npm' | 'yarn' | 'bun' | 'unknown'
+  }
+  environment: {
+    file: string
+    exists: boolean
+    configuredVariables: string[]
+    missingVariables: string[]
+  }
+  workspace: {
+    config: string
+    manifest: string | null
+  }
+  checks: DoctorCheck[]
 }

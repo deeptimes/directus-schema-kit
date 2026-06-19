@@ -8,7 +8,7 @@
 
 ## 1. 文档目的
 
-本文档基于 `.old/` 中的原始 PRD、架构文档与已有实现重新梳理。新版产品不再从属于智慧教育平台，也不承载教材、课程、讲者等具体业务模型；原教学中心 Schema 仅作为真实场景示例和迁移验证样本。
+本文档基于 `.old/` 中的原始 PRD、架构文档与已有实现重新梳理。新版产品不再从属于智慧教育平台，也不承载或迁移教材、课程、讲者等具体业务模型。
 
 本文定义产品边界、目标用户、核心场景、独立版本需求、质量标准与迭代路线，作为后续架构设计、开发拆分和验收依据。
 
@@ -18,7 +18,7 @@
 
 Directus Schema Kit 是面向 Directus 项目的声明式 Schema Provisioning 工具。
 
-用户通过 DSK 提供的固定 TypeScript Schema DSL 编写 collections、fields、relations、权限、角色、Flow、Dashboard 和 Preset 等项目定义，通过 `.dsk/` 保存 JSON 配置、seed 和生成产物。`dsk build` 将人工编写的 DSL 编译、校验为标准 JSON Manifest；`plan/apply` 只消费 Manifest，并将目标状态应用到本地开发用 Directus 实例。
+用户通过 DSK 提供的固定 TypeScript Schema DSL 编写 collections、fields、relations、权限、角色和 Preset 等项目定义，通过 `.dsk/` 保存 JSON 配置、seed 和生成产物。`dsk build` 将人工编写的 DSL 编译、校验为标准 JSON Manifest；`plan/apply` 只消费 Manifest，并将目标状态应用到本地开发用 Directus 实例。
 
 产品优先解决以下阶段：
 
@@ -65,7 +65,7 @@ Directus 后台适合早期探索和少量手工配置，但项目进入团队�
 5. **目录化与模块化优先**：Schema 按业务域和资源类型拆分到 `.dsk/` 子目录，禁止让单一入口文件长期承载全部功能。
 6. **幂等执行**：相同定义重复执行不应失败，也不应产生重复资源或数据。
 7. **双层模型**：TypeScript Schema DSL 优化人工编写体验，标准 JSON Manifest 优化机器校验、执行和工具间交换。
-8. **核心与业务解耦**：核心包不得内置智慧教育业务语义；业务示例放入 examples。
+8. **核心与业务解耦**：核心包和 V1 交付物不得内置智慧教育业务语义或迁移旧教学中心数据。
 9. **项目上下文优先**：DSK 自动读取 Directus 项目的 `.env` 和 `package.json`，避免重复维护项目基础信息。
 10. **项目定义而非二次扩展**：`dsk/` 中的 TypeScript 只使用公开、固定的 Schema DSL 定义项目模型；V1 不提供 DSK 内核插件、自定义执行器或生命周期钩子。
 11. **运行输入标准化**：`.dsk/` 保存 JSON 配置、seed、生成的 Manifest 和目录说明文档；`plan/apply` 不直接执行 TypeScript。
@@ -98,7 +98,7 @@ Directus 后台适合早期探索和少量手工配置，但项目进入团队�
 
 ### 场景 A：初始化新项目
 
-开发者在已有 Directus 项目中安装 DSK，执行一次 `pnpm dsk init`，自动生成 `dsk/`、`.dsk/`、示例文件和说明文档；随后构建 Manifest、执行校验与计划，并将 collections、fields、relations、权限、角色、Flow、Dashboard、Preset、folders 和基础数据应用到本地空实例。
+开发者在已有 Directus 项目中安装 DSK，执行一次 `pnpm dsk init`，自动生成 `dsk/`、`.dsk/`、示例文件和说明文档；随后构建 Manifest、执行校验与计划，并将 collections、fields、relations、权限、角色、Preset、folders 和基础数据应用到本地空实例。
 
 期望结果：新实例在一次标准流程后达到可开发状态。
 
@@ -148,7 +148,7 @@ Directus 后台适合早期探索和少量手工配置，但项目进入团队�
 - 项目级 JSON 配置、目录化 DSL modules 和项目独立 JSON seed。
 - Schema 加载、组合和严格校验。
 - collections、fields、relations 的计划与应用。
-- 权限、角色、Flow、Dashboard、Preset 的完整读取、计划与本地同步。
+- 权限、角色、Policy、Access、Preset 的完整读取、计划与本地同步。
 - 安全的 Meta/Schema 属性更新白名单。
 - folders 等基础系统资源初始化。
 - 自然键、外键引用和幂等 seed。
@@ -156,7 +156,6 @@ Directus 后台适合早期探索和少量手工配置，但项目进入团队�
 - 人类可读与 JSON 两种输出。
 - 稳定退出码、日志脱敏和 CI 模式。
 - 单元测试、集成测试、兼容性说明和最小使用文档。
-- 将旧教学中心定义迁移为 examples/education，用作回归样例，不进入核心包。
 
 ### 7.2 明确不纳入 V1
 
@@ -169,6 +168,8 @@ Directus 后台适合早期探索和少量手工配置，但项目进入团队�
 - 测试、预发布、生产环境的发布或同步。
 - 多个 Directus 实例之间的同步。
 - 替代 Directus 官方 snapshot/backup。
+- Flow、Operation、Dashboard 和 Panel 的完整同步；移至 V2。
+- 旧教学中心 Schema、章节数据和 `examples/education` 迁移。
 
 ## 8. 信息架构与核心对象
 
@@ -199,8 +200,6 @@ directus-project/
       policies.ts
       access.ts
       permissions.ts
-      flows.ts
-      dashboards.ts
       presets.ts
   .dsk/
     README.md
@@ -286,7 +285,7 @@ export default collection({
 
 ### 8.5 Resource Definition
 
-Resource Definition（系统资源定义）描述 Directus 的 folders、roles、policies、access、permissions、flows、dashboards 和 presets。Directus 11.17.4 的 permission 必须绑定 policy，role-policy 关联由 access 模型维护，因此 policies 和 access 不得省略。每类资源具有独立类型、稳定业务键和引用解析规则，默认使用 `dsk/resources/<resource-type>.ts` 中对应的固定 DSL 定义。
+Resource Definition（系统资源定义）描述 Directus 的 folders、roles、policies、access、permissions 和 presets。Directus 11.17.4 的 permission 必须绑定 policy，role-policy 关联由 access 模型维护，因此 policies 和 access 不得省略。每类资源具有独立类型、稳定业务键和引用解析规则，默认使用 `dsk/resources/<resource-type>.ts` 中对应的固定 DSL 定义。
 
 “完整同步”是指 DSK 能读取本地实例当前状态、生成差异，并执行创建、更新和显式确认后的删除；不是指把资源发布到其他 Directus 环境。
 
@@ -531,13 +530,10 @@ pnpm dsk seed
 | SYS-02 | P0 | 支持父子 folder 依赖及清晰的引用方式。 |
 | SYS-03 | P0 | 支持 roles、policies 和 access 关联的完整读取、差异识别、创建、更新和受控删除。 |
 | SYS-04 | P0 | 支持 permissions 的完整读取、差异识别、创建、更新和受控删除，并可通过稳定业务键引用 policy。 |
-| SYS-05 | P0 | 支持 flows 及其 operations 的完整读取、差异识别、创建、更新、依赖排序和受控删除。 |
-| SYS-06 | P0 | 支持 dashboards 及其 panels 的完整读取、差异识别、创建、更新、依赖排序和受控删除。 |
 | SYS-07 | P0 | 支持 Directus presets 的完整读取、差异识别、创建、更新和受控删除。 |
-| SYS-08 | P0 | 系统资源默认按 `folders.ts`、`roles.ts`、`policies.ts`、`access.ts`、`permissions.ts`、`flows.ts`、`dashboards.ts`、`presets.ts` 分类；体量较大时允许配置多个同类型 DSL 文件。 |
+| SYS-08 | P0 | 系统资源默认按 `folders.ts`、`roles.ts`、`policies.ts`、`access.ts`、`permissions.ts`、`presets.ts` 分类；体量较大时允许配置多个同类型 DSL 文件。 |
 | SYS-09 | P0 | 资源间引用使用稳定名称或显式 key，运行时解析本地实例 ID，不在定义中固化实例生成的 ID。 |
-| SYS-10 | P0 | 删除、覆盖敏感权限和停用 Flow 等操作必须在 plan 中单独标记；真实执行需要显式确认。 |
-| SYS-11 | P0 | Flow 中的 secret、token 等敏感配置不得写入可提交定义；通过 Directus 项目 `.env` 引用并在日志中脱敏。 |
+| SYS-10 | P0 | 删除和覆盖敏感权限等操作必须在 plan 中单独标记；真实执行需要显式确认。 |
 
 ### 10.8 Clear 与危险操作
 
@@ -643,7 +639,6 @@ V1 发布后使用以下指标评估产品是否有效：
 | 本地空实例首次初始化成功率 | 在支持版本集成测试中 100% |
 | CLI 脚手架初始化成功率 | 在标准 Directus 项目中执行 `pnpm dsk init` 后目录、示例和文档完整生成 |
 | 幂等性 | 连续第二次 apply 无可执行差异 |
-| 旧教学中心样例迁移覆盖 | 原有 collections、fields、relations、folders、seed 均可表达和执行 |
 | 危险操作误执行 | 默认 apply 路径为 0 |
 | CI 可用性 | validate/plan 均有稳定 JSON 和退出码 |
 | 新项目上手时间 | 熟悉 Directus 的开发者 15 分钟内建立 `dsk/`、`.dsk/` 并完成本地实例初始化 |
@@ -663,13 +658,12 @@ V1 发布后使用以下指标评估产品是否有效：
 6. validate 能发现重复定义、缺失主键、无效关系和不合法删除策略。
 7. plan 能基于本地开发实例输出 create、safe update、conflict、dangerous 和 unchanged。
 8. apply 能完成 collection groups、collections、fields、relations 和允许属性的幂等应用。
-9. folders、roles、policies、access、permissions、flows、dashboards、presets 和自然键 seed 可重复执行，不产生重复资源或数据。
-10. roles、permissions、flows、dashboards、presets 均覆盖读取、差异识别、创建、更新和带显式确认的删除流程。
+9. folders、roles、policies、access、permissions、presets 和自然键 seed 可重复执行，不产生重复资源或数据。
+10. roles、policies、access、permissions、presets 均覆盖读取、差异识别、创建、更新和带显式确认的删除流程。
 11. 默认 apply 不执行字段删除、集合删除、类型变更和关系目标变更。
 12. clear 不带完整确认参数时不产生删除，并永远排除系统集合。
 13. text 与 JSON 输出均通过契约测试，token 不出现在日志中。
 14. 至少在声明支持的 Node.js、Directus 和操作系统矩阵上通过自动集成测试。
-15. 原教学中心 Schema 迁移为独立示例并完成一次本地空实例回归。
 16. 示例项目的定义已按 Schema modules、resource types 和 seed modules 拆分，不存在承担全部业务定义的单一大文件。
 17. `dsk build` 能生成确定、无 secret、完全展开且通过 JSON Schema 校验的 Manifest。
 18. Manifest 缺失或落后于 DSL 源码时，plan/apply 会拒绝执行并提示重新 build。
@@ -680,8 +674,7 @@ V1 发布后使用以下指标评估产品是否有效：
 
 ### V1：Standalone Provisioning
 
-- 完成独立包、`pnpm dsk init` 脚手架、`dsk/` Schema DSL 源码目录、`.dsk/` JSON 数据目录、Manifest 构建链路、项目识别、validate、plan、apply、seed、完整系统资源同步、clear 护栏与 CI 输出。
-- 将旧项目能力迁移到新架构，并以教学中心示例验证兼容。
+- 完成独立包、`pnpm dsk init` 脚手架、`dsk/` Schema DSL 源码目录、`.dsk/` JSON 数据目录、Manifest 构建链路、项目识别、validate、plan、apply、seed、V1 系统资源同步、clear 护栏与 CI 输出。
 
 ### V1.1：团队规范与模块生态
 
@@ -698,8 +691,10 @@ V1 发布后使用以下指标评估产品是否有效：
 - 变更摘要和审计报告。
 - 更完整的 Directus 版本适配层。
 
-### V2：Migration-lite
+### V2：扩展资源与 Migration-lite
 
+- Flow 及 Operations 的完整读取、计划、创建、更新和受控删除。
+- Dashboard 及 Panels 的完整读取、计划、创建、更新和受控删除。
 - 为低风险变更提供明确 migration 文件。
 - relation Meta 和安全约束调整。
 - 危险差异生成待处理清单，不自动执行。
@@ -724,12 +719,12 @@ V3 是否实现通用回滚需根据 Directus API、数据库差异和真实需�
 | dry-run | 合并到标准 plan 语义，保留 `--dry-run` 兼容入口的可行性 |
 | 自然键 seed 与 refs | 迁移并补充本地实例预检、批量能力和 JSON Schema |
 | folders 初始化 | 迁移到 `dsk/resources/folders.ts`，编译进入 Manifest |
-| roles/permissions/flows/dashboards/presets | 纳入 V1 完整本地同步，使用对应 Resource DSL 并编译进入 Manifest |
+| roles/policies/access/permissions/presets | 纳入 V1 完整本地同步，使用对应 Resource DSL 并编译进入 Manifest |
+| flows/operations/dashboards/panels | 移至 V2，不作为 V1 验收或兼容承诺 |
 | accountability 批量更新 | 改为 `config.json` 配置项或显式资源命令，不作为孤立核心概念 |
 | clear | 保留，但增加模块范围、双重确认和 CI 保护 |
 | 中文字段翻译强制校验 | 下沉为 `config.json` 中的可选校验项 |
-| 教学中心 Schema 与章节数据 | 移至 examples/education，不进入核心包 |
-| Markdown 章节生成器 | 属于教育示例工具，不进入 DSK 核心产品范围 |
+| 教学中心 Schema、章节数据与 Markdown 生成器 | 不迁移，不进入 DSK 产品范围 |
 | `.mjs` 定义 | 提供到新版 TypeScript DSL 的转换工具或迁移指南；plan/apply 不加载 `.mjs` |
 
 ## 17. 风险与应对
@@ -757,7 +752,7 @@ V3 是否实现通用回滚需根据 Directus API、数据库差异和真实需�
 5. 是否提供旧 `.mjs` 到新版 TypeScript DSL 的一次性转换命令，或仅提供迁移文档。
 6. safe update 的字段 Schema 白名单具体包含哪些属性。
 7. JSON report 的公开稳定等级及版本字段设计。
-8. roles、permissions、flows、dashboards、presets 各自采用何种稳定业务键，以及哪些差异必须要求额外确认。
+8. roles、policies、access、permissions、presets 各自采用何种稳定业务键，以及哪些差异必须要求额外确认。
 
 ## 19. 后续交付物
 
@@ -769,4 +764,3 @@ PRD 确认后建议按顺序补充：
 4. CLI 命令与退出码规范。
 5. V1 用户故事、开发任务和里程碑。
 6. 测试策略与 Directus 兼容矩阵。
-7. 旧实现迁移清单和教学中心回归方案。

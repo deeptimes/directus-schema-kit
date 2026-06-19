@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { Command } from 'commander'
-import { applyCommand, buildCommand, clearCommand, initCommand, planCommand, resourcesApplyCommand, seedCommand, validateCommand, type CommandContext } from './commands.js'
+import { applyCommand, buildCommand, clearCommand, doctorCommand, initCommand, planCommand, resourcesApplyCommand, seedCommand, validateCommand, type CommandContext } from './commands.js'
 import { DskError } from './errors.js'
 
 const packageJsonPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../package.json')
@@ -45,6 +45,18 @@ program.command('validate')
   .action(async () => {
     const result = await validateCommand(commandContext())
     output({ command: 'validate', ok: true, ...result }, () => console.log(`校验通过：${result.collections} collections，${result.fields} fields，${result.seeds} seed files`))
+  })
+
+program.command('doctor')
+  .description('诊断项目识别、版本、环境变量和 DSK 工作区')
+  .action(async () => {
+    const result = await doctorCommand(commandContext())
+    output({ command: 'doctor', ...result }, () => {
+      console.log(`Directus ${result.project.directusVersion} · ${result.project.packageManager}`)
+      for (const check of result.checks) console.log(`${check.status.padEnd(4)} ${check.name}: ${check.message}`)
+      console.log(`环境变量：已配置 ${result.environment.configuredVariables.join(', ') || '(无)'}；缺少 ${result.environment.missingVariables.join(', ') || '(无)'}`)
+    })
+    if (!result.ok) process.exitCode = 5
   })
 
 program.command('plan')

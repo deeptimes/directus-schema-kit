@@ -5,6 +5,7 @@ import { DskError } from './errors.js'
 import { executeApply } from './apply.js'
 import { executeClear } from './clear.js'
 import { DirectusReader, DirectusWriter } from './directus.js'
+import { diagnoseProject } from './doctor.js'
 import { directusConnection, loadProjectEnvironment } from './env.js'
 import { initializeWorkspace, type InitResult } from './init.js'
 import { compileManifest } from './manifest.js'
@@ -13,7 +14,7 @@ import { loadSeedBatches, runSeeds } from './seed.js'
 import { syncResources } from './resources.js'
 import { discoverDirectusProject } from './project.js'
 import { validateManifest, validateWorkspace } from './validate.js'
-import type { ApplyResult, ClearResult, Manifest, Plan, ResourceSyncResult, SeedResult } from './types.js'
+import type { ApplyResult, ClearResult, DoctorResult, Manifest, Plan, ResourceSyncResult, SeedResult } from './types.js'
 
 export interface CommandContext {
   cwd: string
@@ -119,6 +120,10 @@ export async function clearCommand(context: CommandContext, options: { module: s
     ...(options.scope ? { scope: options.scope } : {}),
     enabled: loaded.config.safety?.clearEnabled ?? true,
   })
+}
+
+export function doctorCommand(context: CommandContext): Promise<DoctorResult> {
+  return diagnoseProject(context.cwd, context.configPath)
 }
 
 async function preparePlan(context: CommandContext, moduleFilter?: string): Promise<{

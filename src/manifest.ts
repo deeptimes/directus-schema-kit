@@ -6,7 +6,7 @@ import { glob } from 'tinyglobby'
 import { DskError } from './errors.js'
 import type { CollectionDefinition, DskConfig, Manifest, ModuleDefinition, ResourceDefinition, ResourceType } from './types.js'
 
-const resourceTypes: ResourceType[] = ['folders', 'roles', 'policies', 'access', 'permissions', 'flows', 'dashboards', 'presets']
+const resourceTypes: ResourceType[] = ['folders', 'roles', 'policies', 'access', 'permissions', 'presets']
 
 export async function sourceFiles(config: DskConfig, configDirectory: string): Promise<string[]> {
   const patterns = [config.paths.schemaSource, config.paths.resourceSource]
@@ -67,7 +67,7 @@ export async function compileManifest(options: {
   const fields: Manifest['fields'] = []
   const relations: Manifest['relations'] = []
   const resources: Manifest['resources'] = {
-    folders: [], roles: [], policies: [], access: [], permissions: [], flows: [], dashboards: [], presets: [],
+    folders: [], roles: [], policies: [], access: [], permissions: [], presets: [],
   }
 
   for (const module of [...modules.values()].sort((a, b) => a.id.localeCompare(b.id, 'en'))) {

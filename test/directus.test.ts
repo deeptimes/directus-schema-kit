@@ -41,3 +41,17 @@ test('DirectusWriter 不重试确定性 4xx', async () => {
   await assert.rejects(() => writer.updateCollection('articles', { icon: 'article' }), /写入 Directus 失败/)
   assert.equal(attempts, 1)
 })
+
+test('DirectusWriter 从错误详情中脱敏 token', async () => {
+  const secret = 'token-that-must-not-leak'
+  const fetcher: typeof fetch = async () => new Response(JSON.stringify({ errors: [{ message: `invalid ${secret}` }] }), { status: 400 })
+  const writer = new DirectusWriter('http://localhost:8055', secret, 1000, 1, fetcher, async () => {})
+  await assert.rejects(
+    () => writer.updateCollection('articles', { icon: 'article' }),
+    (error: unknown) => {
+      const value = error as { message?: string; details?: string[] }
+      const serialized = JSON.stringify({ message: value.message, details: value.details })
+      return !serialized.includes(secret) && serialized.includes('[REDACTED]')
+    },
+  )
+})

@@ -32,7 +32,7 @@ class MemoryResources implements ResourceReader, ResourceWriter {
 }
 
 function definitions(overrides: Partial<Record<ResourceType, ResourceDefinition[]>> = {}): Record<ResourceType, ResourceDefinition[]> {
-  return { folders: [], roles: [], policies: [], access: [], permissions: [], flows: [], dashboards: [], presets: [], ...overrides }
+  return { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [], ...overrides }
 }
 
 test('系统资源按依赖顺序创建并解析稳定引用', async () => {
@@ -71,9 +71,9 @@ test('显式删除没有确认时整体阻断', async () => {
 
 test('重复业务键产生 conflict 且不写入', async () => {
   const store = new MemoryResources()
-  store.data.set('dashboards', [{ id: '1', name: 'Stats' }, { id: '2', name: 'Stats' }])
+  store.data.set('roles', [{ id: '1', name: 'Duplicate' }, { id: '2', name: 'Duplicate' }])
   const result = await syncResources({
-    definitions: definitions({ dashboards: [{ type: 'dashboards', key: 'stats', data: { name: 'Stats' } }] }),
+    definitions: definitions({ roles: [{ type: 'roles', key: 'duplicate', data: { name: 'Duplicate' } }] }),
     reader: store,
     writer: store,
   })

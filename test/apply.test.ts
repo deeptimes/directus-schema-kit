@@ -17,7 +17,7 @@ function fixture(): { manifest: Manifest; plan: Plan } {
     collections: [{ ...child, module: 'content' }, { ...parent, module: 'content' }, { ...articles, fields: [], module: 'content' }],
     fields,
     relations: [],
-    resources: { folders: [], roles: [], policies: [], access: [], permissions: [], flows: [], dashboards: [], presets: [] },
+    resources: { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [] },
   }
   const operations: PlanOperation[] = [
     create('field', 'articles.id'), create('collection', 'articles'), create('collection', 'child'),

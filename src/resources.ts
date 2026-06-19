@@ -1,9 +1,9 @@
 import { DskError } from './errors.js'
 import type { DeclarativeValue, ResourceDefinition, ResourceSyncOperation, ResourceSyncResult, ResourceType } from './types.js'
 
-const order: ResourceType[] = ['folders', 'roles', 'policies', 'access', 'permissions', 'flows', 'dashboards', 'presets']
+const order: ResourceType[] = ['folders', 'roles', 'policies', 'access', 'permissions', 'presets']
 const endpoints: Record<ResourceType, string> = {
-  folders: 'folders', roles: 'roles', policies: 'policies', access: 'access', permissions: 'permissions', flows: 'flows', dashboards: 'dashboards', presets: 'presets',
+  folders: 'folders', roles: 'roles', policies: 'policies', access: 'access', permissions: 'permissions', presets: 'presets',
 }
 
 export interface ResourceReader { listSystemResource(endpoint: string): Promise<Array<Record<string, unknown>>> }
@@ -105,7 +105,7 @@ function orderedDefinitions(definitions: Record<ResourceType, ResourceDefinition
 function matchesDefinition(type: ResourceType, item: Record<string, unknown>, target: Record<string, unknown>): boolean {
   const keys: Record<ResourceType, string[]> = {
     folders: ['name', 'parent'], roles: ['name'], policies: ['name'], access: ['role', 'policy', 'user'], permissions: ['policy', 'collection', 'action'],
-    flows: ['name'], dashboards: ['name'], presets: ['bookmark', 'collection', 'role', 'user'],
+    presets: ['bookmark', 'collection', 'role', 'user'],
   }
   const selected = keys[type].filter((key) => Object.hasOwn(target, key))
   if (selected.length === 0) throw new DskError(`${type} 资源缺少稳定业务键`, 'VALIDATION_ERROR')

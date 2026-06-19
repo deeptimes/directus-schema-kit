@@ -19,7 +19,7 @@ function manifest(): Manifest {
     collections: definitions.map((item) => ({ ...item, fields: [], module: 'content' })),
     fields: definitions.flatMap((item) => item.fields.map(({ relation: _relation, ...definition }) => ({ ...definition, collection: item.collection, module: 'content' }))),
     relations: [{ collection: 'articles', field: 'author_id', related_collection: 'authors', schema: { on_delete: 'SET NULL' }, module: 'content' }],
-    resources: { folders: [], roles: [], policies: [], access: [], permissions: [], flows: [], dashboards: [], presets: [] },
+    resources: { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [] },
   }
 }
 

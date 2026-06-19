@@ -29,6 +29,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test 'test/**/*.test.ts'",
     "test:integration": "node --import tsx --test 'test/integration/**/*.test.ts'",
+    "check:release": "pnpm typecheck && pnpm test && pnpm build && pnpm pack --dry-run",
     "prepack": "pnpm build"
   },
   "keywords": [

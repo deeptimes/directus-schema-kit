@@ -25,15 +25,13 @@ export const manifestJsonSchema: JSONSchemaType<Manifest> = {
     relations: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
     resources: {
       type: 'object', additionalProperties: false,
-      required: ['folders', 'roles', 'policies', 'access', 'permissions', 'flows', 'dashboards', 'presets'],
+      required: ['folders', 'roles', 'policies', 'access', 'permissions', 'presets'],
       properties: {
         folders: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
         roles: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
         policies: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
         access: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
         permissions: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
-        flows: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
-        dashboards: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
         presets: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
       },
     },

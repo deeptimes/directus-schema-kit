@@ -40,7 +40,7 @@ test('Directus 11.17.4 完整 provisioning 生命周期', { skip: !url || (!conf
 
     const resources = await syncResources({ definitions: resourceDefinitions, reader, writer })
     assert.equal(resources.status, 'success', JSON.stringify(resources.failure, null, 2))
-    assert.equal(resources.completed.length, 8)
+    assert.equal(resources.completed.length, 6)
     const resourcesConverged = await syncResources({ definitions: resourceDefinitions, reader, writer, dryRun: true })
     assert.equal(resourcesConverged.operations.every((item) => item.action === 'unchanged'), true)
   } finally {
@@ -100,12 +100,10 @@ function integrationResources(remove: boolean): Record<ResourceType, ResourceDef
     policies: [mark({ type: 'policies', key: 'ci', data: { name: 'DSK CI Policy', icon: 'science', app_access: false, admin_access: false } })],
     access: [mark({ type: 'access', key: 'ci', data: { role: ref('roles.ci'), policy: ref('policies.ci'), user: null } })],
     permissions: [mark({ type: 'permissions', key: 'ci-read', data: { policy: ref('policies.ci'), collection: 'dsk_ci_articles', action: 'read', permissions: {} } })],
-    flows: [mark({ type: 'flows', key: 'ci', data: { name: 'DSK CI Flow', status: 'inactive', trigger: 'manual', accountability: 'all' } })],
-    dashboards: [mark({ type: 'dashboards', key: 'ci', data: { name: 'DSK CI Dashboard', icon: 'science' } })],
     presets: [mark({ type: 'presets', key: 'ci', data: { bookmark: 'DSK CI Preset', collection: 'dsk_ci_articles', role: ref('roles.ci'), user: null, layout: 'tabular' } })],
   }
 }
 
 function emptyResources(): Record<ResourceType, ResourceDefinition[]> {
-  return { folders: [], roles: [], policies: [], access: [], permissions: [], flows: [], dashboards: [], presets: [] }
+  return { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [] }
 }

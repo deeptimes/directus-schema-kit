@@ -21,3 +21,10 @@
 - 系统资源删除必须由 DSL 显式声明并提供 `--confirm-destructive`。
 - Collection clear 使用独立命令，真实删除要求 `--module`、`--confirm` 和相同值的 `--scope`。
 - 系统资源依赖按 `$ref` 拓扑排序，不依赖文件顺序；缺失、循环引用在写入前阻断。
+
+## 2026-06-19：收紧 V1 产品范围
+
+- V1 不交付 Flow/Operation 和 Dashboard/Panel，同步能力移至 V2。
+- 旧教学中心 Schema、章节数据、生成器和 examples/education 不再迁移。
+- V1 系统资源固定为 folders、roles、policies、access、permissions、presets。
+- 唯一认证环境为 Node.js 22+、Directus 11.17.4 和 SQLite。
