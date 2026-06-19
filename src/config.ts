@@ -19,6 +19,9 @@ export const defaultConfig: DskConfig = {
   validation: {
     requireChineseTranslations: false,
   },
+  safety: {
+    clearEnabled: true,
+  },
 }
 
 export const configJsonSchema = {
@@ -48,6 +51,10 @@ export const configJsonSchema = {
     validation: {
       type: 'object', additionalProperties: false,
       properties: { requireChineseTranslations: { type: 'boolean' } },
+    },
+    safety: {
+      type: 'object', additionalProperties: false,
+      properties: { clearEnabled: { type: 'boolean' } },
     },
   },
 } as const

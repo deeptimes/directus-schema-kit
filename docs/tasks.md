@@ -7,6 +7,7 @@
 - [x] collections/fields/relations 只读 Adapter
 - [x] `dsk plan` 文本/JSON 输出与模块过滤
 - [x] 安全 apply Adapter 与执行编排
-- [ ] Seed plan/apply
-- [ ] folders、roles、permissions、flows、dashboards、presets
-- [ ] clear 护栏与完整集成测试矩阵
+- [x] Seed plan/apply
+- [x] folders、roles、permissions、flows、dashboards、presets
+- [x] clear 护栏
+- [ ] 完整 Directus 兼容性集成测试矩阵

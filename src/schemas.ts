@@ -47,7 +47,16 @@ export const seedJsonSchema = {
     collection: { type: 'string', minLength: 1 },
     upsertBy: { type: 'array', minItems: 1, uniqueItems: true, items: { type: 'string', minLength: 1 } },
     defaults: { type: 'object' },
-    refs: { type: 'object' },
+    refs: {
+      type: 'object', additionalProperties: {
+        type: 'object', additionalProperties: false, required: ['collection'],
+        properties: {
+          collection: { type: 'string', minLength: 1 }, field: { type: 'string', minLength: 1 },
+          from: { type: 'string', minLength: 1 }, scope: { type: 'array', items: { type: 'string', minLength: 1 } },
+          nullable: { type: 'boolean' }, keepSource: { type: 'boolean' },
+        },
+      },
+    },
     items: { type: 'array', items: { type: 'object' } },
   },
 } as const

@@ -1,16 +1,19 @@
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { loadConfig } from './config.js'
 import { DskError } from './errors.js'
 import { executeApply } from './apply.js'
+import { executeClear } from './clear.js'
 import { DirectusReader, DirectusWriter } from './directus.js'
-import { directusConnection } from './env.js'
+import { directusConnection, loadProjectEnvironment } from './env.js'
 import { initializeWorkspace, type InitResult } from './init.js'
 import { compileManifest } from './manifest.js'
 import { createPlan } from './plan.js'
+import { loadSeedBatches, runSeeds } from './seed.js'
+import { syncResources } from './resources.js'
 import { discoverDirectusProject } from './project.js'
 import { validateManifest, validateWorkspace } from './validate.js'
-import type { ApplyResult, Manifest, Plan } from './types.js'
+import type { ApplyResult, ClearResult, Manifest, Plan, ResourceSyncResult, SeedResult } from './types.js'
 
 export interface CommandContext {
   cwd: string
@@ -68,6 +71,56 @@ export async function applyCommand(context: CommandContext, options: { module?: 
   return executeApply({ manifest: prepared.manifest, plan: prepared.plan, writer, dryRun: options.dryRun ?? false })
 }
 
+export async function seedCommand(context: CommandContext, options: { path?: string; dryRun?: boolean; plan?: boolean }): Promise<SeedResult> {
+  if (options.dryRun && options.plan) throw new DskError('--dry-run 与 --plan 不能同时使用', 'CONFIG_ERROR')
+  const project = discoverDirectusProject(context.cwd)
+  const loaded = loadConfig(project.root, context.configPath)
+  const pattern = seedPattern(options.path, project.root, loaded.config.paths.seeds)
+  const batches = await loadSeedBatches(pattern, options.path ? project.root : loaded.directory)
+  const mode = options.dryRun ? 'dry-run' : options.plan ? 'plan' : 'apply'
+  if (mode === 'dry-run') return runSeeds({ batches, mode })
+  const connection = directusConnection(loaded.config, loaded.directory)
+  const reader = new DirectusReader(connection.url, connection.token)
+  const writer = new DirectusWriter(connection.url, connection.token)
+  return runSeeds({ batches, mode, reader, ...(mode === 'apply' ? { writer } : {}) })
+}
+
+export async function resourcesApplyCommand(context: CommandContext, options: { dryRun?: boolean; confirmDestructive?: boolean }): Promise<ResourceSyncResult> {
+  const project = discoverDirectusProject(context.cwd)
+  const loaded = loadConfig(project.root, context.configPath)
+  const validated = await validateWorkspace({ config: loaded.config, configDirectory: loaded.directory, projectRoot: project.root })
+  const connection = directusConnection(loaded.config, loaded.directory)
+  const reader = new DirectusReader(connection.url, connection.token)
+  const writer = new DirectusWriter(connection.url, connection.token)
+  return syncResources({
+    definitions: validated.manifest.resources,
+    reader,
+    writer,
+    environment: loadProjectEnvironment(loaded.config, loaded.directory),
+    dryRun: options.dryRun ?? false,
+    confirmDestructive: options.confirmDestructive ?? false,
+  })
+}
+
+export async function clearCommand(context: CommandContext, options: { module: string; confirm?: boolean; scope?: string }): Promise<ClearResult> {
+  const project = discoverDirectusProject(context.cwd)
+  const loaded = loadConfig(project.root, context.configPath)
+  const validated = await validateWorkspace({ config: loaded.config, configDirectory: loaded.directory, projectRoot: project.root })
+  const connection = directusConnection(loaded.config, loaded.directory)
+  const reader = new DirectusReader(connection.url, connection.token)
+  const writer = new DirectusWriter(connection.url, connection.token)
+  const state = await reader.readState()
+  return executeClear({
+    manifest: validated.manifest,
+    state,
+    module: options.module,
+    writer,
+    confirm: options.confirm ?? false,
+    ...(options.scope ? { scope: options.scope } : {}),
+    enabled: loaded.config.safety?.clearEnabled ?? true,
+  })
+}
+
 async function preparePlan(context: CommandContext, moduleFilter?: string): Promise<{
   manifest: Manifest
   plan: Plan
@@ -89,4 +142,11 @@ function atomicWrite(filePath: string, content: string): void {
   const temporary = `${filePath}.${process.pid}.tmp`
   writeFileSync(temporary, content, 'utf8')
   renameSync(temporary, filePath)
+}
+
+function seedPattern(requestedPath: string | undefined, projectRoot: string, configuredPattern: string): string {
+  if (!requestedPath) return configuredPattern
+  const absolute = path.resolve(projectRoot, requestedPath)
+  if (!existsSync(absolute)) throw new DskError(`Seed 路径不存在: ${absolute}`, 'CONFIG_ERROR')
+  return statSync(absolute).isDirectory() ? `${requestedPath.replace(/\/$/, '')}/**/*.json` : requestedPath
 }

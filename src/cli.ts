@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { Command } from 'commander'
-import { applyCommand, buildCommand, initCommand, planCommand, validateCommand, type CommandContext } from './commands.js'
+import { applyCommand, buildCommand, clearCommand, initCommand, planCommand, resourcesApplyCommand, seedCommand, validateCommand, type CommandContext } from './commands.js'
 import { DskError } from './errors.js'
 
 const packageJsonPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../package.json')
@@ -76,6 +76,53 @@ program.command('apply')
       if (result.failed) console.error(`  失败 ${result.failed.resourceType} ${result.failed.resource}: ${result.failed.message}`)
       for (const item of result.blocked) console.error(`  阻断 ${item.action} ${item.resourceType} ${item.resource}: ${item.reason ?? '需要人工处理'}`)
       console.log(`汇总：完成 ${result.completed.length}，未执行 ${result.notExecuted.length}，阻断 ${result.blocked.length}`)
+    })
+    if (result.status === 'blocked') process.exitCode = 3
+    else if (result.status === 'failed') process.exitCode = 4
+  })
+
+program.command('seed [path]')
+  .description('校验、规划或幂等应用 JSON Seed')
+  .option('--dry-run', '仅执行本地结构和引用格式校验')
+  .option('--plan', '连接实例预测 create/update/unchanged，不写入')
+  .action(async (seedPath: string | undefined, options: { dryRun?: boolean; plan?: boolean }) => {
+    const result = await seedCommand(commandContext(), { ...(seedPath ? { path: seedPath } : {}), ...options })
+    output({ command: 'seed', ok: result.status === 'success', ...result }, () => {
+      console.log(`Seed ${result.mode}：${result.status}`)
+      console.log(`汇总：create ${result.summary.create}，update ${result.summary.update}，unchanged ${result.summary.unchanged}`)
+      if (result.failure) console.error(`失败 ${result.failure.collection}.${result.failure.key}: ${result.failure.message}`)
+    })
+    if (result.status === 'failed') process.exitCode = 4
+  })
+
+const resources = program.command('resources').description('同步 Directus 系统资源')
+resources.command('apply')
+  .description('规划并同步 folders、roles、permissions、flows、dashboards、presets')
+  .option('--dry-run', '只输出计划，不写入')
+  .option('--confirm-destructive', '允许定义中显式声明的删除')
+  .action(async (options: { dryRun?: boolean; confirmDestructive?: boolean }) => {
+    const result = await resourcesApplyCommand(commandContext(), options)
+    output({ command: 'resources apply', ok: result.status === 'success', ...result }, () => {
+      for (const item of result.operations) console.log(`${item.action.padEnd(9)} ${item.type}.${item.key}`)
+      console.log(`状态：${result.status}，完成 ${result.completed.length}/${result.operations.filter((item) => item.action !== 'unchanged').length}`)
+      if (result.failure) console.error(`失败 ${result.failure.type}.${result.failure.key}: ${result.failure.message}`)
+    })
+    if (result.status === 'blocked') process.exitCode = 3
+    else if (result.status === 'failed') process.exitCode = 4
+  })
+
+program.command('clear')
+  .description('规划或清理指定模块声明的自定义集合')
+  .requiredOption('--module <id>', '目标模块')
+  .option('--confirm', '执行真实删除')
+  .option('--scope <id>', '真实删除时必须与 module 完全一致')
+  .action(async (options: { module: string; confirm?: boolean; scope?: string }) => {
+    const result = await clearCommand(commandContext(), options)
+    output({ command: 'clear', ok: result.status === 'planned' || result.status === 'success', ...result }, () => {
+      console.log(`Clear ${result.module}：${result.status}${result.dryRun ? ' (dry-run)' : ''}`)
+      for (const item of result.operations) console.log(`  delete ${item.resourceType} ${item.resource}`)
+      if (result.reason) console.error(`阻断：${result.reason}`)
+      for (const failure of result.failures) console.error(`失败 ${failure.resource}: ${failure.message}`)
     })
     if (result.status === 'blocked') process.exitCode = 3
     else if (result.status === 'failed') process.exitCode = 4

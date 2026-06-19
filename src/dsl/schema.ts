@@ -52,8 +52,8 @@ export function defineModule(definition: ModuleDefinition): ModuleDefinition {
   return definition
 }
 
-export function resource(type: ResourceType, options: { key: string; data: ResourceDefinition['data'] }): ResourceDefinition {
-  return { type, key: options.key, data: options.data }
+export function resource(type: ResourceType, options: { key: string; data: ResourceDefinition['data']; delete?: boolean }): ResourceDefinition {
+  return { type, key: options.key, data: options.data, ...(options.delete ? { delete: true } : {}) }
 }
 
 function primaryField(type: 'uuid' | 'integer'): FieldDefinition {

@@ -34,3 +34,12 @@ Plan 只比较 Manifest 明确声明的属性，不把实例额外属性或额�
 - update 请求只包含 Plan 中变化的白名单属性，不发送完整对象。
 - 429、502、503、504、超时和网络错误最多重试三次；确定性 4xx 不重试。
 - 首项失败后停止，报告 completed、failed 和 notExecuted。
+
+## Seed、系统资源和 Clear
+
+- Seed 仅接受版本化 JSON，按文件名、批次和 item 确定性执行；自然键索引分页加载。
+- Seed 引用优先使用本次执行缓存，再查询实例；无法解析立即停止当前运行。
+- 系统资源使用 DSL `key` 作为引用键，并以类型特定业务字段匹配实例；`$ref` 通过拓扑排序解析为 ID。
+- 系统资源删除必须在定义中显式标记 `delete: true`，并额外提供 `--confirm-destructive`。
+- Clear 只接受 Manifest 模块范围，默认仅计划；真实删除要求 module、confirm、scope 三者一致。
+- Clear 永远拒绝 `directus_*`，先删除关系字段，再按子到父顺序删除集合，最后删除 group。

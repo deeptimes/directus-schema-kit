@@ -100,6 +100,7 @@ export interface ResourceDefinition {
   key: string
   data: Record<string, DeclarativeValue>
   module?: string
+  delete?: boolean
 }
 
 export interface ModuleDefinition {
@@ -145,6 +146,9 @@ export interface DskConfig {
   }
   validation?: {
     requireChineseTranslations?: boolean
+  }
+  safety?: {
+    clearEnabled?: boolean
   }
 }
 
@@ -204,4 +208,76 @@ export interface ApplyResult {
   notExecuted: ApplyItem[]
   blocked: PlanOperation[]
   skippedUnchanged: number
+}
+
+export interface SeedReferenceDefinition {
+  collection: string
+  field?: string
+  from?: string
+  scope?: string[]
+  nullable?: boolean
+  keepSource?: boolean
+}
+
+export interface SeedBatch {
+  schemaVersion: 1
+  collection: string
+  upsertBy: string[]
+  defaults?: Record<string, unknown>
+  refs?: Record<string, SeedReferenceDefinition>
+  items: Array<Record<string, unknown>>
+  file: string
+}
+
+export interface SeedOperation {
+  collection: string
+  key: string
+  action: 'create' | 'update' | 'unchanged'
+  data: Record<string, unknown>
+  id?: string | number
+}
+
+export interface SeedResult {
+  seedVersion: 1
+  mode: 'dry-run' | 'plan' | 'apply'
+  status: 'success' | 'failed'
+  batches: number
+  items: number
+  summary: { create: number; update: number; unchanged: number }
+  operations: SeedOperation[]
+  failure?: { collection: string; key: string; message: string }
+}
+
+export interface ResourceSyncOperation {
+  type: ResourceType
+  key: string
+  action: 'create' | 'update' | 'unchanged' | 'delete' | 'conflict'
+  dangerous: boolean
+  id?: string | number
+  reason?: string
+}
+
+export interface ResourceSyncResult {
+  resourceSyncVersion: 1
+  dryRun: boolean
+  status: 'success' | 'blocked' | 'failed'
+  operations: ResourceSyncOperation[]
+  completed: ResourceSyncOperation[]
+  failure?: { type: ResourceType; key: string; message: string }
+}
+
+export interface ClearOperation {
+  resourceType: 'field' | 'collection'
+  resource: string
+}
+
+export interface ClearResult {
+  clearVersion: 1
+  module: string
+  dryRun: boolean
+  status: 'planned' | 'success' | 'blocked' | 'failed'
+  operations: ClearOperation[]
+  completed: ClearOperation[]
+  failures: Array<ClearOperation & { message: string }>
+  reason?: string
 }

@@ -21,6 +21,7 @@ export function validateManifest(manifest: Manifest, config: DskConfig): string[
   for (const [type, definitions] of Object.entries(manifest.resources)) {
     collectDuplicates(definitions.map((item) => item.key), `${type} 资源`, errors)
   }
+  validateResourceReferences(manifest, config, errors)
 
   const collections = new Set(manifest.collections.map((item) => item.collection))
   for (const collection of manifest.collections.filter((item) => item.schema !== null)) {
@@ -47,6 +48,48 @@ export function validateManifest(manifest: Manifest, config: DskConfig): string[
     }
   }
   return errors
+}
+
+function validateResourceReferences(manifest: Manifest, config: DskConfig, errors: string[]): void {
+  const definitions = Object.values(manifest.resources).flat()
+  const keys = new Set(definitions.map((item) => `${item.type}.${item.key}`))
+  const dependencies = new Map<string, string[]>()
+  const allowedEnvironment = new Set(config.env?.allowedVariables ?? [])
+  for (const definition of definitions) {
+    const key = `${definition.type}.${definition.key}`
+    const references = collectMarkers(definition.data)
+    dependencies.set(key, references.refs)
+    for (const reference of references.refs) if (!keys.has(reference)) errors.push(`系统资源 ${key} 引用了不存在的资源 ${reference}`)
+    for (const name of references.env) if (!allowedEnvironment.has(name)) errors.push(`系统资源 ${key} 使用了未授权环境变量 ${name}`)
+  }
+  const visited = new Set<string>()
+  const visiting = new Set<string>()
+  const visit = (key: string): void => {
+    if (visited.has(key)) return
+    if (visiting.has(key)) {
+      errors.push(`系统资源存在循环引用: ${key}`)
+      return
+    }
+    visiting.add(key)
+    for (const dependency of dependencies.get(key) ?? []) if (keys.has(dependency)) visit(dependency)
+    visiting.delete(key)
+    visited.add(key)
+  }
+  for (const key of keys) visit(key)
+}
+
+function collectMarkers(value: unknown): { refs: string[]; env: string[] } {
+  const result = { refs: [] as string[], env: [] as string[] }
+  const visit = (item: unknown): void => {
+    if (Array.isArray(item)) return item.forEach(visit)
+    if (!item || typeof item !== 'object') return
+    const record = item as Record<string, unknown>
+    if (typeof record.$ref === 'string') result.refs.push(record.$ref)
+    else if (typeof record.$env === 'string') result.env.push(record.$env)
+    else Object.values(record).forEach(visit)
+  }
+  visit(value)
+  return result
 }
 
 export async function validateWorkspace(options: {

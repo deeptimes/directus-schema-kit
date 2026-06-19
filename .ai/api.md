@@ -22,3 +22,13 @@ dsk plan [--module <id>] [--format text|json]
 ```bash
 dsk apply [--module <id>] [--dry-run] [--format text|json]
 ```
+
+## Seed、Resources、Clear
+
+```bash
+dsk seed [path] [--dry-run|--plan]
+dsk resources apply [--dry-run] [--confirm-destructive]
+dsk clear --module <id> [--confirm --scope <id>]
+```
+
+Seed 返回版本化 create/update/unchanged 计数。Resource Sync 返回 create/update/unchanged/delete/conflict 操作；delete 默认阻断。Clear 返回 planned/success/blocked/failed，并逐项报告完成和失败。

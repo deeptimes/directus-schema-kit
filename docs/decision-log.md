@@ -14,3 +14,10 @@
 - 更新请求按 Plan change 生成最小 PATCH，不发送完整资源对象。
 - 写入串行执行；失败后停止并保留部分成功报告，不宣称事务回滚。
 - Plan 摘要必须与 Manifest 摘要一致。
+
+## 2026-06-19：危险删除使用独立授权路径
+
+- 普通 Schema apply 永不删除资源。
+- 系统资源删除必须由 DSL 显式声明并提供 `--confirm-destructive`。
+- Collection clear 使用独立命令，真实删除要求 `--module`、`--confirm` 和相同值的 `--scope`。
+- 系统资源依赖按 `$ref` 拓扑排序，不依赖文件顺序；缺失、循环引用在写入前阻断。

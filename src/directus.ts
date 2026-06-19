@@ -20,6 +20,22 @@ export class DirectusReader {
     return { collections, fields, relations }
   }
 
+  async listItems(collection: string, options: { fields?: string[]; limit?: number; offset?: number; filter?: Record<string, unknown> } = {}): Promise<Array<Record<string, unknown>>> {
+    const params = new URLSearchParams()
+    params.set('fields', (options.fields ?? ['*']).join(','))
+    params.set('limit', String(options.limit ?? 100))
+    params.set('offset', String(options.offset ?? 0))
+    for (const [field, value] of Object.entries(options.filter ?? {})) {
+      if (value === null) params.set(`filter[${field}][_null]`, 'true')
+      else params.set(`filter[${field}][_eq]`, String(value))
+    }
+    return this.get<Array<Record<string, unknown>>>(`/items/${encodeURIComponent(collection)}?${params}`)
+  }
+
+  async listSystemResource(endpoint: string): Promise<Array<Record<string, unknown>>> {
+    return this.get<Array<Record<string, unknown>>>(`/${endpoint}?limit=-1`)
+  }
+
   private async get<T>(pathname: string): Promise<T> {
     let response: Response
     try {
@@ -77,20 +93,52 @@ export class DirectusWriter {
     return this.request('/relations', 'POST', payload)
   }
 
-  private async request(pathname: string, method: 'POST' | 'PATCH', body: unknown): Promise<void> {
+  createItem(collection: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return this.request<Record<string, unknown>>(`/items/${encodeURIComponent(collection)}`, 'POST', data)
+  }
+
+  updateItem(collection: string, id: string | number, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return this.request<Record<string, unknown>>(`/items/${encodeURIComponent(collection)}/${encodeURIComponent(String(id))}`, 'PATCH', data)
+  }
+
+  createSystemResource(endpoint: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return this.request<Record<string, unknown>>(`/${endpoint}`, 'POST', data)
+  }
+
+  updateSystemResource(endpoint: string, id: string | number, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return this.request<Record<string, unknown>>(`/${endpoint}/${encodeURIComponent(String(id))}`, 'PATCH', data)
+  }
+
+  deleteSystemResource(endpoint: string, id: string | number): Promise<void> {
+    return this.request<void>(`/${endpoint}/${encodeURIComponent(String(id))}`, 'DELETE')
+  }
+
+  deleteField(collection: string, field: string): Promise<void> {
+    return this.request<void>(`/fields/${encodeURIComponent(collection)}/${encodeURIComponent(field)}`, 'DELETE')
+  }
+
+  deleteCollection(collection: string): Promise<void> {
+    return this.request<void>(`/collections/${encodeURIComponent(collection)}`, 'DELETE')
+  }
+
+  private async request<T = void>(pathname: string, method: 'POST' | 'PATCH' | 'DELETE', body?: unknown): Promise<T> {
     let lastError: unknown
     for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
       try {
         const response = await this.fetcher(`${this.url}${pathname}`, {
           method,
           headers: { 'Content-Type': 'application/json', ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}) },
-          body: JSON.stringify(body),
+          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
           signal: AbortSignal.timeout(this.timeoutMs),
         })
-        if (response.ok) return
+        if (response.ok) {
+          if (response.status === 204) return undefined as T
+          const payload = await response.json() as { data: T }
+          return payload.data
+        }
         const message = await safeResponseMessage(response)
         const error = new Error(`${method} ${pathname}: HTTP ${response.status}${message ? ` - ${redact(message, this.token)}` : ''}`)
-        if (!isRetryableStatus(response.status) || attempt === this.maxAttempts) throw error
+        if (method === 'DELETE' || !isRetryableStatus(response.status) || attempt === this.maxAttempts) throw error
         await this.sleeper(retryDelay(response, attempt))
       } catch (error) {
         lastError = error
