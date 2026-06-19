@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deeptimes.dev/dsk/seed.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "collection", "upsertBy", "items"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "collection": { "type": "string", "minLength": 1 },
+    "upsertBy": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+    "defaults": { "type": "object" },
+    "refs": { "type": "object" },
+    "items": { "type": "array", "items": { "type": "object" } }
+  }
+}

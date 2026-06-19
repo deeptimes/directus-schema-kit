@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deeptimes.dev/dsk/manifest.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["manifestVersion", "generator", "source", "modules", "collections", "fields", "relations", "resources"],
+  "properties": {
+    "manifestVersion": { "const": 1 },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": { "name": { "type": "string" }, "version": { "type": "string" } }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "digest", "files"],
+      "properties": {
+        "algorithm": { "const": "sha256" },
+        "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "files": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "modules": { "type": "array", "items": { "type": "object" } },
+    "collections": { "type": "array", "items": { "type": "object" } },
+    "fields": { "type": "array", "items": { "type": "object" } },
+    "relations": { "type": "array", "items": { "type": "object" } },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["folders", "roles", "permissions", "flows", "dashboards", "presets"],
+      "properties": {
+        "folders": { "type": "array" },
+        "roles": { "type": "array" },
+        "permissions": { "type": "array" },
+        "flows": { "type": "array" },
+        "dashboards": { "type": "array" },
+        "presets": { "type": "array" }
+      }
+    }
+  }
+}

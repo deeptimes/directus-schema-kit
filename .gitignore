@@ -1,0 +1,14 @@
+.DS_Store
+node_modules/
+.old/
+dist/
+target/
+temp
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
