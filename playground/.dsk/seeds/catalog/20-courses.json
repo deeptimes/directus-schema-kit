@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "collection": "courses",
+  "upsertBy": ["slug"],
+  "defaults": {
+    "status": "published",
+    "is_featured": false,
+    "sales_count": 0
+  },
+  "refs": {
+    "category": {
+      "collection": "course_categories",
+      "field": "slug",
+      "from": "category_slug"
+    }
+  },
+  "items": [
+    {
+      "slug": "typescript-production-practice",
+      "title": "TypeScript 生产级工程实践",
+      "subtitle": "从严格类型到可维护架构",
+      "description": "通过一个完整项目掌握 TypeScript 严格模式、模块边界、测试和发布流程。",
+      "category_slug": "software-development",
+      "level": "intermediate",
+      "duration_minutes": 360,
+      "price": 199,
+      "original_price": 299,
+      "is_featured": true,
+      "published_at": "2026-06-01T02:00:00.000Z",
+      "sort": 10,
+      "metadata": {
+        "language": "zh-CN",
+        "certificate": true,
+        "tags": ["TypeScript", "Node.js", "工程化"]
+      }
+    },
+    {
+      "slug": "ai-product-from-zero",
+      "title": "AI 产品从 0 到 1",
+      "subtitle": "需求验证、原型与效果评估",
+      "description": "围绕真实 AI 产品案例完成需求分析、技术验证、评测和上线设计。",
+      "category_slug": "data-ai",
+      "level": "beginner",
+      "duration_minutes": 240,
+      "price": 149,
+      "original_price": 199,
+      "published_at": "2026-06-10T02:00:00.000Z",
+      "sort": 20,
+      "metadata": {
+        "language": "zh-CN",
+        "certificate": false,
+        "tags": ["AI", "产品经理", "评测"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "name": "dsk-online-course-playground",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bootstrap": "directus bootstrap",
+    "predev": "directus bootstrap",
+    "dev": "directus start",
+    "dsk": "dsk",
+    "schema:build": "dsk build",
+    "schema:validate": "dsk validate",
+    "typecheck": "tsc --noEmit",
+    "schema:plan": "dsk plan",
+    "schema:apply": "dsk apply",
+    "schema:seed": "dsk seed"
+  },
+  "dependencies": {
+    "directus": "11.17.4"
+  },
+  "devDependencies": {
+    "@deeptimes/directus-schema-kit": "file:..",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@10.12.1",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "argon2",
+      "isolated-vm",
+      "sharp",
+      "sqlite3"
+    ]
+  }
+}

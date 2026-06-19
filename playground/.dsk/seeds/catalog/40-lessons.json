@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "collection": "course_lessons",
+  "upsertBy": ["slug"],
+  "defaults": {
+    "status": "published",
+    "attachments": []
+  },
+  "refs": {
+    "chapter": {
+      "collection": "course_chapters",
+      "field": "slug",
+      "from": "chapter_slug"
+    }
+  },
+  "items": [
+    {
+      "slug": "ts-strict-mode",
+      "title": "开启并理解 strict 模式",
+      "chapter_slug": "ts-foundations",
+      "content": "理解严格模式各项检查，以及它们如何提前暴露缺陷。",
+      "video_url": "https://example.com/videos/ts-strict-mode",
+      "duration_seconds": 1320,
+      "is_free": true,
+      "sort": 10
+    },
+    {
+      "slug": "ts-domain-types",
+      "title": "为领域模型设计类型",
+      "chapter_slug": "ts-foundations",
+      "content": "使用判别联合、品牌类型和不可变数据表达业务约束。",
+      "video_url": "https://example.com/videos/ts-domain-types",
+      "duration_seconds": 1680,
+      "is_free": false,
+      "sort": 20
+    },
+    {
+      "slug": "ts-module-boundaries",
+      "title": "建立模块边界",
+      "chapter_slug": "ts-architecture",
+      "content": "通过公开 API、依赖规则和测试保持模块内聚。",
+      "video_url": "https://example.com/videos/ts-module-boundaries",
+      "duration_seconds": 1800,
+      "is_free": false,
+      "sort": 10
+    },
+    {
+      "slug": "ai-problem-framing",
+      "title": "判断问题是否适合 AI",
+      "chapter_slug": "ai-product-validation",
+      "content": "从价值、数据、风险和评测成本四个维度判断方案可行性。",
+      "video_url": "https://example.com/videos/ai-problem-framing",
+      "duration_seconds": 1440,
+      "is_free": true,
+      "sort": 10
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "collection": "course_chapters",
+  "upsertBy": ["slug"],
+  "defaults": {
+    "status": "published"
+  },
+  "refs": {
+    "course": {
+      "collection": "courses",
+      "field": "slug",
+      "from": "course_slug"
+    }
+  },
+  "items": [
+    {
+      "slug": "ts-foundations",
+      "title": "严格模式与类型基础",
+      "summary": "建立生产项目需要的类型安全基线。",
+      "course_slug": "typescript-production-practice",
+      "sort": 10
+    },
+    {
+      "slug": "ts-architecture",
+      "title": "模块边界与架构",
+      "summary": "使用类型和模块系统约束依赖方向。",
+      "course_slug": "typescript-production-practice",
+      "sort": 20
+    },
+    {
+      "slug": "ai-product-validation",
+      "title": "问题定义与需求验证",
+      "summary": "确认 AI 是否是正确的解法，并定义可评测目标。",
+      "course_slug": "ai-product-from-zero",
+      "sort": 10
+    }
+  ]
+}

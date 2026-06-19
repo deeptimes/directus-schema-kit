@@ -1,5 +1,6 @@
 .DS_Store
 node_modules/
+.pnpm-store/
 .old/
 dist/
 target/
@@ -13,3 +14,11 @@ temp
 # Logs
 *.log
 .VSCodeCounter
+
+# Playground Directus runtime data
+playground/database/*
+!playground/database/.gitkeep
+playground/uploads/*
+!playground/uploads/.gitkeep
+playground/extensions/*
+!playground/extensions/.gitkeep
