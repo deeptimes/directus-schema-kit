@@ -17,9 +17,9 @@ export default defineModule({
       order: 10,
       displayTemplate: '{{name}}',
       fields: [
+        field.sort(),
         ...field.audit(),
         field.status(),
-        field.sort(),
         field.string('slug', { label: '分类标识', required: true, unique: true, width: 'half' }),
         field.string('name', { label: '分类名称', required: true, width: 'half' }),
         field.string('icon', { label: '图标', width: 'half' }),
@@ -34,8 +34,9 @@ export default defineModule({
       order: 20,
       displayTemplate: '{{title}}',
       fields: [
-        field.status(),
         field.sort(),
+        ...field.audit(),
+        field.status(),
         field.string('slug', { label: '课程标识', required: true, unique: true, width: 'half' }),
         field.string('title', { label: '课程名称', required: true, width: 'half' }),
         field.string('subtitle', { label: '副标题' }),
@@ -65,7 +66,6 @@ export default defineModule({
         field.integer('sales_count', { label: '销量', defaultValue: 0, readonly: true, width: 'half' }),
         field.dateTime('published_at', { label: '发布时间', width: 'half' }),
         field.json('metadata', { label: '扩展信息', note: '用于测试 JSON 字段和可扩展课程属性。' }),
-        ...field.audit(),
       ],
     }),
     collection({
@@ -76,8 +76,9 @@ export default defineModule({
       order: 30,
       displayTemplate: '{{title}}',
       fields: [
-        field.status(),
         field.sort(),
+        ...field.audit(),
+        field.status(),
         field.string('slug', { label: '章节标识', required: true, unique: true, width: 'half' }),
         field.string('title', { label: '章节名称', required: true, width: 'half' }),
         field.m2o('course', {
@@ -85,7 +86,6 @@ export default defineModule({
           onDelete: 'CASCADE', displayTemplate: '{{title}}',
         }),
         field.text('summary', { label: '章节简介' }),
-        ...field.audit(),
       ],
     }),
     collection({
@@ -96,8 +96,9 @@ export default defineModule({
       order: 40,
       displayTemplate: '{{title}}',
       fields: [
-        field.status(),
         field.sort(),
+        ...field.audit(),
+        field.status(),
         field.string('slug', { label: '课时标识', required: true, unique: true, width: 'half' }),
         field.string('title', { label: '课时名称', required: true, width: 'half' }),
         field.m2o('chapter', {
@@ -109,7 +110,6 @@ export default defineModule({
         field.integer('duration_seconds', { label: '时长（秒）', required: true, defaultValue: 0, width: 'half' }),
         field.boolean('is_free', { label: '免费试看', defaultValue: false, width: 'half' }),
         field.json('attachments', { label: '课时附件' }),
-        ...field.audit(),
       ],
     }),
   ],

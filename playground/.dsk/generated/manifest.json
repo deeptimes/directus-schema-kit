@@ -144,7 +144,7 @@
         "hidden": true,
         "interface": "input",
         "readonly": true,
-        "required": true,
+        "required": false,
         "sort": 1,
         "special": [
           "uuid"
@@ -164,6 +164,30 @@
         "is_unique": true
       },
       "type": "uuid"
+    },
+    {
+      "collection": "course_categories",
+      "field": "sort",
+      "meta": {
+        "hidden": true,
+        "interface": "input",
+        "readonly": false,
+        "required": false,
+        "translations": [
+          {
+            "language": "zh-CN",
+            "translation": "排序"
+          }
+        ],
+        "width": "half"
+      },
+      "module": "catalog",
+      "schema": {
+        "default_value": null,
+        "is_nullable": true,
+        "is_unique": false
+      },
+      "type": "integer"
     },
     {
       "collection": "course_categories",
@@ -322,30 +346,6 @@
     },
     {
       "collection": "course_categories",
-      "field": "sort",
-      "meta": {
-        "hidden": true,
-        "interface": "input",
-        "readonly": false,
-        "required": false,
-        "translations": [
-          {
-            "language": "zh-CN",
-            "translation": "排序"
-          }
-        ],
-        "width": "half"
-      },
-      "module": "catalog",
-      "schema": {
-        "default_value": null,
-        "is_nullable": true,
-        "is_unique": false
-      },
-      "type": "integer"
-    },
-    {
-      "collection": "course_categories",
       "field": "slug",
       "meta": {
         "hidden": false,
@@ -450,7 +450,7 @@
         "hidden": true,
         "interface": "input",
         "readonly": true,
-        "required": true,
+        "required": false,
         "sort": 1,
         "special": [
           "uuid"
@@ -470,6 +470,140 @@
         "is_unique": true
       },
       "type": "uuid"
+    },
+    {
+      "collection": "courses",
+      "field": "sort",
+      "meta": {
+        "hidden": true,
+        "interface": "input",
+        "readonly": false,
+        "required": false,
+        "translations": [
+          {
+            "language": "zh-CN",
+            "translation": "排序"
+          }
+        ],
+        "width": "half"
+      },
+      "module": "catalog",
+      "schema": {
+        "default_value": null,
+        "is_nullable": true,
+        "is_unique": false
+      },
+      "type": "integer"
+    },
+    {
+      "collection": "courses",
+      "field": "user_created",
+      "meta": {
+        "display": "related-values",
+        "hidden": true,
+        "interface": "select-dropdown-m2o",
+        "readonly": true,
+        "required": false,
+        "special": [
+          "m2o"
+        ],
+        "translations": [
+          {
+            "language": "zh-CN",
+            "translation": "创建用户"
+          }
+        ],
+        "width": "half"
+      },
+      "module": "catalog",
+      "schema": {
+        "default_value": null,
+        "is_nullable": true,
+        "is_unique": false
+      },
+      "type": "uuid"
+    },
+    {
+      "collection": "courses",
+      "field": "date_created",
+      "meta": {
+        "hidden": true,
+        "interface": "datetime",
+        "readonly": true,
+        "required": false,
+        "special": [
+          "date-created"
+        ],
+        "translations": [
+          {
+            "language": "zh-CN",
+            "translation": "创建时间"
+          }
+        ],
+        "width": "half"
+      },
+      "module": "catalog",
+      "schema": {
+        "default_value": null,
+        "is_nullable": true,
+        "is_unique": false
+      },
+      "type": "dateTime"
+    },
+    {
+      "collection": "courses",
+      "field": "user_updated",
+      "meta": {
+        "display": "related-values",
+        "hidden": true,
+        "interface": "select-dropdown-m2o",
+        "readonly": true,
+        "required": false,
+        "special": [
+          "m2o"
+        ],
+        "translations": [
+          {
+            "language": "zh-CN",
+            "translation": "更新用户"
+          }
+        ],
+        "width": "half"
+      },
+      "module": "catalog",
+      "schema": {
+        "default_value": null,
+        "is_nullable": true,
+        "is_unique": false
+      },
+      "type": "uuid"
+    },
+    {
+      "collection": "courses",
+      "field": "date_updated",
+      "meta": {
+        "hidden": true,
+        "interface": "datetime",
+        "readonly": true,
+        "required": false,
+        "special": [
+          "date-updated"
+        ],
+        "translations": [
+          {
+            "language": "zh-CN",
+            "translation": "更新时间"
+          }
+        ],
+        "width": "half"
+      },
+      "module": "catalog",
+      "schema": {
+        "default_value": null,
+        "is_nullable": true,
+        "is_unique": false
+      },
+      "type": "dateTime"
     },
     {
       "collection": "courses",
@@ -515,30 +649,6 @@
         "max_length": 255
       },
       "type": "string"
-    },
-    {
-      "collection": "courses",
-      "field": "sort",
-      "meta": {
-        "hidden": true,
-        "interface": "input",
-        "readonly": false,
-        "required": false,
-        "translations": [
-          {
-            "language": "zh-CN",
-            "translation": "排序"
-          }
-        ],
-        "width": "half"
-      },
-      "module": "catalog",
-      "schema": {
-        "default_value": null,
-        "is_nullable": true,
-        "is_unique": false
-      },
-      "type": "integer"
     },
     {
       "collection": "courses",
@@ -942,7 +1052,59 @@
       "type": "json"
     },
     {
-      "collection": "courses",
+      "collection": "course_chapters",
+      "field": "id",
+      "meta": {
+        "hidden": true,
+        "interface": "input",
+        "readonly": true,
+        "required": false,
+        "sort": 1,
+        "special": [
+          "uuid"
+        ],
+        "translations": [
+          {
+            "language": "en-US",
+            "translation": "ID"
+          }
+        ],
+        "width": "half"
+      },
+      "module": "catalog",
+      "schema": {
+        "is_nullable": false,
+        "is_primary_key": true,
+        "is_unique": true
+      },
+      "type": "uuid"
+    },
+    {
+      "collection": "course_chapters",
+      "field": "sort",
+      "meta": {
+        "hidden": true,
+        "interface": "input",
+        "readonly": false,
+        "required": false,
+        "translations": [
+          {
+            "language": "zh-CN",
+            "translation": "排序"
+          }
+        ],
+        "width": "half"
+      },
+      "module": "catalog",
+      "schema": {
+        "default_value": null,
+        "is_nullable": true,
+        "is_unique": false
+      },
+      "type": "integer"
+    },
+    {
+      "collection": "course_chapters",
       "field": "user_created",
       "meta": {
         "display": "related-values",
@@ -970,7 +1132,7 @@
       "type": "uuid"
     },
     {
-      "collection": "courses",
+      "collection": "course_chapters",
       "field": "date_created",
       "meta": {
         "hidden": true,
@@ -997,7 +1159,7 @@
       "type": "dateTime"
     },
     {
-      "collection": "courses",
+      "collection": "course_chapters",
       "field": "user_updated",
       "meta": {
         "display": "related-values",
@@ -1025,7 +1187,7 @@
       "type": "uuid"
     },
     {
-      "collection": "courses",
+      "collection": "course_chapters",
       "field": "date_updated",
       "meta": {
         "hidden": true,
@@ -1050,34 +1212,6 @@
         "is_unique": false
       },
       "type": "dateTime"
-    },
-    {
-      "collection": "course_chapters",
-      "field": "id",
-      "meta": {
-        "hidden": true,
-        "interface": "input",
-        "readonly": true,
-        "required": true,
-        "sort": 1,
-        "special": [
-          "uuid"
-        ],
-        "translations": [
-          {
-            "language": "en-US",
-            "translation": "ID"
-          }
-        ],
-        "width": "half"
-      },
-      "module": "catalog",
-      "schema": {
-        "is_nullable": false,
-        "is_primary_key": true,
-        "is_unique": true
-      },
-      "type": "uuid"
     },
     {
       "collection": "course_chapters",
@@ -1123,30 +1257,6 @@
         "max_length": 255
       },
       "type": "string"
-    },
-    {
-      "collection": "course_chapters",
-      "field": "sort",
-      "meta": {
-        "hidden": true,
-        "interface": "input",
-        "readonly": false,
-        "required": false,
-        "translations": [
-          {
-            "language": "zh-CN",
-            "translation": "排序"
-          }
-        ],
-        "width": "half"
-      },
-      "module": "catalog",
-      "schema": {
-        "default_value": null,
-        "is_nullable": true,
-        "is_unique": false
-      },
-      "type": "integer"
     },
     {
       "collection": "course_chapters",
@@ -1254,7 +1364,59 @@
       "type": "text"
     },
     {
-      "collection": "course_chapters",
+      "collection": "course_lessons",
+      "field": "id",
+      "meta": {
+        "hidden": true,
+        "interface": "input",
+        "readonly": true,
+        "required": false,
+        "sort": 1,
+        "special": [
+          "uuid"
+        ],
+        "translations": [
+          {
+            "language": "en-US",
+            "translation": "ID"
+          }
+        ],
+        "width": "half"
+      },
+      "module": "catalog",
+      "schema": {
+        "is_nullable": false,
+        "is_primary_key": true,
+        "is_unique": true
+      },
+      "type": "uuid"
+    },
+    {
+      "collection": "course_lessons",
+      "field": "sort",
+      "meta": {
+        "hidden": true,
+        "interface": "input",
+        "readonly": false,
+        "required": false,
+        "translations": [
+          {
+            "language": "zh-CN",
+            "translation": "排序"
+          }
+        ],
+        "width": "half"
+      },
+      "module": "catalog",
+      "schema": {
+        "default_value": null,
+        "is_nullable": true,
+        "is_unique": false
+      },
+      "type": "integer"
+    },
+    {
+      "collection": "course_lessons",
       "field": "user_created",
       "meta": {
         "display": "related-values",
@@ -1282,7 +1444,7 @@
       "type": "uuid"
     },
     {
-      "collection": "course_chapters",
+      "collection": "course_lessons",
       "field": "date_created",
       "meta": {
         "hidden": true,
@@ -1309,7 +1471,7 @@
       "type": "dateTime"
     },
     {
-      "collection": "course_chapters",
+      "collection": "course_lessons",
       "field": "user_updated",
       "meta": {
         "display": "related-values",
@@ -1337,7 +1499,7 @@
       "type": "uuid"
     },
     {
-      "collection": "course_chapters",
+      "collection": "course_lessons",
       "field": "date_updated",
       "meta": {
         "hidden": true,
@@ -1362,34 +1524,6 @@
         "is_unique": false
       },
       "type": "dateTime"
-    },
-    {
-      "collection": "course_lessons",
-      "field": "id",
-      "meta": {
-        "hidden": true,
-        "interface": "input",
-        "readonly": true,
-        "required": true,
-        "sort": 1,
-        "special": [
-          "uuid"
-        ],
-        "translations": [
-          {
-            "language": "en-US",
-            "translation": "ID"
-          }
-        ],
-        "width": "half"
-      },
-      "module": "catalog",
-      "schema": {
-        "is_nullable": false,
-        "is_primary_key": true,
-        "is_unique": true
-      },
-      "type": "uuid"
     },
     {
       "collection": "course_lessons",
@@ -1435,30 +1569,6 @@
         "max_length": 255
       },
       "type": "string"
-    },
-    {
-      "collection": "course_lessons",
-      "field": "sort",
-      "meta": {
-        "hidden": true,
-        "interface": "input",
-        "readonly": false,
-        "required": false,
-        "translations": [
-          {
-            "language": "zh-CN",
-            "translation": "排序"
-          }
-        ],
-        "width": "half"
-      },
-      "module": "catalog",
-      "schema": {
-        "default_value": null,
-        "is_nullable": true,
-        "is_unique": false
-      },
-      "type": "integer"
     },
     {
       "collection": "course_lessons",
@@ -1661,116 +1771,6 @@
         "is_unique": false
       },
       "type": "json"
-    },
-    {
-      "collection": "course_lessons",
-      "field": "user_created",
-      "meta": {
-        "display": "related-values",
-        "hidden": true,
-        "interface": "select-dropdown-m2o",
-        "readonly": true,
-        "required": false,
-        "special": [
-          "m2o"
-        ],
-        "translations": [
-          {
-            "language": "zh-CN",
-            "translation": "创建用户"
-          }
-        ],
-        "width": "half"
-      },
-      "module": "catalog",
-      "schema": {
-        "default_value": null,
-        "is_nullable": true,
-        "is_unique": false
-      },
-      "type": "uuid"
-    },
-    {
-      "collection": "course_lessons",
-      "field": "date_created",
-      "meta": {
-        "hidden": true,
-        "interface": "datetime",
-        "readonly": true,
-        "required": false,
-        "special": [
-          "date-created"
-        ],
-        "translations": [
-          {
-            "language": "zh-CN",
-            "translation": "创建时间"
-          }
-        ],
-        "width": "half"
-      },
-      "module": "catalog",
-      "schema": {
-        "default_value": null,
-        "is_nullable": true,
-        "is_unique": false
-      },
-      "type": "dateTime"
-    },
-    {
-      "collection": "course_lessons",
-      "field": "user_updated",
-      "meta": {
-        "display": "related-values",
-        "hidden": true,
-        "interface": "select-dropdown-m2o",
-        "readonly": true,
-        "required": false,
-        "special": [
-          "m2o"
-        ],
-        "translations": [
-          {
-            "language": "zh-CN",
-            "translation": "更新用户"
-          }
-        ],
-        "width": "half"
-      },
-      "module": "catalog",
-      "schema": {
-        "default_value": null,
-        "is_nullable": true,
-        "is_unique": false
-      },
-      "type": "uuid"
-    },
-    {
-      "collection": "course_lessons",
-      "field": "date_updated",
-      "meta": {
-        "hidden": true,
-        "interface": "datetime",
-        "readonly": true,
-        "required": false,
-        "special": [
-          "date-updated"
-        ],
-        "translations": [
-          {
-            "language": "zh-CN",
-            "translation": "更新时间"
-          }
-        ],
-        "width": "half"
-      },
-      "module": "catalog",
-      "schema": {
-        "default_value": null,
-        "is_nullable": true,
-        "is_unique": false
-      },
-      "type": "dateTime"
     }
   ],
   "generator": {
@@ -1815,6 +1815,24 @@
     },
     {
       "collection": "courses",
+      "field": "user_created",
+      "module": "catalog",
+      "related_collection": "directus_users",
+      "schema": {
+        "on_delete": "SET NULL"
+      }
+    },
+    {
+      "collection": "courses",
+      "field": "user_updated",
+      "module": "catalog",
+      "related_collection": "directus_users",
+      "schema": {
+        "on_delete": "SET NULL"
+      }
+    },
+    {
+      "collection": "courses",
       "field": "category",
       "module": "catalog",
       "related_collection": "course_categories",
@@ -1832,7 +1850,7 @@
       }
     },
     {
-      "collection": "courses",
+      "collection": "course_chapters",
       "field": "user_created",
       "module": "catalog",
       "related_collection": "directus_users",
@@ -1841,7 +1859,7 @@
       }
     },
     {
-      "collection": "courses",
+      "collection": "course_chapters",
       "field": "user_updated",
       "module": "catalog",
       "related_collection": "directus_users",
@@ -1859,7 +1877,7 @@
       }
     },
     {
-      "collection": "course_chapters",
+      "collection": "course_lessons",
       "field": "user_created",
       "module": "catalog",
       "related_collection": "directus_users",
@@ -1868,7 +1886,7 @@
       }
     },
     {
-      "collection": "course_chapters",
+      "collection": "course_lessons",
       "field": "user_updated",
       "module": "catalog",
       "related_collection": "directus_users",
@@ -1884,24 +1902,6 @@
       "schema": {
         "on_delete": "CASCADE"
       }
-    },
-    {
-      "collection": "course_lessons",
-      "field": "user_created",
-      "module": "catalog",
-      "related_collection": "directus_users",
-      "schema": {
-        "on_delete": "SET NULL"
-      }
-    },
-    {
-      "collection": "course_lessons",
-      "field": "user_updated",
-      "module": "catalog",
-      "related_collection": "directus_users",
-      "schema": {
-        "on_delete": "SET NULL"
-      }
     }
   ],
   "resources": {
@@ -1914,7 +1914,7 @@
   },
   "source": {
     "algorithm": "sha256",
-    "digest": "86a89f9704c980b422cc0acef03603358d01e7cde4e1e3d6da1087b9d2d3f4f1",
+    "digest": "1713466eb12e1289dcac4436bd66caddfe6bd45a50af224833b1d31b34b7f8e2",
     "files": [
       "dsk/resources/access.ts",
       "dsk/resources/folders.ts",

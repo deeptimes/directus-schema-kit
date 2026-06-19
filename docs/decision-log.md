@@ -19,7 +19,8 @@
 
 - 普通 Schema apply 永不删除资源。
 - 系统资源删除必须由 DSL 显式声明并提供 `--confirm-destructive`。
-- Collection clear 使用独立命令，真实删除要求 `--module`、`--confirm` 和相同值的 `--scope`。
+- Collection clear 使用独立命令。人工操作使用 `clear <module>`，在同一执行上下文中先展示计划，再通过默认否定的 `y/N` 确认；CI/脚本真实删除仍要求 `--confirm` 和与模块相同的 `--scope`。
+- 旧的 `clear --module <id>` 暂时保留兼容；位置参数是新的标准入口，冲突值不允许执行。
 - 系统资源依赖按 `$ref` 拓扑排序，不依赖文件顺序；缺失、循环引用在写入前阻断。
 
 ## 2026-06-19：收紧 V1 产品范围

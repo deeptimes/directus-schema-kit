@@ -56,6 +56,30 @@ test('完整确认后只删除模块范围', async () => {
   assert.equal(writer.calls.length, 5)
 })
 
+test('交互授权基于已生成计划执行，拒绝授权时零删除', async () => {
+  const { manifest, state } = fixture()
+  const writer = new MemoryClear()
+  let plannedResources: string[] = []
+  const accepted = await executeClear({
+    manifest, state, module: 'content', writer,
+    authorize: async (operations) => {
+      plannedResources = operations.map((item) => item.resource)
+      return true
+    },
+  })
+  assert.equal(accepted.status, 'success')
+  assert.deepEqual(plannedResources, accepted.completed.map((item) => item.resource))
+
+  const rejectedWriter = new MemoryClear()
+  const rejected = await executeClear({
+    manifest, state, module: 'content', writer: rejectedWriter,
+    authorize: async () => false,
+  })
+  assert.equal(rejected.status, 'planned')
+  assert.match(rejected.reason ?? '', /用户取消/)
+  assert.deepEqual(rejectedWriter.calls, [])
+})
+
 test('系统集合无条件拒绝', () => {
   const { manifest, state } = fixture()
   manifest.modules[0]!.cleanupCollections.push('directus_users')

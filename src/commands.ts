@@ -14,7 +14,7 @@ import { loadSeedBatches, runSeeds } from './seed.js'
 import { syncResources } from './resources.js'
 import { discoverDirectusProject } from './project.js'
 import { validateManifest, validateWorkspace } from './validate.js'
-import type { ApplyResult, ClearResult, DoctorResult, Manifest, Plan, ResourceSyncResult, SeedResult } from './types.js'
+import type { ApplyResult, ClearOperation, ClearResult, DoctorResult, Manifest, Plan, ResourceSyncResult, SeedResult } from './types.js'
 
 export interface CommandContext {
   cwd: string
@@ -103,7 +103,12 @@ export async function resourcesApplyCommand(context: CommandContext, options: { 
   })
 }
 
-export async function clearCommand(context: CommandContext, options: { module: string; confirm?: boolean; scope?: string }): Promise<ClearResult> {
+export async function clearCommand(context: CommandContext, options: {
+  module: string
+  confirm?: boolean
+  scope?: string
+  authorize?: (operations: readonly ClearOperation[]) => Promise<boolean>
+}): Promise<ClearResult> {
   const project = discoverDirectusProject(context.cwd)
   const loaded = loadConfig(project.root, context.configPath)
   const validated = await validateWorkspace({ config: loaded.config, configDirectory: loaded.directory, projectRoot: project.root })
@@ -118,6 +123,7 @@ export async function clearCommand(context: CommandContext, options: { module: s
     writer,
     confirm: options.confirm ?? false,
     ...(options.scope ? { scope: options.scope } : {}),
+    ...(options.authorize ? { authorize: options.authorize } : {}),
     enabled: loaded.config.safety?.clearEnabled ?? true,
   })
 }

@@ -56,6 +56,27 @@ test('UI Meta 为安全 update，字段约束和关系变化为 dangerous', () =
   assert.equal(plan.summary.dangerous, 2)
 })
 
+test('已有 UUID 主键的必填元数据可安全修正', () => {
+  const target = manifest()
+  const state: DirectusState = {
+    collections: target.collections.map((item) => ({ collection: item.collection, meta: item.meta })),
+    fields: target.fields.map((item) => ({
+      collection: item.collection,
+      field: item.field,
+      type: item.type,
+      meta: item.schema?.is_primary_key ? { ...item.meta, required: true } : item.meta,
+      schema: item.schema,
+    })),
+    relations: target.relations.map((item) => ({ ...item })),
+  }
+
+  const plan = createPlan(target, state, 'http://localhost:8055')
+  const operation = plan.operations.find((item) => item.resource === 'authors.id')
+  assert.equal(operation?.action, 'update')
+  assert.equal(operation?.executable, true)
+  assert.deepEqual(operation?.changes, [{ path: 'meta.required', current: true, target: false }])
+})
+
 test('module filter 只保留目标模块', () => {
   const target = manifest()
   target.modules.push({ id: 'other', dependsOn: [], cleanupCollections: [], sources: [] })

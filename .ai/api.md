@@ -30,9 +30,10 @@ dsk apply [--module <id>] [--dry-run] [--format text|json]
 ```bash
 dsk seed [path] [--dry-run|--plan]
 dsk resources apply [--dry-run] [--confirm-destructive]
-dsk clear --module <id> [--confirm --scope <id>]
+dsk clear <module> [--dry-run]
+dsk clear <module> --confirm --scope <id>
 ```
 
-Seed 返回版本化 create/update/unchanged 计数。Resource Sync 返回 create/update/unchanged/delete/conflict 操作；delete 默认阻断。Clear 返回 planned/success/blocked/failed，并逐项报告完成和失败。
+Seed 返回版本化 create/update/unchanged 计数。Resource Sync 返回 create/update/unchanged/delete/conflict 操作；delete 默认阻断。Clear 返回 planned/success/blocked/failed，并逐项报告完成和失败。交互式文本终端先展示计划并以 `y/N` 确认；非交互或 JSON 输出只计划，脚本执行必须提供 `--confirm` 和匹配的 `--scope`。旧的 `--module <id>` 仅作兼容。
 
 Directus 11.17.4 权限定义需要分别声明 role、policy、access 和 permission，并通过 `$ref` 连接稳定业务键。

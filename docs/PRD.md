@@ -540,14 +540,15 @@ pnpm dsk seed
 
 | 编号 | 优先级 | 需求 |
 | --- | --- | --- |
-| CLR-01 | P0 | `clear` 默认只输出计划，真实删除必须提供 `--confirm`。 |
+| CLR-01 | P0 | 交互式终端执行 `clear <module>` 时，必须先输出完整计划，再以默认否定的 `y/N` 提示确认；仅输入 `y` 或 `yes` 才执行真实删除。 |
 | CLR-02 | P0 | 删除范围仅限目标模块显式声明的自定义集合和 cleanup allowlist。 |
 | CLR-03 | P0 | 永远拒绝删除 `directus_*` 系统集合。 |
 | CLR-04 | P0 | 根据真实关系计算先子后父的删除顺序。 |
 | CLR-05 | P0 | 输出受影响关系字段、集合和失败项。 |
-| CLR-06 | P0 | 非交互 CI 执行还需提供范围校验值，避免脚本变量错误导致误删。 |
+| CLR-06 | P0 | 非交互终端、JSON 输出和 `--dry-run` 只输出计划；CI/脚本真实执行必须同时提供 `--confirm` 和与目标模块相同的 `--scope`，避免脚本变量错误导致误删。 |
 | CLR-07 | P1 | 支持项目策略完全禁用 clear。 |
 | CLR-08 | P2 | 支持导出执行前快照引用，但不承诺自动恢复。 |
+| CLR-09 | P1 | `clear` 使用位置参数指定模块；兼容旧的 `--module <id>`，两者同时提供但值不一致时必须拒绝执行。 |
 
 ### 10.9 日志、报告与退出码
 
@@ -577,7 +578,8 @@ dsk resources apply [--dry-run] [--confirm-destructive]
 dsk seed [path] [--dry-run]
 
 # 初始化阶段危险操作
-dsk clear [--module <id>] --confirm --scope <module-id>
+dsk clear <module> [--dry-run]
+dsk clear <module> --confirm --scope <module-id>
 
 # 诊断
 dsk doctor
@@ -590,7 +592,7 @@ CLI 名称和层级在技术设计阶段可以调整，但必须保持以下语�
 - validate 不连接 Directus，也不写入。
 - plan 只连接当前项目的本地开发实例，但不写入。
 - apply 只执行 plan 中允许的安全操作。
-- clear 默认不删除，并具有双重范围确认。
+- clear 在交互式终端中先展示计划并默认拒绝执行；非交互真实删除具有双重范围确认。
 
 ## 12. 非功能需求
 
@@ -662,7 +664,7 @@ V1 发布后使用以下指标评估产品是否有效：
 9. folders、roles、policies、access、permissions、presets 和自然键 seed 可重复执行，不产生重复资源或数据。
 10. roles、policies、access、permissions、presets 均覆盖读取、差异识别、创建、更新和带显式确认的删除流程。
 11. 默认 apply 不执行字段删除、集合删除、类型变更和关系目标变更。
-12. clear 不带完整确认参数时不产生删除，并永远排除系统集合。
+12. clear 仅在交互式计划经 `y/yes` 确认，或非交互参数 `--confirm --scope <module>` 完整匹配时产生删除，并永远排除系统集合。
 13. text 与 JSON 输出均通过契约测试，token 不出现在日志中。
 14. 至少在声明支持的 Node.js、Directus 和操作系统矩阵上通过自动集成测试。
 16. 示例项目的定义已按 Schema modules、resource types 和 seed modules 拆分，不存在承担全部业务定义的单一大文件。
@@ -736,7 +738,7 @@ V3 是否实现通用回滚需根据 Directus API、数据库差异和真实需�
 | 将 Meta 更新误判为安全 | 影响后台体验或数据约束 | 使用明确白名单；未知差异默认 conflict |
 | Schema 模块之间定义冲突 | 结果不确定 | 组合阶段阻断并给出资源路径 |
 | 部分写入后失败 | 实例处于中间状态 | 预先 plan、确定性顺序、结果报告和可重试幂等设计 |
-| clear 或系统资源同步误删本地数据 | 本地开发数据丢失 | 默认展示计划、双重确认、配置禁用和系统集合硬保护 |
+| clear 或系统资源同步误删本地数据 | 本地开发数据丢失 | 默认展示计划、交互默认否定、非交互双重范围确认、配置禁用和系统集合硬保护 |
 | JSON 引用解析错误 | 写入错误资源或泄漏环境变量 | 写入前完整解析和校验；限制 `$env` 白名单；报告始终脱敏 |
 | DSL 执行不可信项目代码 | 本机安全风险 | 明确 `dsk build` 的可信代码边界；plan/apply 只消费 Manifest，不执行 DSL |
 | Manifest 与 DSL 源码不一致 | 应用过期模型 | 记录源码摘要；build check、plan 和 apply 必须检查 Manifest 新鲜度 |

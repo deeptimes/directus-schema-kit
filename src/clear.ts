@@ -34,13 +34,19 @@ export async function executeClear(options: {
   writer: ClearWriter
   confirm?: boolean
   scope?: string
+  authorize?: (operations: readonly ClearOperation[]) => Promise<boolean>
   enabled?: boolean
 }): Promise<ClearResult> {
   const operations = createClearPlan(options.manifest, options.state, options.module)
   const base = { clearVersion: 1 as const, module: options.module, operations, completed: [], failures: [] }
   if (options.enabled === false) return { ...base, dryRun: true, status: 'blocked', reason: '项目配置已禁用 clear' }
-  if (!options.confirm) return { ...base, dryRun: true, status: 'planned' }
-  if (options.scope !== options.module) return { ...base, dryRun: true, status: 'blocked', reason: '--scope 必须与 --module 完全一致' }
+  if (options.authorize) {
+    const authorized = await options.authorize(operations)
+    if (!authorized) return { ...base, dryRun: true, status: 'planned', reason: '用户取消，未执行删除' }
+  } else {
+    if (!options.confirm) return { ...base, dryRun: true, status: 'planned' }
+    if (options.scope !== options.module) return { ...base, dryRun: true, status: 'blocked', reason: '--scope 必须与目标模块完全一致' }
+  }
 
   const completed: ClearOperation[] = []
   const failures: ClearResult['failures'] = []

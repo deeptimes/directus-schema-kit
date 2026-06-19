@@ -15,7 +15,7 @@ Directus Schema Kit 是面向 Directus 本地开发项目的声明式 Schema Pro
 - `dsk apply`：全量预检后按依赖顺序执行安全 create/update，默认阻断 conflict/dangerous。
 - `dsk seed`：严格 JSON Seed，自然键 upsert、跨集合/同集合引用以及 plan/apply。
 - `dsk resources apply`：Directus 11 的 folders、roles、policies、access、permissions、presets 同步。
-- `dsk clear`：模块范围清理计划、系统集合硬保护及 `--confirm --scope` 双重确认。
+- `dsk clear`：模块范围清理计划、交互确认、系统集合硬保护及非交互 `--confirm --scope` 双重确认。
 - `--cwd`、`--config`、`--format json` 与稳定错误退出码。
 
 ## 开发
@@ -42,8 +42,9 @@ pnpm dsk seed --dry-run
 pnpm dsk seed --plan
 pnpm dsk seed
 pnpm dsk resources apply --dry-run
-pnpm dsk clear --module content
-pnpm dsk clear --module content --confirm --scope content
+pnpm dsk clear content
+pnpm dsk clear content --dry-run
+pnpm dsk clear content --confirm --scope content
 ```
 
 `build` 会执行可信的项目 TypeScript 源码；后续 `plan/apply` 执行层只允许消费 `.dsk/generated/manifest.json`。

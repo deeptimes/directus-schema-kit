@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs'
+import { createInterface } from 'node:readline/promises'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { Command } from 'commander'
@@ -125,15 +126,34 @@ resources.command('apply')
 
 program.command('clear')
   .description('规划或清理指定模块声明的自定义集合')
-  .requiredOption('--module <id>', '目标模块')
-  .option('--confirm', '执行真实删除')
+  .argument('[module]', '目标模块')
+  .option('--module <id>', '目标模块（兼容旧用法）')
+  .option('--dry-run', '只输出删除计划，不进行交互')
+  .option('--confirm', '非交互执行真实删除')
   .option('--scope <id>', '真实删除时必须与 module 完全一致')
-  .action(async (options: { module: string; confirm?: boolean; scope?: string }) => {
-    const result = await clearCommand(commandContext(), options)
+  .action(async (moduleArgument: string | undefined, options: { module?: string; dryRun?: boolean; confirm?: boolean; scope?: string }) => {
+    const moduleId = resolveClearModule(moduleArgument, options.module)
+    if (options.dryRun && (options.confirm || options.scope)) {
+      throw new DskError('--dry-run 不能与 --confirm 或 --scope 同时使用', 'CONFIG_ERROR')
+    }
+    const interactive = !options.dryRun && !options.confirm && textFormat() && process.stdin.isTTY === true && process.stdout.isTTY === true
+    let planDisplayed = false
+    const result = await clearCommand(commandContext(), {
+      module: moduleId,
+      confirm: options.confirm ?? false,
+      ...(options.scope ? { scope: options.scope } : {}),
+      ...(interactive ? {
+        authorize: async (operations) => {
+          printClearPlan(moduleId, operations)
+          planDisplayed = true
+          return confirmClear(moduleId)
+        },
+      } : {}),
+    })
     output({ command: 'clear', ok: result.status === 'planned' || result.status === 'success', ...result }, () => {
       console.log(`Clear ${result.module}：${result.status}${result.dryRun ? ' (dry-run)' : ''}`)
-      for (const item of result.operations) console.log(`  delete ${item.resourceType} ${item.resource}`)
-      if (result.reason) console.error(`阻断：${result.reason}`)
+      if (!planDisplayed) for (const item of result.operations) console.log(`  delete ${item.resourceType} ${item.resource}`)
+      if (result.reason) console.error(result.status === 'blocked' ? `阻断：${result.reason}` : result.reason)
       for (const failure of result.failures) console.error(`失败 ${failure.resource}: ${failure.message}`)
     })
     if (result.status === 'blocked') process.exitCode = 3
@@ -167,6 +187,37 @@ function commandContext(): CommandContext {
 function output(value: object, textOutput: () => void): void {
   if (program.opts<{ format: string }>().format === 'json') console.log(JSON.stringify(value))
   else textOutput()
+}
+
+function textFormat(): boolean {
+  return program.opts<{ format: string }>().format === 'text'
+}
+
+function resolveClearModule(moduleArgument?: string, moduleOption?: string): string {
+  if (moduleArgument && moduleOption && moduleArgument !== moduleOption) {
+    throw new DskError(`位置参数 ${moduleArgument} 与 --module ${moduleOption} 不一致`, 'CONFIG_ERROR')
+  }
+  const moduleId = moduleArgument ?? moduleOption
+  if (!moduleId) throw new DskError('缺少目标模块，请使用 dsk clear <module>', 'CONFIG_ERROR')
+  return moduleId
+}
+
+function printClearPlan(moduleId: string, operations: readonly { resourceType: 'field' | 'collection'; resource: string }[]): void {
+  console.log(`Clear ${moduleId} 删除计划：`)
+  for (const item of operations) console.log(`  delete ${item.resourceType} ${item.resource}`)
+  const fields = operations.filter((item) => item.resourceType === 'field').length
+  const collections = operations.length - fields
+  console.log(`汇总：${fields} 个关系字段，${collections} 个集合`)
+}
+
+async function confirmClear(moduleId: string): Promise<boolean> {
+  const prompt = createInterface({ input: process.stdin, output: process.stdout })
+  try {
+    const answer = await prompt.question(`即将清理模块 ${moduleId}，此操作无法自动恢复。是否继续？(y/N) `)
+    return /^(y|yes)$/i.test(answer.trim())
+  } finally {
+    prompt.close()
+  }
 }
 
 function exitCode(error: unknown): number {

@@ -66,7 +66,7 @@ function primaryField(type: 'uuid' | 'integer'): FieldDefinition {
   }
   return {
     field: 'id', type: 'uuid',
-    meta: { interface: 'input', special: ['uuid'], hidden: true, readonly: true, required: true, sort: 1, width: 'half', translations: [{ language: 'en-US', translation: 'ID' }] },
+    meta: { interface: 'input', special: ['uuid'], hidden: true, readonly: true, required: false, sort: 1, width: 'half', translations: [{ language: 'en-US', translation: 'ID' }] },
     schema: { is_primary_key: true, is_nullable: false, is_unique: true },
   }
 }
