@@ -1,9 +1,9 @@
 import { DskError } from './errors.js'
 import type { DeclarativeValue, ResourceDefinition, ResourceSyncOperation, ResourceSyncResult, ResourceType } from './types.js'
 
-const order: ResourceType[] = ['folders', 'roles', 'permissions', 'flows', 'dashboards', 'presets']
+const order: ResourceType[] = ['folders', 'roles', 'policies', 'access', 'permissions', 'flows', 'dashboards', 'presets']
 const endpoints: Record<ResourceType, string> = {
-  folders: 'folders', roles: 'roles', permissions: 'permissions', flows: 'flows', dashboards: 'dashboards', presets: 'presets',
+  folders: 'folders', roles: 'roles', policies: 'policies', access: 'access', permissions: 'permissions', flows: 'flows', dashboards: 'dashboards', presets: 'presets',
 }
 
 export interface ResourceReader { listSystemResource(endpoint: string): Promise<Array<Record<string, unknown>>> }
@@ -72,7 +72,7 @@ export async function syncResources(options: {
     } catch (error) {
       return {
         resourceSyncVersion: 1, dryRun: false, status: 'failed', operations, completed,
-        failure: { type: operation.type, key: operation.key, message: error instanceof Error ? error.message : String(error) },
+        failure: { type: operation.type, key: operation.key, message: formatError(error) },
       }
     }
   }
@@ -104,7 +104,7 @@ function orderedDefinitions(definitions: Record<ResourceType, ResourceDefinition
 
 function matchesDefinition(type: ResourceType, item: Record<string, unknown>, target: Record<string, unknown>): boolean {
   const keys: Record<ResourceType, string[]> = {
-    folders: ['name', 'parent'], roles: ['name'], permissions: ['policy', 'role', 'collection', 'action'],
+    folders: ['name', 'parent'], roles: ['name'], policies: ['name'], access: ['role', 'policy', 'user'], permissions: ['policy', 'collection', 'action'],
     flows: ['name'], dashboards: ['name'], presets: ['bookmark', 'collection', 'role', 'user'],
   }
   const selected = keys[type].filter((key) => Object.hasOwn(target, key))
@@ -149,4 +149,9 @@ function collectReferences(value: unknown): string[] {
     return Object.values(record).flatMap(collectReferences)
   }
   return []
+}
+
+function formatError(error: unknown): string {
+  if (error instanceof DskError) return [error.message, ...error.details].join(': ')
+  return error instanceof Error ? error.message : String(error)
 }

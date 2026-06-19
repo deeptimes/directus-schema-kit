@@ -13,7 +13,7 @@ function fixture(): { manifest: Manifest; state: DirectusState } {
         { collection: 'content_group', meta: {}, schema: null, fields: [], module: 'content' },
         { collection: 'parents', meta: {}, schema: {}, fields: [], module: 'content' },
         { collection: 'children', meta: {}, schema: {}, fields: [], module: 'content' },
-      ], fields: [], relations: [], resources: { folders: [], roles: [], permissions: [], flows: [], dashboards: [], presets: [] },
+      ], fields: [], relations: [], resources: { folders: [], roles: [], policies: [], access: [], permissions: [], flows: [], dashboards: [], presets: [] },
     },
     state: {
       collections: ['content_group', 'parents', 'children', 'legacy', 'outside'].map((collection) => ({ collection })),

@@ -196,6 +196,8 @@ directus-project/
     resources/
       folders.ts
       roles.ts
+      policies.ts
+      access.ts
       permissions.ts
       flows.ts
       dashboards.ts
@@ -284,7 +286,7 @@ export default collection({
 
 ### 8.5 Resource Definition
 
-Resource Definition（系统资源定义）描述 Directus 的 folders、roles、permissions、flows、dashboards 和 presets。每类资源具有独立类型、稳定业务键和引用解析规则，默认使用 `dsk/resources/<resource-type>.ts` 中对应的固定 DSL 定义。
+Resource Definition（系统资源定义）描述 Directus 的 folders、roles、policies、access、permissions、flows、dashboards 和 presets。Directus 11.17.4 的 permission 必须绑定 policy，role-policy 关联由 access 模型维护，因此 policies 和 access 不得省略。每类资源具有独立类型、稳定业务键和引用解析规则，默认使用 `dsk/resources/<resource-type>.ts` 中对应的固定 DSL 定义。
 
 “完整同步”是指 DSK 能读取本地实例当前状态、生成差异，并执行创建、更新和显式确认后的删除；不是指把资源发布到其他 Directus 环境。
 
@@ -527,12 +529,12 @@ pnpm dsk seed
 | --- | --- | --- |
 | SYS-01 | P0 | 支持幂等创建 Directus folders。 |
 | SYS-02 | P0 | 支持父子 folder 依赖及清晰的引用方式。 |
-| SYS-03 | P0 | 支持 roles 的完整读取、差异识别、创建、更新和受控删除。 |
-| SYS-04 | P0 | 支持 permissions 的完整读取、差异识别、创建、更新和受控删除，并可通过稳定业务键引用 role。 |
+| SYS-03 | P0 | 支持 roles、policies 和 access 关联的完整读取、差异识别、创建、更新和受控删除。 |
+| SYS-04 | P0 | 支持 permissions 的完整读取、差异识别、创建、更新和受控删除，并可通过稳定业务键引用 policy。 |
 | SYS-05 | P0 | 支持 flows 及其 operations 的完整读取、差异识别、创建、更新、依赖排序和受控删除。 |
 | SYS-06 | P0 | 支持 dashboards 及其 panels 的完整读取、差异识别、创建、更新、依赖排序和受控删除。 |
 | SYS-07 | P0 | 支持 Directus presets 的完整读取、差异识别、创建、更新和受控删除。 |
-| SYS-08 | P0 | 系统资源默认按 `folders.ts`、`roles.ts`、`permissions.ts`、`flows.ts`、`dashboards.ts`、`presets.ts` 分类；体量较大时允许配置多个同类型 DSL 文件。 |
+| SYS-08 | P0 | 系统资源默认按 `folders.ts`、`roles.ts`、`policies.ts`、`access.ts`、`permissions.ts`、`flows.ts`、`dashboards.ts`、`presets.ts` 分类；体量较大时允许配置多个同类型 DSL 文件。 |
 | SYS-09 | P0 | 资源间引用使用稳定名称或显式 key，运行时解析本地实例 ID，不在定义中固化实例生成的 ID。 |
 | SYS-10 | P0 | 删除、覆盖敏感权限和停用 Flow 等操作必须在 plan 中单独标记；真实执行需要显式确认。 |
 | SYS-11 | P0 | Flow 中的 secret、token 等敏感配置不得写入可提交定义；通过 Directus 项目 `.env` 引用并在日志中脱敏。 |
@@ -597,8 +599,8 @@ CLI 名称和层级在技术设计阶段可以调整，但必须保持以下语�
 
 ### 12.1 兼容性
 
-- 支持仍处于维护期的 Node.js LTS 版本；具体矩阵在发布前固化。
-- Directus 兼容版本必须通过集成测试验证，不使用“理论兼容”表述。
+- 支持 Node.js 22 及以上版本。
+- 当前仅认证 Directus 11.17.4，不使用“理论兼容”表述。
 - 每次发布记录已验证的 Directus 版本范围和已知差异。
 - Linux、macOS 为 V1 必测平台；Windows 通过 CI 验证文件路径和 CLI 基本流程。
 
@@ -661,7 +663,7 @@ V1 发布后使用以下指标评估产品是否有效：
 6. validate 能发现重复定义、缺失主键、无效关系和不合法删除策略。
 7. plan 能基于本地开发实例输出 create、safe update、conflict、dangerous 和 unchanged。
 8. apply 能完成 collection groups、collections、fields、relations 和允许属性的幂等应用。
-9. folders、roles、permissions、flows、dashboards、presets 和自然键 seed 可重复执行，不产生重复资源或数据。
+9. folders、roles、policies、access、permissions、flows、dashboards、presets 和自然键 seed 可重复执行，不产生重复资源或数据。
 10. roles、permissions、flows、dashboards、presets 均覆盖读取、差异识别、创建、更新和带显式确认的删除流程。
 11. 默认 apply 不执行字段删除、集合删除、类型变更和关系目标变更。
 12. clear 不带完整确认参数时不产生删除，并永远排除系统集合。

@@ -7,7 +7,7 @@ import { buildCommand, initCommand, validateCommand } from '../src/commands.js'
 
 function project(): string {
   const directory = mkdtempSync(path.join(os.tmpdir(), 'dsk-test-'))
-  writeFileSync(path.join(directory, 'package.json'), JSON.stringify({ dependencies: { directus: '^11.0.0' } }))
+  writeFileSync(path.join(directory, 'package.json'), JSON.stringify({ dependencies: { directus: '11.17.4' } }))
   return directory
 }
 
@@ -44,4 +44,10 @@ test('init --dry-run 不写入文件', async () => {
   const result = await initCommand({ cwd, packageVersion: '0.1.0' }, true)
   assert.ok(result.created.length > 0)
   assert.throws(() => readFileSync(path.join(cwd, '.dsk/config.json')))
+})
+
+test('拒绝非 11.17.4 的 Directus 项目', async () => {
+  const cwd = mkdtempSync(path.join(os.tmpdir(), 'dsk-version-test-'))
+  writeFileSync(path.join(cwd, 'package.json'), JSON.stringify({ dependencies: { directus: '12.0.2' } }))
+  await assert.rejects(() => initCommand({ cwd, packageVersion: '0.1.0' }, true), /不支持 Directus 12\.0\.2/)
 })

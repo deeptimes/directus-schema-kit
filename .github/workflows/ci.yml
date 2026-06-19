@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  directus-integration:
+    runs-on: ubuntu-latest
+    services:
+      directus:
+        image: directus/directus:11.17.4
+        ports:
+          - 8055:8055
+        env:
+          SECRET: dsk-ci-secret-at-least-32-characters
+          ADMIN_EMAIL: admin@example.com
+          ADMIN_PASSWORD: dsk-ci-password
+          DB_CLIENT: sqlite3
+          DB_FILENAME: /directus/database/data.db
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Wait for Directus
+        run: |
+          for attempt in {1..60}; do
+            curl --fail --silent http://127.0.0.1:8055/server/health && exit 0
+            sleep 2
+          done
+          exit 1
+      - run: pnpm test:integration
+        env:
+          DSK_INTEGRATION_URL: http://127.0.0.1:8055
+          DSK_INTEGRATION_EMAIL: admin@example.com
+          DSK_INTEGRATION_PASSWORD: dsk-ci-password

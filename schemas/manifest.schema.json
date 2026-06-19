@@ -29,10 +29,12 @@
     "resources": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["folders", "roles", "permissions", "flows", "dashboards", "presets"],
+      "required": ["folders", "roles", "policies", "access", "permissions", "flows", "dashboards", "presets"],
       "properties": {
         "folders": { "type": "array" },
         "roles": { "type": "array" },
+        "policies": { "type": "array" },
+        "access": { "type": "array" },
         "permissions": { "type": "array" },
         "flows": { "type": "array" },
         "dashboards": { "type": "array" },

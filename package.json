@@ -22,12 +22,13 @@
     "README.md"
   ],
   "engines": {
-    "node": ">=20.11"
+    "node": ">=22"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test 'test/**/*.test.ts'",
+    "test:integration": "node --import tsx --test 'test/integration/**/*.test.ts'",
     "prepack": "pnpm build"
   },
   "keywords": [

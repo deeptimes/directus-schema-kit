@@ -19,7 +19,7 @@ function manifest(): Manifest {
     collections: definitions.map((item) => ({ ...item, fields: [], module: 'content' })),
     fields: definitions.flatMap((item) => item.fields.map(({ relation: _relation, ...definition }) => ({ ...definition, collection: item.collection, module: 'content' }))),
     relations: [{ collection: 'articles', field: 'author_id', related_collection: 'authors', schema: { on_delete: 'SET NULL' }, module: 'content' }],
-    resources: { folders: [], roles: [], permissions: [], flows: [], dashboards: [], presets: [] },
+    resources: { folders: [], roles: [], policies: [], access: [], permissions: [], flows: [], dashboards: [], presets: [] },
   }
 }
 
@@ -78,4 +78,20 @@ test('白名单外的声明差异分类为 conflict', () => {
   const operation = plan.operations.find((item) => item.resource === 'articles' && item.resourceType === 'collection')
   assert.equal(operation?.action, 'conflict')
   assert.equal(operation?.executable, false)
+})
+
+test('SQLite 将 UUID 外键返回为 string 时视为等价类型', () => {
+  const target = manifest()
+  const state: DirectusState = {
+    collections: target.collections.map((item) => ({ collection: item.collection, meta: item.meta })),
+    fields: target.fields.map((item) => ({
+      collection: item.collection, field: item.field,
+      type: item.field === 'author_id' ? 'string' : item.type,
+      meta: item.meta, schema: item.schema,
+    })),
+    relations: target.relations.map((item) => ({ ...item })),
+  }
+  const plan = createPlan(target, state, 'http://localhost:8055')
+  const operation = plan.operations.find((item) => item.resource === 'articles.author_id' && item.resourceType === 'field')
+  assert.equal(operation?.action, 'unchanged')
 })

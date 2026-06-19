@@ -32,7 +32,7 @@ class MemoryResources implements ResourceReader, ResourceWriter {
 }
 
 function definitions(overrides: Partial<Record<ResourceType, ResourceDefinition[]>> = {}): Record<ResourceType, ResourceDefinition[]> {
-  return { folders: [], roles: [], permissions: [], flows: [], dashboards: [], presets: [], ...overrides }
+  return { folders: [], roles: [], policies: [], access: [], permissions: [], flows: [], dashboards: [], presets: [], ...overrides }
 }
 
 test('系统资源按依赖顺序创建并解析稳定引用', async () => {
@@ -44,15 +44,17 @@ test('系统资源按依赖顺序创建并解析稳定引用', async () => {
         { type: 'folders', key: 'root', data: { name: 'Root', parent: null } },
       ],
       roles: [{ type: 'roles', key: 'editor', data: { name: 'Editor', icon: 'edit' } }],
-      permissions: [{ type: 'permissions', key: 'editor-read', data: { role: ref('roles.editor'), collection: 'articles', action: 'read' } }],
+      policies: [{ type: 'policies', key: 'editor', data: { name: 'Editor Policy' } }],
+      access: [{ type: 'access', key: 'editor', data: { role: ref('roles.editor'), policy: ref('policies.editor'), user: null } }],
+      permissions: [{ type: 'permissions', key: 'editor-read', data: { policy: ref('policies.editor'), collection: 'articles', action: 'read' } }],
     }),
     reader: store,
     writer: store,
   })
   assert.equal(result.status, 'success')
-  assert.deepEqual(store.writes, ['create:folders', 'create:folders', 'create:roles', 'create:permissions'])
+  assert.deepEqual(store.writes, ['create:folders', 'create:folders', 'create:roles', 'create:policies', 'create:access', 'create:permissions'])
   assert.equal(store.data.get('folders')?.[1]?.parent, 'folders-1')
-  assert.equal(store.data.get('permissions')?.[0]?.role, 'roles-1')
+  assert.equal(store.data.get('permissions')?.[0]?.policy, 'policies-1')
 })
 
 test('显式删除没有确认时整体阻断', async () => {

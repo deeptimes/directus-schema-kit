@@ -13,6 +13,7 @@ export function createPlan(manifest: Manifest, state: DirectusState, targetUrl: 
   const collections = new Map(state.collections.map((item) => [item.collection, item]))
   const fields = new Map(state.fields.map((item) => [`${item.collection}.${item.field}`, item]))
   const relations = new Map(state.relations.map((item) => [`${item.collection}.${item.field}`, item]))
+  const targetRelations = new Map(manifest.relations.map((item) => [`${item.collection}.${item.field}`, item]))
 
   for (const target of manifest.collections.filter((item) => !moduleFilter || item.module === moduleFilter)) {
     const current = collections.get(target.collection)
@@ -34,7 +35,9 @@ export function createPlan(manifest: Manifest, state: DirectusState, targetUrl: 
       continue
     }
     const dangerous: PlanChange[] = []
-    if (!equal(current.type, target.type)) dangerous.push({ path: 'type', current: current.type, target: target.type })
+    if (!equivalentFieldType(current.type, target.type, targetRelations.has(resource))) {
+      dangerous.push({ path: 'type', current: current.type, target: target.type })
+    }
     dangerous.push(...compareProperties(asRecord(current.schema), asRecord(target.schema), dangerousFieldSchema, 'schema'))
     const currentMeta = asRecord(current.meta)
     if (Object.hasOwn(target.meta, 'special') && !equal(currentMeta.special, target.meta.special)) {
@@ -109,4 +112,9 @@ function canonical(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonical)
   if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([key, item]) => [key, canonical(item)]))
   return value
+}
+
+function equivalentFieldType(current: unknown, target: unknown, relation: boolean): boolean {
+  if (equal(current, target)) return true
+  return relation && current === 'string' && target === 'uuid'
 }

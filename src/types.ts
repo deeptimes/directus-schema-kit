@@ -9,7 +9,7 @@ export interface ResourceReference {
   $ref: string
 }
 
-export type DeclarativeValue = JsonValue | EnvReference | ResourceReference
+export type DeclarativeValue = JsonPrimitive | EnvReference | ResourceReference | DeclarativeValue[] | { [key: string]: DeclarativeValue }
 
 export type PrimaryKeyType = 'uuid' | 'integer'
 export type FieldType = 'string' | 'text' | 'integer' | 'bigInteger' | 'float' | 'decimal' | 'boolean' | 'date' | 'dateTime' | 'uuid' | 'json' | 'alias'
@@ -93,7 +93,7 @@ export interface CollectionGroupDefinition extends CollectionDefinition {
   schema: null
 }
 
-export type ResourceType = 'folders' | 'roles' | 'permissions' | 'flows' | 'dashboards' | 'presets'
+export type ResourceType = 'folders' | 'roles' | 'policies' | 'access' | 'permissions' | 'flows' | 'dashboards' | 'presets'
 
 export interface ResourceDefinition {
   type: ResourceType

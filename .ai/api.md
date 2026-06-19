@@ -32,3 +32,5 @@ dsk clear --module <id> [--confirm --scope <id>]
 ```
 
 Seed 返回版本化 create/update/unchanged 计数。Resource Sync 返回 create/update/unchanged/delete/conflict 操作；delete 默认阻断。Clear 返回 planned/success/blocked/failed，并逐项报告完成和失败。
+
+Directus 11.17.4 权限定义需要分别声明 role、policy、access 和 permission，并通过 `$ref` 连接稳定业务键。

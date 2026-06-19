@@ -9,6 +9,8 @@ export interface DirectusProject {
   directusVersion: string
 }
 
+export const supportedDirectusVersion = '11.17.4'
+
 export function discoverDirectusProject(startDirectory: string): DirectusProject {
   let current = path.resolve(startDirectory)
 
@@ -18,7 +20,15 @@ export function discoverDirectusProject(startDirectory: string): DirectusProject
       const packageJson = readPackageJson(packageJsonPath)
       const directusVersion = findDirectusVersion(packageJson)
       if (directusVersion) {
-        return { root: current, packageJsonPath, packageJson, directusVersion }
+        const installedVersion = installedDirectusVersion(current)
+        const effectiveVersion = installedVersion ?? normalizeDeclaredVersion(directusVersion)
+        if (effectiveVersion !== supportedDirectusVersion) {
+          throw new DskError(
+            `不支持 Directus ${installedVersion ?? directusVersion}`, 'CONFIG_ERROR',
+            [`当前仅支持 Directus ${supportedDirectusVersion}`],
+          )
+        }
+        return { root: current, packageJsonPath, packageJson, directusVersion: effectiveVersion }
       }
     }
 
@@ -32,6 +42,18 @@ export function discoverDirectusProject(startDirectory: string): DirectusProject
     'CONFIG_ERROR',
     ['请确认 package.json 的 dependencies 或 devDependencies 包含 directus'],
   )
+}
+
+function installedDirectusVersion(projectRoot: string): string | null {
+  const file = path.join(projectRoot, 'node_modules/directus/package.json')
+  if (!existsSync(file)) return null
+  const value = readPackageJson(file).version
+  return typeof value === 'string' ? value : null
+}
+
+function normalizeDeclaredVersion(value: string): string {
+  const match = /11\.17\.4/.exec(value)
+  return match?.[0] ?? value
 }
 
 function readPackageJson(filePath: string): Record<string, unknown> {

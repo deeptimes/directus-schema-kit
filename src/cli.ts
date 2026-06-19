@@ -97,7 +97,7 @@ program.command('seed [path]')
 
 const resources = program.command('resources').description('同步 Directus 系统资源')
 resources.command('apply')
-  .description('规划并同步 folders、roles、permissions、flows、dashboards、presets')
+  .description('规划并同步 Directus 11 系统资源和访问关系')
   .option('--dry-run', '只输出计划，不写入')
   .option('--confirm-destructive', '允许定义中显式声明的删除')
   .action(async (options: { dryRun?: boolean; confirmDestructive?: boolean }) => {

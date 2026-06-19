@@ -57,6 +57,8 @@ export function initializeWorkspace(projectRoot: string, dryRun = false): InitRe
     ['dsk/schema/example.ts', schemaExample],
     ['dsk/resources/folders.ts', resourceExample],
     ['dsk/resources/roles.ts', resourceExample],
+    ['dsk/resources/policies.ts', resourceExample],
+    ['dsk/resources/access.ts', resourceExample],
     ['dsk/resources/permissions.ts', resourceExample],
     ['dsk/resources/flows.ts', resourceExample],
     ['dsk/resources/dashboards.ts', resourceExample],
