@@ -111,10 +111,10 @@ export const field = {
   },
   audit(): FieldDefinition[] {
     return [
-      field.m2o('user_created', { label: '创建用户', collection: 'directus_users', readonly: true, hidden: true, onDelete: 'SET NULL' }),
-      { ...field.dateTime('date_created', { label: '创建时间', readonly: true, hidden: true }), meta: { ...field.dateTime('date_created').meta, special: ['date-created'] } },
-      field.m2o('user_updated', { label: '更新用户', collection: 'directus_users', readonly: true, hidden: true, onDelete: 'SET NULL' }),
-      { ...field.dateTime('date_updated', { label: '更新时间', readonly: true, hidden: true }), meta: { ...field.dateTime('date_updated').meta, special: ['date-updated'] } },
+      field.m2o('user_created', { label: '创建用户', collection: 'directus_users', readonly: true, hidden: true, width: 'half', onDelete: 'SET NULL' }),
+      field.dateTime('date_created', { label: '创建时间', readonly: true, hidden: true, width: 'half', special: ['date-created'] }),
+      field.m2o('user_updated', { label: '更新用户', collection: 'directus_users', readonly: true, hidden: true, width: 'half', onDelete: 'SET NULL' }),
+      field.dateTime('date_updated', { label: '更新时间', readonly: true, hidden: true, width: 'half', special: ['date-updated'] }),
     ]
   },
 }

@@ -491,6 +491,7 @@ pnpm dsk seed
 | PLN-07 | P1 | 支持 CI 漂移检测：存在未允许差异时返回约定退出码。 |
 | PLN-08 | P2 | 支持保存 plan artifact，并在 apply 时校验本地实例状态未发生变化。 |
 | PLN-09 | P0 | Manifest 缺失或与 DSL 源码不一致时拒绝 plan，并提示先执行 `dsk build`。 |
+| PLN-10 | P0 | Plan 必须识别目标 Directus 的数据库客户端；仅在 SQLite 下将 Directus 对 decimal 的 float、空 precision/scale 归一化视为等价，其他数据库仍按危险约束差异处理。 |
 
 ### 10.5 Apply
 

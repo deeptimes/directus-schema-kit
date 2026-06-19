@@ -139,7 +139,11 @@ async function preparePlan(context: CommandContext, moduleFilter?: string): Prom
   }
   const connection = directusConnection(loaded.config, loaded.directory)
   const state = await new DirectusReader(connection.url, connection.token).readState()
-  return { manifest: validated.manifest, plan: createPlan(validated.manifest, state, connection.url, moduleFilter), connection }
+  return {
+    manifest: validated.manifest,
+    plan: createPlan(validated.manifest, state, connection.url, moduleFilter, connection.databaseClient),
+    connection,
+  }
 }
 
 function atomicWrite(filePath: string, content: string): void {

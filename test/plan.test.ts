@@ -95,3 +95,32 @@ test('SQLite 将 UUID 外键返回为 string 时视为等价类型', () => {
   const operation = plan.operations.find((item) => item.resource === 'articles.author_id' && item.resourceType === 'field')
   assert.equal(operation?.action, 'unchanged')
 })
+
+test('SQLite 将 decimal 返回为无精度信息的 float 时视为等价', () => {
+  const target = manifest()
+  target.fields.push({
+    ...field.decimal('price', { precision: 10, scale: 2 }),
+    collection: 'articles',
+    module: 'content',
+  })
+  const state: DirectusState = {
+    collections: target.collections.map((item) => ({ collection: item.collection, meta: item.meta })),
+    fields: target.fields.map((item) => ({
+      collection: item.collection,
+      field: item.field,
+      type: item.field === 'price' ? 'float' : item.type,
+      meta: item.meta,
+      schema: item.field === 'price' ? { ...item.schema, numeric_precision: null, numeric_scale: null } : item.schema,
+    })),
+    relations: target.relations.map((item) => ({ ...item })),
+  }
+
+  const sqlitePlan = createPlan(target, state, 'http://localhost:8055', undefined, 'sqlite3')
+  const genericPlan = createPlan(target, state, 'http://localhost:8055')
+  const sqliteOperation = sqlitePlan.operations.find((item) => item.resource === 'articles.price')
+  const genericOperation = genericPlan.operations.find((item) => item.resource === 'articles.price')
+
+  assert.equal(sqliteOperation?.action, 'unchanged')
+  assert.equal(genericOperation?.action, 'dangerous')
+  assert.deepEqual(genericOperation?.changes.map((item) => item.path), ['type', 'schema.numeric_precision', 'schema.numeric_scale'])
+})

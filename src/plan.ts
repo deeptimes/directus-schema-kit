@@ -8,7 +8,7 @@ const safeCollectionMeta = [
 const safeFieldMeta = ['interface', 'options', 'display', 'display_options', 'note', 'hidden', 'readonly', 'required', 'sort', 'width', 'translations'] as const
 const dangerousFieldSchema = ['is_nullable', 'is_unique', 'is_primary_key', 'has_auto_increment', 'max_length', 'numeric_precision', 'numeric_scale'] as const
 
-export function createPlan(manifest: Manifest, state: DirectusState, targetUrl: string, moduleFilter?: string): Plan {
+export function createPlan(manifest: Manifest, state: DirectusState, targetUrl: string, moduleFilter?: string, databaseClient?: string): Plan {
   const operations: PlanOperation[] = []
   const collections = new Map(state.collections.map((item) => [item.collection, item]))
   const fields = new Map(state.fields.map((item) => [`${item.collection}.${item.field}`, item]))
@@ -35,10 +35,14 @@ export function createPlan(manifest: Manifest, state: DirectusState, targetUrl: 
       continue
     }
     const dangerous: PlanChange[] = []
-    if (!equivalentFieldType(current.type, target.type, targetRelations.has(resource))) {
+    const sqliteDecimal = isSqliteDecimalNormalization(current, target, databaseClient)
+    if (!equivalentFieldType(current.type, target.type, targetRelations.has(resource), sqliteDecimal)) {
       dangerous.push({ path: 'type', current: current.type, target: target.type })
     }
-    dangerous.push(...compareProperties(asRecord(current.schema), asRecord(target.schema), dangerousFieldSchema, 'schema'))
+    const dangerousSchemaKeys = sqliteDecimal
+      ? dangerousFieldSchema.filter((key) => key !== 'numeric_precision' && key !== 'numeric_scale')
+      : dangerousFieldSchema
+    dangerous.push(...compareProperties(asRecord(current.schema), asRecord(target.schema), dangerousSchemaKeys, 'schema'))
     const currentMeta = asRecord(current.meta)
     if (Object.hasOwn(target.meta, 'special') && !equal(currentMeta.special, target.meta.special)) {
       dangerous.push({ path: 'meta.special', current: currentMeta.special, target: target.meta.special })
@@ -114,7 +118,18 @@ function canonical(value: unknown): unknown {
   return value
 }
 
-function equivalentFieldType(current: unknown, target: unknown, relation: boolean): boolean {
+function equivalentFieldType(current: unknown, target: unknown, relation: boolean, sqliteDecimal: boolean): boolean {
   if (equal(current, target)) return true
+  if (sqliteDecimal) return true
   return relation && current === 'string' && target === 'uuid'
+}
+
+function isSqliteDecimalNormalization(
+  current: DirectusState['fields'][number],
+  target: Manifest['fields'][number],
+  databaseClient?: string,
+): boolean {
+  if (databaseClient?.toLowerCase() !== 'sqlite3' || current.type !== 'float' || target.type !== 'decimal') return false
+  const currentSchema = asRecord(current.schema)
+  return currentSchema.numeric_precision == null && currentSchema.numeric_scale == null
 }

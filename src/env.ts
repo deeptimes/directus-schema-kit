@@ -23,7 +23,7 @@ export function loadProjectEnvironment(config: DskConfig, configDirectory: strin
   return values
 }
 
-export function directusConnection(config: DskConfig, configDirectory: string): { url: string; token?: string } {
+export function directusConnection(config: DskConfig, configDirectory: string): { url: string; token?: string; databaseClient?: string } {
   const environment = loadProjectEnvironment(config, configDirectory)
   const rawUrl = environment.DIRECTUS_URL
   if (!rawUrl) throw new DskError('缺少 DIRECTUS_URL', 'CONFIG_ERROR', ['请在 Directus 项目的 .env 或 shell 环境中配置'])
@@ -37,7 +37,11 @@ export function directusConnection(config: DskConfig, configDirectory: string): 
     throw new DskError(`拒绝连接非本地 Directus 地址: ${url.origin}`, 'CONFIG_ERROR', ['V1 plan 仅允许回环、私网或 .local 开发实例'])
   }
   const normalized = url.toString().replace(/\/$/, '')
-  return { url: normalized, ...(environment.DIRECTUS_TOKEN ? { token: environment.DIRECTUS_TOKEN } : {}) }
+  return {
+    url: normalized,
+    ...(environment.DIRECTUS_TOKEN ? { token: environment.DIRECTUS_TOKEN } : {}),
+    ...(environment.DB_CLIENT ? { databaseClient: environment.DB_CLIENT.toLowerCase() } : {}),
+  }
 }
 
 function isLocalHostname(hostname: string): boolean {

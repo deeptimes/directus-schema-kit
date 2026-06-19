@@ -1,11 +1,13 @@
 # Plan API 契约
 
-`createPlan(manifest, state, targetUrl, moduleFilter?)` 返回 `planVersion: 1`：
+`createPlan(manifest, state, targetUrl, moduleFilter?, databaseClient?)` 返回 `planVersion: 1`：
 
 - `manifestDigest`：目标 Manifest 的源码摘要。
 - `target.url`：只保留 Directus origin，不包含凭证。
 - `operations[]`：包含 module、resourceType、resource、action、risk、executable、changes 和可选 reason。
 - `summary`：五种 action 的稳定计数对象。
+
+CLI 从 Directus 项目的 `.env` 读取 `DB_CLIENT` 并传给 Plan。仅当 `DB_CLIENT=sqlite3` 时，Directus 返回的 `float + numeric_precision=null + numeric_scale=null` 与 Manifest 的 `decimal` 视为同一种 SQLite 表示；其他数据库仍将 `float/decimal` 或精度差异标记为 dangerous。该兼容规则只消除重复 Plan 的误报，不表示 SQLite 浮点字段具备十进制定点精度。
 
 CLI：
 
