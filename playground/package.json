@@ -4,9 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "bootstrap": "directus bootstrap",
-    "predev": "directus bootstrap",
-    "dev": "directus start",
+    "dev": "npx directus start",
     "dsk": "dsk",
     "schema:build": "dsk build",
     "schema:validate": "dsk validate",

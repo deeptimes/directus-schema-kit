@@ -28,7 +28,7 @@ export default defineModule({
     }),
     collection({
       name: 'courses',
-      label: '课程',
+      label: '课程1',
       icon: 'menu_book',
       group,
       order: 20,

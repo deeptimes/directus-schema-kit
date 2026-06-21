@@ -61,7 +61,7 @@ function schema(options: CommonFieldOptions, extra: FieldSchema = {}): FieldSche
 }
 
 function scalar(type: FieldType, name: string, options: CommonFieldOptions = {}, extra: FieldSchema = {}): FieldDefinition {
-  return { field: name, type, meta: meta(name, options, { interface: 'input' }), schema: schema(options, extra) }
+  return { field: name, type, meta: meta(name, options, { interface: 'input', width: 'half' }), schema: schema(options, extra) }
 }
 
 export const field = {
@@ -78,10 +78,21 @@ export const field = {
     return scalar('decimal', name, options, { numeric_precision: options.precision ?? 10, numeric_scale: options.scale ?? 2 })
   },
   boolean(name: string, options: CommonFieldOptions = {}): FieldDefinition {
-    return { field: name, type: 'boolean', meta: meta(name, options, { interface: 'boolean' }), schema: schema(options) }
+    return { field: name, type: 'boolean', meta: meta(name, options, { interface: 'boolean', width: 'half' }), schema: schema(options) }
   },
   dateTime(name: string, options: CommonFieldOptions = {}): FieldDefinition {
-    return { field: name, type: 'dateTime', meta: meta(name, options, { interface: 'datetime' }), schema: schema(options) }
+    return {
+      field: name,
+      type: 'dateTime',
+      meta: meta(name, options, {
+        interface: 'datetime',
+        options: { format: 'yyyy-MM-dd HH:mm' },
+        display: 'datetime',
+        display_options: { format: 'yyyy-MM-dd HH:mm', use24: true },
+        width: 'half',
+      }),
+      schema: schema(options),
+    }
   },
   json(name: string, options: CommonFieldOptions = {}): FieldDefinition {
     return { field: name, type: 'json', meta: meta(name, options, { interface: 'input-code' }), schema: schema(options) }
@@ -89,7 +100,11 @@ export const field = {
   status(options: CommonFieldOptions = {}): FieldDefinition {
     return field.string('status', {
       label: '状态', width: 'half', required: true, defaultValue: 'draft',
-      interface: 'select-dropdown', options: { choices: statusChoices }, display: 'labels', ...options,
+      interface: 'select-dropdown',
+      options: { choices: statusChoices },
+      display: 'labels',
+      displayOptions: { choices: statusChoices, showAsDot: true },
+      ...options,
     })
   },
   sort(options: CommonFieldOptions = {}): FieldDefinition {
