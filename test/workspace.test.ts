@@ -21,7 +21,7 @@ test('init 幂等创建工作区并生成初始 Manifest', async () => {
   assert.equal(second.created.length, 0)
   assert.ok(second.preserved.includes('dsk/schema/example.ts'))
   const manifest = JSON.parse(readFileSync(path.join(cwd, '.dsk/generated/manifest.json'), 'utf8')) as { manifestVersion: number; source: { digest: string } }
-  assert.equal(manifest.manifestVersion, 1)
+  assert.equal(manifest.manifestVersion, 2)
   assert.match(manifest.source.digest, /^[a-f0-9]{64}$/)
 })
 
@@ -50,4 +50,33 @@ test('拒绝非 11.17.4 的 Directus 项目', async () => {
   const cwd = mkdtempSync(path.join(os.tmpdir(), 'dsk-version-test-'))
   writeFileSync(path.join(cwd, 'package.json'), JSON.stringify({ dependencies: { directus: '12.0.2' } }))
   await assert.rejects(() => initCommand({ cwd, packageVersion: '0.1.0' }, true), /不支持 Directus 12\.0\.2/)
+})
+
+test('build 将 Relation Blueprint 完整展开为 Manifest V2', async () => {
+  const cwd = project()
+  const context = { cwd, packageVersion: '0.1.0' }
+  await initCommand(context, false)
+  const api = path.resolve('src/index.ts')
+  writeFileSync(path.join(cwd, 'dsk/schema/example.ts'), `
+    import { collection, defineModule, relation } from ${JSON.stringify(api)}
+    export default defineModule({
+      id: 'content',
+      collections: [
+        collection({ name: 'articles', label: 'Articles' }),
+        collection({ name: 'tags', label: 'Tags' }),
+      ],
+      relations: [relation.m2m({ collection: 'articles', field: 'tags', relatedCollection: 'tags' })],
+    })
+  `)
+  await buildCommand(context, false)
+  const manifest = JSON.parse(readFileSync(path.join(cwd, '.dsk/generated/manifest.json'), 'utf8')) as {
+    manifestVersion: number
+    collections: Array<{ collection: string }>
+    fields: Array<{ collection: string; field: string; type: string }>
+    relations: Array<{ collection: string; field: string }>
+  }
+  assert.equal(manifest.manifestVersion, 2)
+  assert.equal(manifest.collections.some((item) => item.collection === 'articles_tags'), true)
+  assert.equal(manifest.fields.some((item) => item.collection === 'articles' && item.field === 'tags' && item.type === 'alias'), true)
+  assert.deepEqual(manifest.relations.map((item) => `${item.collection}.${item.field}`), ['articles_tags.articles_id', 'articles_tags.tags_id'])
 })

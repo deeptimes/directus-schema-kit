@@ -93,6 +93,10 @@ export class DirectusWriter {
     return this.request('/relations', 'POST', payload)
   }
 
+  updateRelation(collection: string, field: string, patch: { meta?: Record<string, unknown> }): Promise<void> {
+    return this.request(`/relations/${encodeURIComponent(collection)}/${encodeURIComponent(field)}`, 'PATCH', patch)
+  }
+
   createItem(collection: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     return this.request<Record<string, unknown>>(`/items/${encodeURIComponent(collection)}`, 'POST', data)
   }

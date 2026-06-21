@@ -31,3 +31,5 @@ pnpm dsk clear content --confirm --scope content
 ```
 
 V1 不包含 Flow、Operation、Dashboard、Panel 或旧教学中心数据迁移。
+
+字段、关系和迁移示例见 [Schema DSL](./schema-dsl.md)、[Manifest 规范](./manifest.md) 与 [兼容矩阵](./compatibility.md)。

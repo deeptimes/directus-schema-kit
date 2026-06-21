@@ -145,3 +145,23 @@ test('SQLite 将 decimal 返回为无精度信息的 float 时视为等价', () 
   assert.equal(genericOperation?.action, 'dangerous')
   assert.deepEqual(genericOperation?.changes.map((item) => item.path), ['type', 'schema.numeric_precision', 'schema.numeric_scale'])
 })
+
+test('Relation Meta 的 sort_field 为安全更新，结构变化为 dangerous', () => {
+  const safeTarget = manifest()
+  const safeRelation = safeTarget.relations[0]
+  assert.ok(safeRelation)
+  safeRelation.meta = { sort_field: 'sort' }
+  const state: DirectusState = {
+    collections: safeTarget.collections.map((item) => ({ collection: item.collection, meta: item.meta })),
+    fields: safeTarget.fields.map((item) => ({ collection: item.collection, field: item.field, type: item.type, meta: item.meta, schema: item.schema })),
+    relations: [{ collection: safeRelation.collection, field: safeRelation.field, related_collection: safeRelation.related_collection, schema: safeRelation.schema, meta: { sort_field: null } }],
+  }
+  const safe = createPlan(safeTarget, state, 'http://localhost:8055').operations.find((item) => item.resourceType === 'relation')
+  assert.equal(safe?.action, 'update')
+  assert.equal(safe?.executable, true)
+
+  safeRelation.meta = { one_field: 'articles' }
+  const dangerous = createPlan(safeTarget, state, 'http://localhost:8055').operations.find((item) => item.resourceType === 'relation')
+  assert.equal(dangerous?.action, 'dangerous')
+  assert.equal(dangerous?.executable, false)
+})

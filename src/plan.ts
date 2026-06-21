@@ -7,6 +7,11 @@ const safeCollectionMeta = [
 ] as const
 const safeFieldMeta = ['interface', 'options', 'display', 'display_options', 'note', 'hidden', 'readonly', 'required', 'sort', 'width', 'translations'] as const
 const dangerousFieldSchema = ['is_nullable', 'is_unique', 'is_primary_key', 'has_auto_increment', 'max_length', 'numeric_precision', 'numeric_scale'] as const
+const structuralRelationMeta = [
+  'many_collection', 'many_field', 'one_collection', 'one_field', 'one_collection_field',
+  'one_allowed_collections', 'junction_field', 'one_deselect_action',
+] as const
+const safeRelationMeta = ['sort_field'] as const
 
 export function createPlan(manifest: Manifest, state: DirectusState, targetUrl: string, moduleFilter?: string, databaseClient?: string): Plan {
   const operations: PlanOperation[] = []
@@ -69,12 +74,14 @@ export function createPlan(manifest: Manifest, state: DirectusState, targetUrl: 
     if (!equal(current.related_collection, target.related_collection)) {
       changes.push({ path: 'related_collection', current: current.related_collection, target: target.related_collection })
     }
-    changes.push(...compareProperties(asRecord(current.schema), target.schema, ['on_delete'] as const, 'schema'))
+    changes.push(...compareProperties(asRecord(current.schema), asRecord(target.schema), ['on_delete', 'on_update'] as const, 'schema'))
+    changes.push(...compareProperties(asRecord(current.meta), asRecord(target.meta), structuralRelationMeta, 'meta'))
+    const safe = compareProperties(asRecord(current.meta), asRecord(target.meta), safeRelationMeta, 'meta')
     const conflicts = [
-      ...compareUnsupported(asRecord(current.schema), target.schema, ['on_delete'] as const, 'schema'),
-      ...compareUnsupported(asRecord(current.meta), asRecord(target.meta), [] as const, 'meta'),
+      ...compareUnsupported(asRecord(current.schema), asRecord(target.schema), ['on_delete', 'on_update'] as const, 'schema'),
+      ...compareUnsupported(asRecord(current.meta), asRecord(target.meta), [...structuralRelationMeta, ...safeRelationMeta] as const, 'meta'),
     ]
-    operations.push(operation(target.module ?? 'unknown', 'relation', resource, changes.length ? 'dangerous' : conflicts.length ? 'conflict' : 'unchanged', [...changes, ...conflicts],
+    operations.push(operation(target.module ?? 'unknown', 'relation', resource, changes.length ? 'dangerous' : conflicts.length ? 'conflict' : safe.length ? 'update' : 'unchanged', [...changes, ...safe, ...conflicts],
       changes.length ? '关系目标或删除策略变化需要显式迁移' : conflicts.length ? '关系包含未支持自动更新的差异' : undefined))
   }
 

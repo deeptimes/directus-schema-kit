@@ -4,6 +4,7 @@ import path from 'node:path'
 import { createJiti } from 'jiti'
 import { glob } from 'tinyglobby'
 import { DskError } from './errors.js'
+import { expandRelationBlueprint } from './dsl/expand.js'
 import type { CollectionDefinition, DskConfig, Manifest, ModuleDefinition, ResourceDefinition, ResourceType } from './types.js'
 
 const resourceTypes: ResourceType[] = ['folders', 'roles', 'policies', 'access', 'permissions', 'presets']
@@ -37,7 +38,7 @@ export async function compileManifest(options: {
     throw new DskError('没有找到 Schema DSL 或 Resource DSL 文件', 'BUILD_ERROR', ['请检查 .dsk/config.json 中的 paths 配置'])
   }
 
-  const jiti = createJiti(import.meta.url, { interopDefault: true })
+  const jiti = createJiti(import.meta.url, { interopDefault: true, moduleCache: false })
   const modules = new Map<string, ModuleDefinition & { sources: string[] }>()
 
   for (const file of files) {
@@ -54,6 +55,7 @@ export async function compileManifest(options: {
       if (existing) {
         existing.collections = [...(existing.collections ?? []), ...(definition.collections ?? [])]
         existing.groups = [...(existing.groups ?? []), ...(definition.groups ?? [])]
+        existing.relations = [...(existing.relations ?? []), ...(definition.relations ?? [])]
         existing.resources = [...(existing.resources ?? []), ...(definition.resources ?? [])]
         existing.cleanupCollections = [...(existing.cleanupCollections ?? []), ...(definition.cleanupCollections ?? [])]
         existing.sources.push(relative)
@@ -78,9 +80,18 @@ export async function compileManifest(options: {
         const { relation, ...plainField } = sourceField
         fields.push({ ...plainField, collection: definition.collection, module: module.id })
         if (relation) {
-          relations.push({ collection: definition.collection, field: sourceField.field, ...relation, module: module.id })
+          relations.push({
+            collection: definition.collection, field: sourceField.field, ...relation,
+            meta: { many_collection: definition.collection, many_field: sourceField.field, ...relation.meta }, module: module.id,
+          })
         }
       }
+    }
+    for (const blueprint of module.relations ?? []) {
+      const expanded = expandRelationBlueprint(blueprint)
+      collections.push(...expanded.collections.map((item) => ({ ...item, fields: [], module: module.id })))
+      fields.push(...expanded.fields.map((item) => ({ ...item, module: module.id })))
+      relations.push(...expanded.relations.map((item) => ({ ...item, module: module.id })))
     }
     for (const definition of module.resources ?? []) {
       resources[definition.type].push({ ...definition, module: module.id })
@@ -89,7 +100,7 @@ export async function compileManifest(options: {
 
   const relativeFiles = files.map((file) => normalizePath(path.relative(options.projectRoot, file)))
   return sortDeep({
-    manifestVersion: 1,
+    manifestVersion: 2,
     generator: { name: '@deeptimes/directus-schema-kit', version: options.packageVersion },
     source: { algorithm: 'sha256', digest: calculateSourceDigest(files, options.projectRoot), files: relativeFiles },
     modules: [...modules.values()].map((module) => ({
@@ -101,14 +112,32 @@ export async function compileManifest(options: {
     })),
     collections,
     fields,
-    relations,
+    relations: relations.map(completeRelation),
     resources,
   })
 }
 
+function completeRelation(relation: Manifest['relations'][number]): Manifest['relations'][number] {
+  return {
+    ...relation,
+    meta: {
+      many_collection: relation.collection,
+      many_field: relation.field,
+      one_collection: relation.related_collection,
+      one_field: null,
+      one_collection_field: null,
+      one_allowed_collections: null,
+      junction_field: null,
+      sort_field: null,
+      one_deselect_action: relation.schema?.on_delete === 'CASCADE' ? 'delete' : 'nullify',
+      ...relation.meta,
+    },
+  }
+}
+
 function normalizeDefinitions(value: unknown, defaultModuleId: string): ModuleDefinition[] {
   const values = Array.isArray(value) ? value : [value]
-  const module: ModuleDefinition = { id: defaultModuleId, collections: [], groups: [], resources: [] }
+  const module: ModuleDefinition = { id: defaultModuleId, collections: [], groups: [], relations: [], resources: [] }
   const explicit: ModuleDefinition[] = []
 
   for (const item of values) {

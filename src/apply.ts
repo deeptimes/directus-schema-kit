@@ -7,6 +7,7 @@ export interface SchemaWriter {
   createField(collection: string, definition: FieldDefinition): Promise<void>
   updateField(collection: string, field: string, patch: { meta?: Record<string, unknown>; schema?: Record<string, unknown> }): Promise<void>
   createRelation(definition: Manifest['relations'][number]): Promise<void>
+  updateRelation(collection: string, field: string, patch: { meta?: Record<string, unknown> }): Promise<void>
 }
 
 export async function executeApply(options: {
@@ -62,8 +63,9 @@ function orderedOperations(manifest: Manifest, plan: Plan): PlanOperation[] {
   const executable = plan.operations.filter((item) => item.executable)
   const order = new Map<string, number>()
   orderedCollections(manifest).forEach((item, index) => order.set(`collection:${item.collection}`, index))
-  manifest.fields.forEach((item, index) => order.set(`field:${item.collection}.${item.field}`, 20_000 + index))
+  manifest.fields.filter((item) => item.type !== 'alias').forEach((item, index) => order.set(`field:${item.collection}.${item.field}`, 20_000 + index))
   manifest.relations.forEach((item, index) => order.set(`relation:${item.collection}.${item.field}`, 30_000 + index))
+  manifest.fields.filter((item) => item.type === 'alias').forEach((item, index) => order.set(`field:${item.collection}.${item.field}`, 40_000 + index))
   return [...executable].sort((left, right) => (order.get(`${left.resourceType}:${left.resource}`) ?? 99_999) - (order.get(`${right.resourceType}:${right.resource}`) ?? 99_999))
 }
 
@@ -117,7 +119,8 @@ async function executeOperation(manifest: Manifest, operation: PlanOperation, wr
     return undefined
   }
   const target = required(manifest.relations.find((item) => `${item.collection}.${item.field}` === operation.resource), operation)
-  await writer.createRelation(target)
+  if (operation.action === 'create') await writer.createRelation(target)
+  else await writer.updateRelation(target.collection, target.field, { meta: changedObject(operation, 'meta', asRecord(target.meta)) })
   return undefined
 }
 

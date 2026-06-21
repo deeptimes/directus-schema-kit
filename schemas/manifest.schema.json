@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "required": ["manifestVersion", "generator", "source", "modules", "collections", "fields", "relations", "resources"],
   "properties": {
-    "manifestVersion": { "const": 1 },
+    "manifestVersion": { "enum": [1, 2] },
     "generator": {
       "type": "object",
       "additionalProperties": false,
@@ -22,10 +22,10 @@
         "files": { "type": "array", "items": { "type": "string" } }
       }
     },
-    "modules": { "type": "array", "items": { "type": "object" } },
-    "collections": { "type": "array", "items": { "type": "object" } },
-    "fields": { "type": "array", "items": { "type": "object" } },
-    "relations": { "type": "array", "items": { "type": "object" } },
+    "modules": { "type": "array", "items": { "$ref": "#/$defs/module" } },
+    "collections": { "type": "array", "items": { "$ref": "#/$defs/collection" } },
+    "fields": { "type": "array", "items": { "$ref": "#/$defs/field" } },
+    "relations": { "type": "array", "items": { "$ref": "#/$defs/relation" } },
     "resources": {
       "type": "object",
       "additionalProperties": false,
@@ -37,6 +37,56 @@
         "access": { "type": "array" },
         "permissions": { "type": "array" },
         "presets": { "type": "array" }
+      }
+    }
+  },
+  "$defs": {
+    "module": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "dependsOn", "cleanupCollections", "sources"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 }, "version": { "type": "string" },
+        "dependsOn": { "type": "array", "items": { "type": "string" } },
+        "cleanupCollections": { "type": "array", "items": { "type": "string" } },
+        "sources": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "collection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["collection", "meta", "schema", "fields", "module"],
+      "properties": {
+        "collection": { "type": "string", "minLength": 1 }, "meta": { "type": "object" },
+        "schema": { "type": ["object", "null"] }, "fields": { "type": "array", "maxItems": 0 },
+        "module": { "type": "string", "minLength": 1 }
+      }
+    },
+    "field": {
+      "type": "object", "additionalProperties": false,
+      "required": ["collection", "field", "type", "meta", "schema", "module"],
+      "properties": {
+        "collection": { "type": "string", "minLength": 1 }, "field": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["alias", "bigInteger", "binary", "boolean", "csv", "date", "dateTime", "decimal", "float", "geometry", "geometry.Point", "geometry.LineString", "geometry.Polygon", "geometry.MultiPoint", "geometry.MultiLineString", "geometry.MultiPolygon", "hash", "integer", "json", "string", "text", "time", "timestamp", "uuid"] },
+        "meta": { "type": "object" }, "schema": { "type": ["object", "null"] }, "module": { "type": "string", "minLength": 1 }
+      }
+    },
+    "relation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["collection", "field", "related_collection", "schema", "module"],
+      "properties": {
+        "collection": { "type": "string", "minLength": 1 }, "field": { "type": "string", "minLength": 1 },
+        "related_collection": { "type": ["string", "null"] }, "schema": { "type": ["object", "null"] },
+        "meta": {
+          "type": "object",
+          "properties": {
+            "many_collection": { "type": "string" }, "many_field": { "type": "string" },
+            "one_collection": { "type": ["string", "null"] }, "one_field": { "type": ["string", "null"] },
+            "one_collection_field": { "type": ["string", "null"] },
+            "one_allowed_collections": { "type": ["array", "null"], "items": { "type": "string" } },
+            "junction_field": { "type": ["string", "null"] }, "sort_field": { "type": ["string", "null"] },
+            "one_deselect_action": { "enum": ["nullify", "delete"] }
+          }
+        },
+        "module": { "type": "string", "minLength": 1 }
       }
     }
   }

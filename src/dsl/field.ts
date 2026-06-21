@@ -1,6 +1,6 @@
 import type { DeclarativeValue, FieldDefinition, FieldMeta, FieldSchema, FieldType, FieldWidth, OnDelete, Translation } from '../types.js'
 
-interface CommonFieldOptions {
+export interface CommonFieldOptions {
   label?: string
   translations?: Translation[]
   order?: number
@@ -20,6 +20,9 @@ interface CommonFieldOptions {
 
 interface StringFieldOptions extends CommonFieldOptions { maxLength?: number }
 interface NumberFieldOptions extends CommonFieldOptions { precision?: number; scale?: number }
+interface TagsFieldOptions extends CommonFieldOptions { type?: 'json' | 'csv' }
+interface CodeFieldOptions extends CommonFieldOptions { type?: 'string' | 'text' | 'json'; language?: string; lineNumber?: boolean }
+interface ToggleFieldOptions extends CommonFieldOptions { labelOn?: string; labelOff?: string; colorOn?: string; colorOff?: string }
 interface M2OFieldOptions extends CommonFieldOptions {
   collection: string
   type?: Exclude<FieldType, 'alias'>
@@ -97,6 +100,51 @@ export const field = {
   json(name: string, options: CommonFieldOptions = {}): FieldDefinition {
     return { field: name, type: 'json', meta: meta(name, options, { interface: 'input-code' }), schema: schema(options) }
   },
+  bigInteger(name: string, options: NumberFieldOptions = {}): FieldDefinition {
+    return scalar('bigInteger', name, options)
+  },
+  float(name: string, options: NumberFieldOptions = {}): FieldDefinition {
+    return scalar('float', name, options)
+  },
+  csv(name: string, options: CommonFieldOptions = {}): FieldDefinition {
+    return { field: name, type: 'csv', meta: meta(name, options, { interface: 'tags' }), schema: schema(options) }
+  },
+  date(name: string, options: CommonFieldOptions = {}): FieldDefinition {
+    return { field: name, type: 'date', meta: meta(name, options, { interface: 'datetime', width: 'half' }), schema: schema(options) }
+  },
+  time(name: string, options: CommonFieldOptions = {}): FieldDefinition {
+    return { field: name, type: 'time', meta: meta(name, options, { interface: 'datetime', width: 'half' }), schema: schema(options) }
+  },
+  timestamp(name: string, options: CommonFieldOptions = {}): FieldDefinition {
+    return { field: name, type: 'timestamp', meta: meta(name, options, { interface: 'datetime', width: 'half' }), schema: schema(options) }
+  },
+  markdown(name: string, options: CommonFieldOptions = {}): FieldDefinition {
+    return { field: name, type: 'text', meta: meta(name, options, { interface: 'input-rich-text-md' }), schema: schema(options) }
+  },
+  tags(name: string, options: TagsFieldOptions = {}): FieldDefinition {
+    const { type = 'json', ...common } = options
+    return { field: name, type, meta: meta(name, common, { interface: 'tags' }), schema: schema(common) }
+  },
+  code(name: string, options: CodeFieldOptions = {}): FieldDefinition {
+    const { type = 'text', language, lineNumber, ...common } = options
+    const codeOptions = compact({ language, lineNumber, ...(common.options ?? {}) }) as Record<string, DeclarativeValue>
+    return {
+      field: name,
+      type,
+      meta: meta(name, { ...common, options: Object.keys(codeOptions).length ? codeOptions : null }, { interface: 'input-code' }),
+      schema: schema(common),
+    }
+  },
+  toggle(name: string, options: ToggleFieldOptions = {}): FieldDefinition {
+    const { labelOn, labelOff, colorOn, colorOff, ...common } = options
+    const toggleOptions = compact({ labelOn, labelOff, colorOn, colorOff, ...(common.options ?? {}) }) as Record<string, DeclarativeValue>
+    return {
+      field: name,
+      type: 'boolean',
+      meta: meta(name, { ...common, options: Object.keys(toggleOptions).length ? toggleOptions : null }, { interface: 'boolean', width: 'half' }),
+      schema: schema(common),
+    }
+  },
   status(options: CommonFieldOptions = {}): FieldDefinition {
     return field.string('status', {
       label: '状态', width: 'half', required: true, defaultValue: 'draft',
@@ -121,7 +169,11 @@ export const field = {
         ...(displayTemplate ? { display_options: { template: displayTemplate } } : {}),
       }),
       schema: schema(fieldOptions),
-      relation: { related_collection: collection, schema: { on_delete: onDelete } },
+      relation: {
+        related_collection: collection,
+        schema: { on_delete: onDelete },
+        meta: { many_field: name, one_collection: collection, one_deselect_action: onDelete === 'CASCADE' ? 'delete' : 'nullify' },
+      },
     }
   },
   audit(): FieldDefinition[] {

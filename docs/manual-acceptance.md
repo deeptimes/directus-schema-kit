@@ -9,5 +9,7 @@
 5. `dsk resources apply --dry-run` 与 Directus 后台显示一致。
 6. 在交互式终端执行 `clear <module>` 时先输出完整计划，回车或输入 `n` 不产生删除。
 7. 在一次性本地实例确认 `clear <module>` 输入 `y` 后只清理目标模块；非交互执行 `clear <module> --confirm --scope <module>` 具有相同范围。
+8. 在 Data Studio 分别确认 Markdown、Tags、Code、Toggle 的创建和编辑界面。
+9. 确认 M2O/O2M/M2M/M2A/Translations/File/Image/Files 的选择、编辑和展示；Image 默认只接受图片 MIME 类型。
 
 人工验收关注 CLI 可读性和 Directus 后台 UI 结果，不替代自动化测试。

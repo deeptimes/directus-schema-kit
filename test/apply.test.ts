@@ -47,6 +47,7 @@ function fakeWriter(log: string[], failAt?: string): SchemaWriter {
     createField: async (name, item) => call(`field:${name}.${item.field}`),
     updateField: async (name, item) => call(`update-field:${name}.${item}`),
     createRelation: async (item) => call(`relation:${item.collection}.${item.field}`),
+    updateRelation: async (collection, field) => call(`update-relation:${collection}.${field}`),
   }
 }
 

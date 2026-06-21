@@ -17,7 +17,7 @@ export function createClearPlan(manifest: Manifest, state: DirectusState, module
   const existing = new Set(state.collections.map((item) => item.collection))
   const activeTargets = new Set([...targets].filter((item) => existing.has(item)))
   const fields = unique(state.relations
-    .filter((item) => activeTargets.has(item.collection) || activeTargets.has(item.related_collection))
+    .filter((item) => activeTargets.has(item.collection) || (item.related_collection !== null && activeTargets.has(item.related_collection)))
     .filter((item) => existing.has(item.collection))
     .map((item) => `${item.collection}.${item.field}`))
     .map((resource) => ({ resourceType: 'field' as const, resource }))
@@ -68,7 +68,7 @@ export function deleteOrder(collections: string[], relations: DirectusState['rel
   const targets = new Set(collections)
   const children = new Map(collections.map((item) => [item, new Set<string>()]))
   for (const relation of relations) {
-    if (targets.has(relation.collection) && targets.has(relation.related_collection) && relation.collection !== relation.related_collection) {
+    if (relation.related_collection !== null && targets.has(relation.collection) && targets.has(relation.related_collection) && relation.collection !== relation.related_collection) {
       children.get(relation.related_collection)?.add(relation.collection)
     }
   }

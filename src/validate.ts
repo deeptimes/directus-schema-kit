@@ -30,9 +30,12 @@ export function validateManifest(manifest: Manifest, config: DskConfig): string[
   }
   for (const relation of manifest.relations) {
     if (!collections.has(relation.collection)) errors.push(`关系 ${relation.collection}.${relation.field} 的来源集合不存在`)
-    if (!collections.has(relation.related_collection) && !relation.related_collection.startsWith('directus_')) {
+    const relationField = manifest.fields.find((item) => item.collection === relation.collection && item.field === relation.field)
+    if (!relationField) errors.push(`关系 ${relation.collection}.${relation.field} 缺少来源字段`)
+    if (relation.related_collection !== null && !collections.has(relation.related_collection) && !relation.related_collection.startsWith('directus_')) {
       errors.push(`关系 ${relation.collection}.${relation.field} 的目标集合 ${relation.related_collection} 不存在`)
     }
+    validateRelation(manifest, relation, errors)
   }
   if (config.validation?.requireChineseTranslations) {
     for (const item of manifest.fields) {
@@ -48,6 +51,40 @@ export function validateManifest(manifest: Manifest, config: DskConfig): string[
     }
   }
   return errors
+}
+
+function validateRelation(manifest: Manifest, relation: Manifest['relations'][number], errors: string[]): void {
+  const name = `${relation.collection}.${relation.field}`
+  const meta = relation.meta ?? {}
+  if (manifest.manifestVersion === 2) {
+    if (meta.many_collection !== relation.collection || meta.many_field !== relation.field) {
+      errors.push(`关系 ${name} 的 meta.many_collection/many_field 与来源字段不一致`)
+    }
+    if (relation.related_collection === null) {
+      if (!meta.one_collection_field) errors.push(`M2A 关系 ${name} 缺少 meta.one_collection_field`)
+      if (!meta.one_allowed_collections?.length) errors.push(`M2A 关系 ${name} 缺少 meta.one_allowed_collections`)
+      if (meta.one_collection_field && !hasField(manifest, relation.collection, meta.one_collection_field)) {
+        errors.push(`M2A 关系 ${name} 的 collection discriminator 字段不存在: ${relation.collection}.${meta.one_collection_field}`)
+      }
+    } else if (meta.one_collection !== relation.related_collection) {
+      errors.push(`关系 ${name} 的 meta.one_collection 与 related_collection 不一致`)
+    }
+  }
+  if (meta.one_field) {
+    const oneCollection = relation.related_collection ?? meta.one_collection
+    const alias = oneCollection ? manifest.fields.find((item) => item.collection === oneCollection && item.field === meta.one_field) : undefined
+    if (!alias || alias.type !== 'alias' || alias.schema !== null) errors.push(`关系 ${name} 引用的 alias 字段无效: ${oneCollection ?? 'null'}.${meta.one_field}`)
+  }
+  if (meta.junction_field && !hasField(manifest, relation.collection, meta.junction_field)) {
+    errors.push(`关系 ${name} 的 junction_field 不存在: ${relation.collection}.${meta.junction_field}`)
+  }
+  if (meta.sort_field && !hasField(manifest, relation.collection, meta.sort_field)) {
+    errors.push(`关系 ${name} 的 sort_field 不存在: ${relation.collection}.${meta.sort_field}`)
+  }
+}
+
+function hasField(manifest: Manifest, collection: string, field: string): boolean {
+  return manifest.fields.some((item) => item.collection === collection && item.field === field)
 }
 
 function validateResourceReferences(manifest: Manifest, config: DskConfig, errors: string[]): void {
@@ -101,8 +138,14 @@ export async function validateWorkspace(options: {
   if (!existsSync(manifestPath)) throw new DskError(`Manifest 不存在: ${manifestPath}`, 'VALIDATION_ERROR', ['请先运行 dsk build'])
   let manifest: Manifest
   try {
-    manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as Manifest
+    const parsed: unknown = JSON.parse(readFileSync(manifestPath, 'utf8'))
+    const version = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>).manifestVersion : undefined
+    if (version !== 1 && version !== 2) {
+      throw new DskError(`不支持的 Manifest 版本: ${String(version)}`, 'VALIDATION_ERROR', ['当前支持 Manifest V1/V2；请运行 dsk build 迁移到 V2'])
+    }
+    manifest = parsed as Manifest
   } catch (error) {
+    if (error instanceof DskError) throw error
     throw new DskError(`Manifest 不是有效 JSON: ${manifestPath}`, 'VALIDATION_ERROR', [error instanceof Error ? error.message : String(error)])
   }
 

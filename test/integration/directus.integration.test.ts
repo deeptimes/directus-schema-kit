@@ -3,7 +3,8 @@ import test from 'node:test'
 import { executeApply } from '../../src/apply.js'
 import { createClearPlan, executeClear } from '../../src/clear.js'
 import { DirectusReader, DirectusWriter } from '../../src/directus.js'
-import { collection, field, ref } from '../../src/index.js'
+import { collection, field, ref, relation } from '../../src/index.js'
+import { expandRelationBlueprint } from '../../src/dsl/expand.js'
 import { createPlan } from '../../src/plan.js'
 import { syncResources } from '../../src/resources.js'
 import { runSeeds } from '../../src/seed.js'
@@ -25,7 +26,7 @@ test('Directus 11.17.4 完整 provisioning 生命周期', { skip: !url || (!conf
     const initial = createPlan(manifest, await reader.readState(), url!)
     assert.equal(initial.summary.dangerous + initial.summary.conflict, 0)
     const applied = await executeApply({ manifest, plan: initial, writer })
-    assert.equal(applied.status, 'success')
+    assert.equal(applied.status, 'success', JSON.stringify(applied, null, 2))
 
     const converged = createPlan(manifest, await reader.readState(), url!)
     const remaining = converged.operations.filter((item) => item.action !== 'unchanged')
@@ -65,18 +66,35 @@ async function login(baseUrl: string, userEmail: string, userPassword: string): 
 
 function integrationManifest(): Manifest {
   const categories = collection({ name: 'dsk_ci_categories', label: 'DSK CI Categories', fields: [field.string('slug', { unique: true, required: true })] })
-  const articles = collection({
-    name: 'dsk_ci_articles', label: 'DSK CI Articles',
-    fields: [field.string('slug', { unique: true, required: true }), field.m2o('category_id', { collection: 'dsk_ci_categories' })],
-  })
-  const collections = [categories, articles]
+  const articles = collection({ name: 'dsk_ci_articles', label: 'DSK CI Articles', fields: [field.string('slug', { unique: true, required: true })] })
+  const tags = collection({ name: 'dsk_ci_tags', label: 'DSK CI Tags' })
+  const comments = collection({ name: 'dsk_ci_comments', label: 'DSK CI Comments' })
+  const textBlocks = collection({ name: 'dsk_ci_text_blocks', label: 'DSK CI Text Blocks' })
+  const imageBlocks = collection({ name: 'dsk_ci_image_blocks', label: 'DSK CI Image Blocks' })
+  const languages = collection({ name: 'dsk_ci_languages', label: 'DSK CI Languages' })
+  const blueprints = [
+    relation.m2o({ collection: 'dsk_ci_articles', field: 'category_id', relatedCollection: 'dsk_ci_categories' }),
+    relation.o2m({ collection: 'dsk_ci_articles', field: 'comments', relatedCollection: 'dsk_ci_comments', relatedField: 'article_id' }),
+    relation.file({ collection: 'dsk_ci_articles', field: 'document' }),
+    relation.image({ collection: 'dsk_ci_articles', field: 'cover' }),
+    relation.m2m({ collection: 'dsk_ci_articles', field: 'tags', relatedCollection: 'dsk_ci_tags' }),
+    relation.files({ collection: 'dsk_ci_articles', field: 'attachments' }),
+    relation.translations({ collection: 'dsk_ci_articles', languagesCollection: 'dsk_ci_languages' }),
+    relation.m2a({ collection: 'dsk_ci_articles', field: 'blocks', allowedCollections: ['dsk_ci_text_blocks', 'dsk_ci_image_blocks'] }),
+  ]
+  const expanded = blueprints.map(expandRelationBlueprint)
+  const baseCollections = [categories, articles, tags, comments, textBlocks, imageBlocks, languages]
+  const collections = [...baseCollections, ...expanded.flatMap((item) => item.collections)]
   return {
-    manifestVersion: 1, generator: { name: 'integration', version: '1' },
+    manifestVersion: 2, generator: { name: 'integration', version: '2' },
     source: { algorithm: 'sha256', digest: 'a'.repeat(64), files: [] },
     modules: [{ id: 'integration', dependsOn: [], cleanupCollections: [], sources: [] }],
     collections: collections.map((item) => ({ ...item, fields: [], module: 'integration' })),
-    fields: collections.flatMap((item) => item.fields.map(({ relation: _relation, ...definition }) => ({ ...definition, collection: item.collection, module: 'integration' }))),
-    relations: articles.fields.flatMap((item) => item.relation ? [{ collection: articles.collection, field: item.field, ...item.relation, module: 'integration' }] : []),
+    fields: [
+      ...baseCollections.flatMap((item) => item.fields.map(({ relation: _relation, ...definition }) => ({ ...definition, collection: item.collection, module: 'integration' }))),
+      ...expanded.flatMap((item) => item.fields.map((definition) => ({ ...definition, module: 'integration' }))),
+    ],
+    relations: expanded.flatMap((item) => item.relations.map((definition) => ({ ...definition, module: 'integration' }))),
     resources: emptyResources(),
   }
 }

@@ -12,7 +12,12 @@ export interface ResourceReference {
 export type DeclarativeValue = JsonPrimitive | EnvReference | ResourceReference | DeclarativeValue[] | { [key: string]: DeclarativeValue }
 
 export type PrimaryKeyType = 'uuid' | 'integer'
-export type FieldType = 'string' | 'text' | 'integer' | 'bigInteger' | 'float' | 'decimal' | 'boolean' | 'date' | 'dateTime' | 'uuid' | 'json' | 'alias'
+export type FieldType =
+  | 'alias' | 'bigInteger' | 'binary' | 'boolean' | 'csv' | 'date' | 'dateTime'
+  | 'decimal' | 'float' | 'geometry' | 'geometry.Point' | 'geometry.LineString'
+  | 'geometry.Polygon' | 'geometry.MultiPoint' | 'geometry.MultiLineString'
+  | 'geometry.MultiPolygon' | 'hash' | 'integer' | 'json' | 'string' | 'text'
+  | 'time' | 'timestamp' | 'uuid'
 export type FieldWidth = 'full' | 'half' | 'half-left' | 'half-right' | 'fill'
 export type OnDelete = 'NO ACTION' | 'CASCADE' | 'SET NULL' | 'SET DEFAULT' | 'RESTRICT'
 
@@ -22,6 +27,7 @@ export interface Translation {
 }
 
 export interface FieldMeta {
+  group?: string | null
   interface?: string | null
   options?: Record<string, DeclarativeValue> | null
   display?: string | null
@@ -34,9 +40,17 @@ export interface FieldMeta {
   sort?: number | null
   width?: FieldWidth
   translations?: Translation[]
+  conditions?: Array<Record<string, DeclarativeValue>> | null
+  validation?: Record<string, DeclarativeValue> | null
+  validation_message?: string | null
+  searchable?: boolean
+  clear_hidden_value_on_save?: boolean
 }
 
 export interface FieldSchema {
+  name?: string
+  table?: string
+  data_type?: string
   default_value?: DeclarativeValue
   is_nullable?: boolean
   is_unique?: boolean
@@ -45,16 +59,44 @@ export interface FieldSchema {
   max_length?: number | null
   numeric_precision?: number | null
   numeric_scale?: number | null
+  foreign_key_schema?: string | null
+  foreign_key_table?: string | null
+  foreign_key_column?: string | null
+  is_generated?: boolean
+  generation_expression?: string | null
+}
+
+export interface RelationMeta {
+  many_collection?: string
+  many_field?: string
+  one_collection?: string | null
+  one_field?: string | null
+  one_collection_field?: string | null
+  one_allowed_collections?: string[] | null
+  junction_field?: string | null
+  sort_field?: string | null
+  one_deselect_action?: 'nullify' | 'delete'
+  system?: boolean
+  [key: string]: DeclarativeValue | undefined
+}
+
+export interface RelationSchema {
+  constraint_name?: string
+  table?: string
+  column?: string
+  foreign_key_schema?: string | null
+  foreign_key_table?: string
+  foreign_key_column?: string
+  on_delete?: OnDelete
+  on_update?: OnDelete
 }
 
 export interface RelationDefinition {
   collection: string
   field: string
-  related_collection: string
-  schema: {
-    on_delete?: OnDelete
-  }
-  meta?: Record<string, DeclarativeValue>
+  related_collection: string | null
+  schema: RelationSchema | null
+  meta?: RelationMeta
   module?: string
 }
 
@@ -65,6 +107,76 @@ export interface FieldDefinition {
   schema: FieldSchema | null
   relation?: Omit<RelationDefinition, 'collection' | 'field' | 'module'>
 }
+
+export interface RelationFieldOptions {
+  label?: string
+  order?: number
+  width?: FieldWidth
+  required?: boolean
+  hidden?: boolean
+  readonly?: boolean
+  note?: string | null
+  interface?: string | null
+  options?: Record<string, DeclarativeValue> | null
+  display?: string | null
+  displayOptions?: Record<string, DeclarativeValue> | null
+  displayTemplate?: string
+}
+
+export interface JunctionOptions {
+  collection?: string
+  primaryKey?: PrimaryKeyType
+  sourceField?: string
+  targetField?: string
+  sortField?: string | false
+  onDelete?: OnDelete
+}
+
+interface RelationBlueprintBase {
+  kind: 'relation-blueprint'
+  type: 'm2o' | 'o2m' | 'm2m' | 'm2a' | 'translations' | 'file' | 'image' | 'files'
+  collection: string
+  field: string
+  fieldOptions?: RelationFieldOptions
+  meta?: RelationMeta
+}
+
+export interface M2ORelationBlueprint extends RelationBlueprintBase {
+  type: 'm2o' | 'file' | 'image'
+  relatedCollection: string
+  foreignKeyType?: Exclude<FieldType, 'alias'>
+  onDelete?: OnDelete
+}
+
+export interface O2MRelationBlueprint extends RelationBlueprintBase {
+  type: 'o2m'
+  relatedCollection: string
+  relatedField: string
+  onDelete?: OnDelete
+}
+
+export interface JunctionRelationBlueprint extends RelationBlueprintBase {
+  type: 'm2m' | 'files'
+  relatedCollection: string
+  junction?: JunctionOptions
+}
+
+export interface TranslationsRelationBlueprint extends RelationBlueprintBase {
+  type: 'translations'
+  translationsCollection?: string
+  languagesCollection?: string
+  languageField?: string
+  junction?: JunctionOptions
+}
+
+export interface M2ARelationBlueprint extends RelationBlueprintBase {
+  type: 'm2a'
+  allowedCollections: string[]
+  collectionField?: string
+  junction?: JunctionOptions
+}
+
+export type RelationBlueprint = M2ORelationBlueprint | O2MRelationBlueprint | JunctionRelationBlueprint | TranslationsRelationBlueprint | M2ARelationBlueprint
 
 export interface CollectionOptions {
   name: string
@@ -109,6 +221,7 @@ export interface ModuleDefinition {
   dependsOn?: string[]
   collections?: CollectionDefinition[]
   groups?: CollectionGroupDefinition[]
+  relations?: RelationBlueprint[]
   resources?: ResourceDefinition[]
   cleanupCollections?: string[]
 }
@@ -122,7 +235,7 @@ export interface ManifestModule {
 }
 
 export interface Manifest {
-  manifestVersion: 1
+  manifestVersion: 1 | 2
   generator: { name: string; version: string }
   source: { algorithm: 'sha256'; digest: string; files: string[] }
   modules: ManifestModule[]
@@ -184,7 +297,7 @@ export interface Plan {
 export interface DirectusState {
   collections: Array<Record<string, unknown> & { collection: string }>
   fields: Array<Record<string, unknown> & { collection: string; field: string; type: string }>
-  relations: Array<Record<string, unknown> & { collection: string; field: string; related_collection: string }>
+  relations: Array<Record<string, unknown> & { collection: string; field: string; related_collection: string | null }>
 }
 
 export interface ApplyItem {
