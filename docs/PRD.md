@@ -1,7 +1,7 @@
 # Directus Schema Kit 产品需求文档
 
-> 文档状态：Draft 1.0  
-> 更新日期：2026-06-19  
+> 文档状态：Draft 1.1
+> 更新日期：2026-06-21
 > 产品简称：DSK  
 > npm 包名：`@deeptimes/directus-schema-kit`  
 > 目标形态：独立开发、独立发布、可持续迭代的开源优先 Node.js CLI 与开发工具包
@@ -283,6 +283,38 @@ export default collection({
 })
 ```
 
+#### 8.4.1 Directus 字段与关系对齐模型
+
+DSK 必须区分 Directus 中三个不同层次的概念，避免把 Data Studio 界面名称误当成数据库字段类型：
+
+- **Field Type**：字段的存储或逻辑类型，例如 `string`、`text`、`json`、`uuid`、`alias`、`csv`。
+- **Interface**：Data Studio 的编辑界面，例如 Markdown、Tags、Code 和 Toggle；同一 Interface 可能支持多个 Field Type。
+- **Relational Type**：关系语义，例如 M2O、O2M、M2M、M2A、Translations、File 和 Files。
+
+普通字段界面使用 `field.*` helper 表达；一个声明只对应一个字段。关系使用 `relation.*` blueprint 表达；blueprint 可以在 build 阶段确定性展开为 alias field、实体字段、junction collection 和多条 relation。不得使用只返回单一字段的不完整 helper 模拟复合关系。
+
+目标公开 API 至少包括：
+
+```ts
+field.markdown('content', { label: '正文' })
+field.tags('tags', { label: '标签' })
+field.code('config', { label: '配置', type: 'json' })
+field.toggle('enabled', { label: '启用' })
+
+relation.m2o({ /* ... */ })
+relation.o2m({ /* ... */ })
+relation.m2m({ /* ... */ })
+relation.m2a({ /* ... */ })
+relation.translations({ /* ... */ })
+relation.file({ /* ... */ })
+relation.image({ /* ... */ })
+relation.files({ /* ... */ })
+```
+
+现有 `field.m2o()` 作为兼容简写保留，并编译到统一的关系定义。复杂关系生成的 junction collection 名称、主键、外键、排序字段和删除策略必须显式声明或遵循文档化的确定性默认值。
+
+本轮以 Directus 11.17.4 为完整实现和自动验收基线；Directus 12.x 作为兼容性评估目标。在 12.x 未进入认证矩阵前，不以 latest 行为覆盖 11.17.4 的稳定语义。
+
 ### 8.5 Resource Definition
 
 Resource Definition（系统资源定义）描述 Directus 的 folders、roles、policies、access、permissions 和 presets。Directus 11.17.4 的 permission 必须绑定 policy，role-policy 关联由 access 模型维护，因此 policies 和 access 不得省略。每类资源具有独立类型、稳定业务键和引用解析规则，默认使用 `dsk/resources/<resource-type>.ts` 中对应的固定 DSL 定义。
@@ -465,6 +497,14 @@ pnpm dsk seed
 | DSL-12 | P1 | 中文翻译可作为 `config.json` 中的项目校验选项开启，但不得成为核心包的强制规则。 |
 | DSL-13 | P1 | DSL API 或 Manifest 规范升级必须包含版本号、迁移说明和兼容性校验。 |
 | DSL-14 | P1 | 提供 `dsk build --check`，用于检查 Manifest 是否与源码一致而不改写文件。 |
+| DSL-15 | P0 | DSL 类型模型区分 Field Type、Interface 和 Relational Type，并以 Directus 11.17.4 官方类型为认证基线。 |
+| DSL-16 | P0 | Field Type 覆盖 Directus 11.17.4 的公开类型；不适合作为用户声明入口的 `unknown` 等内部类型必须明确限制。 |
+| DSL-17 | P0 | 提供 `field.markdown()`、`field.tags()`、`field.code()` 和 `field.toggle()`，并为常用 Interface options 提供严格类型。 |
+| DSL-18 | P0 | 提供 M2O、O2M、M2M、M2A、Translations、File、Image 和 Files 的固定关系 DSL。 |
+| DSL-19 | P0 | 复合关系通过 Relation Blueprint 确定性展开为完整 collections、fields 和 relations，不允许只生成 alias field 或残缺 junction。 |
+| DSL-20 | P0 | M2A 支持 Directus 允许的 nullable `related_collection`、collection discriminator 和 allowed collections。 |
+| DSL-21 | P0 | 现有 `field.m2o()` 保持源码兼容；Manifest V2 提供 V1 兼容读取、版本错误和迁移说明。 |
+| DSL-22 | P1 | 高级配置保留受类型约束的 `interface`、`options`、`display`、`displayOptions` 和 relation meta 逃生口。 |
 
 ### 10.3 校验
 
@@ -477,6 +517,8 @@ pnpm dsk seed
 | VAL-05 | P1 | 支持项目策略校验，例如命名规则、必需翻译、默认 accountability 和审计字段。 |
 | VAL-06 | P1 | 提供 `--format json` 供 IDE 或 CI 消费。 |
 | VAL-07 | P0 | validate 同时检查 DSL 类型、DSL 输出、Manifest JSON Schema、seed JSON Schema 和 Manifest 新鲜度。 |
+| VAL-08 | P0 | validate 检查复合关系展开结果，包括 alias、junction、外键、目标集合、主键兼容性和 relation meta 完整性。 |
+| VAL-09 | P0 | validate 检测重复或冲突的自动生成 junction collection、字段和 relation。 |
 
 ### 10.4 Plan 与差异识别
 
@@ -508,6 +550,7 @@ pnpm dsk seed
 | APP-09 | P1 | 支持并发读取；写入顺序必须保持依赖正确和结果确定。 |
 | APP-10 | P2 | 支持基于已保存 plan 的受控 apply。 |
 | APP-11 | P0 | apply 只消费已校验且与源码一致的 Manifest。 |
+| APP-12 | P0 | 复合关系的创建顺序通过 Directus 11.17.4 集成测试确定，并保证首次创建成功和第二次 apply 幂等。 |
 
 ### 10.6 Seed
 
@@ -673,13 +716,33 @@ V1 发布后使用以下指标评估产品是否有效：
 19. plan/apply 不执行 TypeScript，只消费配置、seed 和 Manifest JSON。
 20. README、快速开始、Schema DSL、Manifest 规范、安全边界和兼容矩阵齐备。
 
+### 14.1 Directus DSL 对齐迭代验收标准
+
+本轮迭代在满足以下条件后完成：
+
+1. Markdown、Tags、Code、Toggle 均可通过类型安全 helper 声明，不要求用户手写 interface ID。
+2. M2O、O2M、M2M、M2A、Translations、File、Image、Files 均能生成完整且可应用的 Manifest。
+3. M2M、Files、Translations 和 M2A 生成的 junction collection、实体字段、alias 字段及 relation meta 均通过静态校验。
+4. 旧有 `field.m2o()` 示例与现有 Manifest V1 项目具有明确兼容路径。
+5. 每种新增 helper 覆盖 DSL 单元测试、Manifest 快照、validate、plan 幂等和 Directus 11.17.4 SQLite 集成测试。
+6. 在 Directus Data Studio 中完成新增字段的创建、编辑、选择和展示人工验收。
+7. 输出 Directus 12.x 兼容性评估结果；未验证能力不得标记为正式支持。
+
 ## 15. 版本路线图
 
 ### V1：Standalone Provisioning
 
 - 完成独立包、`pnpm dsk init` 脚手架、`dsk/` Schema DSL 源码目录、`.dsk/` JSON 数据目录、Manifest 构建链路、项目识别、validate、plan、apply、seed、V1 系统资源同步、clear 护栏与 CI 输出。
 
-### V1.1：团队规范与模块生态
+### V1.1：Directus DSL 对齐
+
+- 区分 Field Type、Interface 和 Relational Type。
+- 补齐 Directus 11.17.4 字段类型及 Markdown、Tags、Code、Toggle helper。
+- 引入 Relation Blueprint，支持 M2O、O2M、M2M、M2A、Translations、File、Image 和 Files。
+- 升级 Manifest 关系模型、校验、计划和应用顺序，并保留 V1 兼容读取。
+- 完成 Directus 11.17.4 自动验收和 Directus 12.x 兼容性评估。
+
+### V1.2：团队规范与模块生态
 
 - 更丰富的项目校验与安全配置项。
 - 可共享的 Schema DSL Module 包。
@@ -687,7 +750,7 @@ V1 发布后使用以下指标评估产品是否有效：
 - 更细粒度范围过滤。
 - `dsk/` 模块模板与目录约束增强。
 
-### V1.2：本地 Drift 与项目治理
+### V1.3：本地 Drift 与项目治理
 
 - CI 漂移检测策略。
 - 可保存并校验的 plan artifact。
