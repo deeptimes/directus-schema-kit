@@ -48,8 +48,8 @@ export default defineSchema({
       group: 'blog',
       fields: [
         field.status(),
-        field.text('content', { label: '评论内容', required: true }),
         field.toggle('is_pinned', { label: '置顶', defaultValue: false, labelOn: '置顶', labelOff: '普通' }),
+        field.text('content', { label: '评论内容', required: true }),
         ...field.audit(),
       ],
     }),
