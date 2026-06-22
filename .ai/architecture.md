@@ -41,5 +41,5 @@ Plan 只比较 Manifest 明确声明的属性，不把实例额外属性或额�
 - Seed 引用优先使用本次执行缓存，再查询实例；无法解析立即停止当前运行。
 - 系统资源使用 DSL `key` 作为引用键，并以类型特定业务字段匹配实例；`$ref` 通过拓扑排序解析为 ID。Directus 11.17.4 按 roles → policies → access → permissions 建立权限链路。
 - 系统资源删除必须在定义中显式标记 `delete: true`，并额外提供 `--confirm-destructive`。
-- Clear 只接受 Manifest 模块范围，默认仅计划；真实删除要求 module、confirm、scope 三者一致。
+- Clear 只接受完整 Manifest，默认仅计划；真实删除需要交互确认或非交互 `--confirm`，并永远排除 `directus_*`。
 - Clear 永远拒绝 `directus_*`，先删除关系字段，再按子到父顺序删除集合，最后删除 group。

@@ -12,13 +12,12 @@ function manifest(): Manifest {
   })
   const definitions = [authors, articles]
   return {
-    manifestVersion: 1,
+    manifestVersion: 3,
     generator: { name: 'test', version: '1.0.0' },
     source: { algorithm: 'sha256', digest: 'a'.repeat(64), files: [] },
-    modules: [{ id: 'content', dependsOn: [], cleanupCollections: [], sources: [] }],
-    collections: definitions.map((item) => ({ ...item, fields: [], module: 'content' })),
-    fields: definitions.flatMap((item) => item.fields.map(({ relation: _relation, ...definition }) => ({ ...definition, collection: item.collection, module: 'content' }))),
-    relations: [{ collection: 'articles', field: 'author_id', related_collection: 'authors', schema: { on_delete: 'SET NULL' }, module: 'content' }],
+    collections: definitions.map((item) => ({ ...item, fields: [], source: 'dsk/schema/content.ts' })),
+    fields: definitions.flatMap((item) => item.fields.map(({ relation: _relation, ...definition }) => ({ ...definition, collection: item.collection, source: 'dsk/schema/content.ts' }))),
+    relations: [{ collection: 'articles', field: 'author_id', related_collection: 'authors', schema: { on_delete: 'SET NULL' }, source: 'dsk/schema/content.ts' }],
     resources: { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [] },
   }
 }
@@ -77,14 +76,6 @@ test('已有 UUID 主键的必填元数据可安全修正', () => {
   assert.deepEqual(operation?.changes, [{ path: 'meta.required', current: true, target: false }])
 })
 
-test('module filter 只保留目标模块', () => {
-  const target = manifest()
-  target.modules.push({ id: 'other', dependsOn: [], cleanupCollections: [], sources: [] })
-  target.collections.push({ collection: 'other', meta: {}, schema: {}, fields: [], module: 'other' })
-  const plan = createPlan(target, emptyState, 'http://127.0.0.1:8055', 'content')
-  assert.equal(plan.operations.some((item) => item.module === 'other'), false)
-})
-
 test('白名单外的声明差异分类为 conflict', () => {
   const target = manifest()
   const article = target.collections.find((item) => item.collection === 'articles')
@@ -122,7 +113,7 @@ test('SQLite 将 decimal 返回为无精度信息的 float 时视为等价', () 
   target.fields.push({
     ...field.decimal('price', { precision: 10, scale: 2 }),
     collection: 'articles',
-    module: 'content',
+    source: 'dsk/schema/content.ts',
   })
   const state: DirectusState = {
     collections: target.collections.map((item) => ({ collection: item.collection, meta: item.meta })),
@@ -136,7 +127,7 @@ test('SQLite 将 decimal 返回为无精度信息的 float 时视为等价', () 
     relations: target.relations.map((item) => ({ ...item })),
   }
 
-  const sqlitePlan = createPlan(target, state, 'http://localhost:8055', undefined, 'sqlite3')
+  const sqlitePlan = createPlan(target, state, 'http://localhost:8055', 'sqlite3')
   const genericPlan = createPlan(target, state, 'http://localhost:8055')
   const sqliteOperation = sqlitePlan.operations.find((item) => item.resource === 'articles.price')
   const genericOperation = genericPlan.operations.find((item) => item.resource === 'articles.price')

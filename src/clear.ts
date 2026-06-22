@@ -5,12 +5,10 @@ export interface ClearWriter {
   deleteCollection(collection: string): Promise<void>
 }
 
-export function createClearPlan(manifest: Manifest, state: DirectusState, moduleId: string): ClearOperation[] {
-  const module = manifest.modules.find((item) => item.id === moduleId)
-  if (!module) throw new Error(`Manifest 中不存在模块: ${moduleId}`)
-  const declared = manifest.collections.filter((item) => item.module === moduleId)
+export function createClearPlan(manifest: Manifest, state: DirectusState): ClearOperation[] {
+  const declared = manifest.collections
   const groups = new Set(declared.filter((item) => item.schema === null).map((item) => item.collection))
-  const targets = new Set([...declared.map((item) => item.collection), ...module.cleanupCollections])
+  const targets = new Set(declared.map((item) => item.collection))
   for (const collection of targets) {
     if (collection.startsWith('directus_')) throw new Error(`禁止清理系统集合: ${collection}`)
   }
@@ -19,6 +17,7 @@ export function createClearPlan(manifest: Manifest, state: DirectusState, module
   const fields = unique(state.relations
     .filter((item) => activeTargets.has(item.collection) || (item.related_collection !== null && activeTargets.has(item.related_collection)))
     .filter((item) => existing.has(item.collection))
+    .filter((item) => !item.collection.startsWith('directus_'))
     .map((item) => `${item.collection}.${item.field}`))
     .map((resource) => ({ resourceType: 'field' as const, resource }))
   const regular = [...activeTargets].filter((item) => !groups.has(item))
@@ -30,22 +29,19 @@ export function createClearPlan(manifest: Manifest, state: DirectusState, module
 export async function executeClear(options: {
   manifest: Manifest
   state: DirectusState
-  module: string
   writer: ClearWriter
   confirm?: boolean
-  scope?: string
   authorize?: (operations: readonly ClearOperation[]) => Promise<boolean>
   enabled?: boolean
 }): Promise<ClearResult> {
-  const operations = createClearPlan(options.manifest, options.state, options.module)
-  const base = { clearVersion: 1 as const, module: options.module, operations, completed: [], failures: [] }
+  const operations = createClearPlan(options.manifest, options.state)
+  const base = { clearVersion: 1 as const, operations, completed: [], failures: [] }
   if (options.enabled === false) return { ...base, dryRun: true, status: 'blocked', reason: '项目配置已禁用 clear' }
   if (options.authorize) {
     const authorized = await options.authorize(operations)
     if (!authorized) return { ...base, dryRun: true, status: 'planned', reason: '用户取消，未执行删除' }
   } else {
     if (!options.confirm) return { ...base, dryRun: true, status: 'planned' }
-    if (options.scope !== options.module) return { ...base, dryRun: true, status: 'blocked', reason: '--scope 必须与目标模块完全一致' }
   }
 
   const completed: ClearOperation[] = []

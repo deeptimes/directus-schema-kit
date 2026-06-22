@@ -3,9 +3,9 @@
   "$id": "https://deeptimes.dev/dsk/manifest.schema.json",
   "type": "object",
   "additionalProperties": false,
-  "required": ["manifestVersion", "generator", "source", "modules", "collections", "fields", "relations", "resources"],
+  "required": ["manifestVersion", "generator", "source", "collections", "fields", "relations", "resources"],
   "properties": {
-    "manifestVersion": { "enum": [1, 2] },
+    "manifestVersion": { "const": 3 },
     "generator": {
       "type": "object",
       "additionalProperties": false,
@@ -22,7 +22,6 @@
         "files": { "type": "array", "items": { "type": "string" } }
       }
     },
-    "modules": { "type": "array", "items": { "$ref": "#/$defs/module" } },
     "collections": { "type": "array", "items": { "$ref": "#/$defs/collection" } },
     "fields": { "type": "array", "items": { "$ref": "#/$defs/field" } },
     "relations": { "type": "array", "items": { "$ref": "#/$defs/relation" } },
@@ -41,37 +40,27 @@
     }
   },
   "$defs": {
-    "module": {
-      "type": "object", "additionalProperties": false,
-      "required": ["id", "dependsOn", "cleanupCollections", "sources"],
-      "properties": {
-        "id": { "type": "string", "minLength": 1 }, "version": { "type": "string" },
-        "dependsOn": { "type": "array", "items": { "type": "string" } },
-        "cleanupCollections": { "type": "array", "items": { "type": "string" } },
-        "sources": { "type": "array", "items": { "type": "string" } }
-      }
-    },
     "collection": {
       "type": "object", "additionalProperties": false,
-      "required": ["collection", "meta", "schema", "fields", "module"],
+      "required": ["collection", "meta", "schema", "fields", "source"],
       "properties": {
         "collection": { "type": "string", "minLength": 1 }, "meta": { "type": "object" },
         "schema": { "type": ["object", "null"] }, "fields": { "type": "array", "maxItems": 0 },
-        "module": { "type": "string", "minLength": 1 }
+        "source": { "type": "string", "minLength": 1 }
       }
     },
     "field": {
       "type": "object", "additionalProperties": false,
-      "required": ["collection", "field", "type", "meta", "schema", "module"],
+      "required": ["collection", "field", "type", "meta", "schema", "source"],
       "properties": {
         "collection": { "type": "string", "minLength": 1 }, "field": { "type": "string", "minLength": 1 },
         "type": { "enum": ["alias", "bigInteger", "binary", "boolean", "csv", "date", "dateTime", "decimal", "float", "geometry", "geometry.Point", "geometry.LineString", "geometry.Polygon", "geometry.MultiPoint", "geometry.MultiLineString", "geometry.MultiPolygon", "hash", "integer", "json", "string", "text", "time", "timestamp", "uuid"] },
-        "meta": { "type": "object" }, "schema": { "type": ["object", "null"] }, "module": { "type": "string", "minLength": 1 }
+        "meta": { "type": "object" }, "schema": { "type": ["object", "null"] }, "source": { "type": "string", "minLength": 1 }
       }
     },
     "relation": {
       "type": "object", "additionalProperties": false,
-      "required": ["collection", "field", "related_collection", "schema", "module"],
+      "required": ["collection", "field", "related_collection", "schema", "source"],
       "properties": {
         "collection": { "type": "string", "minLength": 1 }, "field": { "type": "string", "minLength": 1 },
         "related_collection": { "type": ["string", "null"] }, "schema": { "type": ["object", "null"] },
@@ -86,7 +75,7 @@
             "one_deselect_action": { "enum": ["nullify", "delete"] }
           }
         },
-        "module": { "type": "string", "minLength": 1 }
+        "source": { "type": "string", "minLength": 1 }
       }
     }
   }

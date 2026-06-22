@@ -4,9 +4,9 @@ import type { Manifest } from './types.js'
 // Manifest 的深层 Directus meta/data 保持开放，结构约束由语义校验补充。
 export const manifestJsonSchema: JSONSchemaType<Manifest> = {
   type: 'object', additionalProperties: false,
-  required: ['manifestVersion', 'generator', 'source', 'modules', 'collections', 'fields', 'relations', 'resources'],
+  required: ['manifestVersion', 'generator', 'source', 'collections', 'fields', 'relations', 'resources'],
   properties: {
-    manifestVersion: { type: 'number', enum: [1, 2] },
+    manifestVersion: { type: 'number', enum: [3] },
     generator: {
       type: 'object', additionalProperties: false, required: ['name', 'version'],
       properties: { name: { type: 'string' }, version: { type: 'string' } },
@@ -19,7 +19,6 @@ export const manifestJsonSchema: JSONSchemaType<Manifest> = {
         files: { type: 'array', items: { type: 'string' } },
       },
     },
-    modules: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
     collections: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
     fields: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
     relations: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },

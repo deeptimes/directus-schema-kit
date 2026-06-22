@@ -7,8 +7,8 @@ import type { DskConfig } from './types.js'
 export const defaultConfig: DskConfig = {
   schemaVersion: 1,
   paths: {
-    schemaSource: '../dsk/schema/**/*.ts',
-    resourceSource: '../dsk/resources/**/*.ts',
+    schemaSource: 'schema/**/*.ts',
+    resourceSource: 'resources/**/*.ts',
     seeds: 'seeds/**/*.json',
     manifest: 'generated/manifest.json',
   },
@@ -66,7 +66,7 @@ export interface LoadedConfig {
 }
 
 export function loadConfig(projectRoot: string, customPath?: string): LoadedConfig {
-  const configPath = path.resolve(projectRoot, customPath ?? '.dsk/config.json')
+  const configPath = path.resolve(projectRoot, customPath ?? 'dsk/config.json')
   if (!existsSync(configPath)) {
     throw new DskError(`配置文件不存在: ${configPath}`, 'CONFIG_ERROR', ['请先运行 dsk init'])
   }

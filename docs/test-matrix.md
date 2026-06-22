@@ -7,8 +7,8 @@
 - HTTP GET-only Reader、有限重试和确定性 4xx 不重试。
 - Seed 自然键、跨批次引用、缺失引用和 dry-run/plan/apply。
 - 六类 V1 系统资源创建、引用拓扑、重复业务键冲突和删除确认。
-- Clear 模块范围、关系顺序、循环关系、双重确认及系统集合保护。
-- Manifest V2、普通字段 interface helper 和八类关系 blueprint 展开/校验。
+- Clear 全量范围、关系顺序、循环关系、确认护栏及系统集合保护。
+- Manifest V3、普通字段 interface helper 和八类关系 blueprint 展开/校验。
 
 ## 唯一认证环境
 

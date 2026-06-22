@@ -18,17 +18,17 @@
 
 Directus Schema Kit 是面向 Directus 项目的声明式 Schema Provisioning 工具。
 
-用户通过 DSK 提供的固定 TypeScript Schema DSL 编写 collections、fields、relations、权限、角色和 Preset 等项目定义，通过 `.dsk/` 保存 JSON 配置、seed 和生成产物。`dsk build` 将人工编写的 DSL 编译、校验为标准 JSON Manifest；`plan/apply` 只消费 Manifest，并将目标状态应用到本地开发用 Directus 实例。
+用户通过 DSK 提供的固定 TypeScript Schema DSL 编写 collections、fields、relations、权限、角色和 Preset 等项目定义，所有源码、JSON 配置、seed 和生成产物统一保存在 `dsk/`。`dsk build` 将人工编写的 DSL 编译、校验为标准 JSON Manifest；`plan/apply` 只消费 Manifest，并将目标状态应用到本地开发用 Directus 实例。
 
 产品优先解决以下阶段：
 
 - 新项目从零建立数据模型。
-- 不同 Directus 项目在各自 `.dsk/` 目录中维护独立配置和 seed。
+- 不同 Directus 项目在各自 `dsk/` 目录中维护独立定义、配置和 seed。
 - 多个本地项目复用统一字段、集合和 UI Meta 规范。
 - 在本地开发或 CI 中校验 Schema，并审查定义与本地开发实例的状态差异。
 - 对本地开发实例执行新增、更新和初始化阶段重建。
 
-DSK 是本地开发工具包，不负责将 Schema 或数据同步到测试、预发布、生产等非本地环境。生产发布与跨环境同步由独立同步工具承担。DSK 强调项目内聚、目录化拆分、模块组合、可编程定义和本地初始化体验。
+DSK 是本地开发工具包，不负责将 Schema 或数据同步到测试、预发布、生产等非本地环境。生产发布与跨环境同步由独立同步工具承担。DSK 强调项目内聚、按业务文件拆分、可编程定义和本地初始化体验。
 
 ### 2.2 产品愿景
 
@@ -39,7 +39,7 @@ DSK 是本地开发工具包，不负责将 Schema 或数据同步到测试、�
 - **效率**：减少在 Directus 后台重复创建集合、字段、关系和 UI Meta 的操作。
 - **一致性**：保证代码定义与本地开发实例状态一致。
 - **可审查**：执行前明确展示新增、更新、跳过、冲突和危险操作。
-- **可复用**：通过稳定的 Schema DSL、业务模块和标准 Manifest 复用团队建模经验。
+- **可复用**：通过稳定的 Schema DSL、业务定义文件和标准 Manifest 复用团队建模经验。
 - **可治理**：将 Schema、seed 和执行记录纳入 Git 与 CI。
 - **安全性**：默认不执行删除、改类型等高风险变更，危险操作必须显式授权。
 
@@ -62,13 +62,13 @@ Directus 后台适合早期探索和少量手工配置，但项目进入团队�
 2. **计划先于写入**：任何本地 Directus 写入都应可先通过 `plan` 或 `--dry-run` 查看。
 3. **安全默认值**：默认仅允许新增和明确认定的低风险更新。
 4. **危险操作显式化**：删除、重命名、类型变化等不得由普通 `apply` 隐式执行。
-5. **目录化与模块化优先**：Schema 按业务域和资源类型拆分到 `.dsk/` 子目录，禁止让单一入口文件长期承载全部功能。
+5. **目录化优先**：Schema 按业务域拆分为 `dsk/schema/*.ts` 文件，资源按类型拆分；文件只组织源码，不形成运行时模块或 Directus 命名空间。
 6. **幂等执行**：相同定义重复执行不应失败，也不应产生重复资源或数据。
 7. **双层模型**：TypeScript Schema DSL 优化人工编写体验，标准 JSON Manifest 优化机器校验、执行和工具间交换。
 8. **核心与业务解耦**：核心包和 V1 交付物不得内置智慧教育业务语义或迁移旧教学中心数据。
 9. **项目上下文优先**：DSK 自动读取 Directus 项目的 `.env` 和 `package.json`，避免重复维护项目基础信息。
 10. **项目定义而非二次扩展**：`dsk/` 中的 TypeScript 只使用公开、固定的 Schema DSL 定义项目模型；V1 不提供 DSK 内核插件、自定义执行器或生命周期钩子。
-11. **运行输入标准化**：`.dsk/` 保存 JSON 配置、seed、生成的 Manifest 和目录说明文档；`plan/apply` 不直接执行 TypeScript。
+11. **运行输入标准化**：`dsk/` 保存 JSON 配置、seed、生成的 Manifest 和目录说明文档；`plan/apply` 不直接执行 TypeScript。
 12. **自动化友好**：命令需支持无交互执行、稳定退出码和机器可读结果。
 
 ## 5. 目标用户
@@ -98,21 +98,21 @@ Directus 后台适合早期探索和少量手工配置，但项目进入团队�
 
 ### 场景 A：初始化新项目
 
-开发者在已有 Directus 项目中安装 DSK，执行一次 `pnpm dsk init`，自动生成 `dsk/`、`.dsk/`、示例文件和说明文档；随后构建 Manifest、执行校验与计划，并将 collections、fields、relations、权限、角色、Preset、folders 和基础数据应用到本地空实例。
+开发者在已有 Directus 项目中安装 DSK，执行一次 `pnpm dsk init`，自动生成统一的 `dsk/` 工作区、示例文件和说明文档；随后构建 Manifest、执行校验与计划，并将 collections、fields、relations、权限、角色、Preset、folders 和基础数据应用到本地空实例。
 
 期望结果：新实例在一次标准流程后达到可开发状态。
 
 ### 场景 B：管理多个本地项目
 
-开发者维护多个 Directus 项目。每个项目拥有独立的 `dsk/` TypeScript 定义，以及 `.dsk/config.json`、seeds 和 generated Manifest。
+开发者维护多个 Directus 项目。每个项目在 `dsk/` 中拥有独立的 TypeScript 定义、`config.json`、seeds 和 generated Manifest。
 
 期望结果：不同项目的配置与数据互不混淆，项目内定义可以细粒度拆分，共享能力不依赖复制整份单文件脚本。
 
-### 场景 C：新增业务模块
+### 场景 C：新增业务定义
 
-开发者引入一个独立模块，例如内容中心、工单或商品目录，并将其与项目已有 Schema 组合。
+开发者引入一个独立业务定义文件，例如内容中心、工单或商品目录，并将其与项目已有 Schema 组合。
 
-期望结果：只规划和应用该模块涉及的资源，不要求把所有定义集中在单一文件。
+期望结果：不要求把所有定义集中在单一文件；构建后进行全局校验、规划和应用。
 
 ### 场景 D：维护基础数据
 
@@ -128,9 +128,9 @@ Directus 后台适合早期探索和少量手工配置，但项目进入团队�
 
 ### 场景 F：初始化阶段重建
 
-开发者在明确确认后清理某个 Schema 模块声明的自定义集合并重新应用。
+开发者在数据库初期建模和 DSK 调试阶段，明确确认后清理 Manifest 声明的全部自定义集合并重新应用。
 
-期望结果：只影响目标模块；系统集合默认不可删除；执行前展示完整删除范围。
+期望结果：清理全部自定义 Schema；系统集合不可删除；执行前展示完整删除范围。
 
 ## 7. 产品范围
 
@@ -139,20 +139,20 @@ Directus 后台适合早期探索和少量手工配置，但项目进入团队�
 独立版 V1 聚焦“可发布、可复用、可审查的 Provisioning 工具”，包括：
 
 - 独立 npm 包与 CLI。
-- 在 Directus 项目根目录创建并管理标准 `dsk/` 源码目录与 `.dsk/` 数据目录。
+- 在 Directus 项目根目录创建并管理统一的 `dsk/` 工作区。
 - 支持通过 `pnpm dsk init` 一次性初始化目录、配置、示例和说明文档。
 - 固定、版本化的 TypeScript Schema DSL API。
 - 版本化 JSON Manifest 规范和配套 JSON Schema。
 - `dsk build` 编译、校验并生成 Manifest。
 - 自动识别 Directus 项目并读取项目 `.env` 与 `package.json`。
-- 项目级 JSON 配置、目录化 DSL modules 和项目独立 JSON seed。
+- 项目级 JSON 配置、目录化 DSL 文件和项目独立 JSON seed。
 - Schema 加载、组合和严格校验。
 - collections、fields、relations 的计划与应用。
 - 权限、角色、Policy、Access、Preset 的完整读取、计划与本地同步。
 - 安全的 Meta/Schema 属性更新白名单。
 - folders 等基础系统资源初始化。
 - 自然键、外键引用和幂等 seed。
-- 模块范围内的受保护 clear。
+- 仅支持全量自定义 Schema 的受保护 clear。
 - 人类可读与 JSON 两种输出。
 - 稳定退出码、日志脱敏和 CI 模式。
 - 单元测试、集成测试、兼容性说明和最小使用文档。
@@ -175,14 +175,14 @@ Directus 后台适合早期探索和少量手工配置，但项目进入团队�
 
 ### 8.1 Directus Project
 
-包含 Directus `package.json`、`.env` 和运行配置的项目目录。DSK 从当前工作目录向上识别项目根目录，并以该目录作为 `dsk/` 源码目录和 `.dsk/` 数据目录的共同宿主。
+包含 Directus `package.json`、`.env` 和运行配置的项目目录。DSK 从当前工作目录向上识别项目根目录，并以该目录作为 `dsk/` 工作区的宿主。
 
 ### 8.2 DSK Project Workspace
 
-DSK 项目工作区分成两个职责明确的目录：
+DSK 项目使用一个目录承载职责明确的子目录和文件：
 
-- `dsk/`：人工维护的 TypeScript 项目定义源码，只使用 DSK 公开的固定 Schema DSL。
-- `.dsk/`：JSON 配置、seed、生成产物和说明文档目录，不保存 DSK 扩展源码。
+- `dsk/schema/`、`dsk/resources/`：人工维护的 TypeScript 项目定义源码，只使用 DSK 公开 DSL。
+- `dsk/config.json`、`dsk/seeds/`、`dsk/generated/`：配置、seed 和生成产物。
 
 V1 推荐目录：
 
@@ -201,8 +201,6 @@ directus-project/
       access.ts
       permissions.ts
       presets.ts
-  .dsk/
-    README.md
     config.json
     seeds/
       example/
@@ -213,21 +211,21 @@ directus-project/
 
 目录约束：
 
-- `dsk/schema/<module-id>.ts` 是业务边界；一个文件可以定义一个或一组强相关 collections，避免一个集合拆成过多文件。
+- `dsk/schema/*.ts` 按业务组织一个或一组强相关 collections；文件不形成命名空间，同名 collection 不得跨文件重复定义。
 - `dsk/resources/` 按 Directus 系统资源类型组织；体量较大时允许继续按业务域拆分。
-- TypeScript 定义只能依赖 DSK 公开 DSL 和项目内其他定义模块，不得依赖 DSK 内部源码。
-- `.dsk/` 下供工具读取的配置、seed 和 Manifest 统一使用严格 JSON，不支持注释、函数或可执行表达式；README Markdown 仅作为说明文档。
-- `seeds/` 保存当前项目专属基础数据，可按业务模块建立子目录；文件名前缀用于表达默认执行顺序。
+- TypeScript 定义只能依赖 DSK 公开 DSL 和项目内其他定义文件，不得依赖 DSK 内部源码。
+- `dsk/` 下供工具读取的配置、seed 和 Manifest 统一使用严格 JSON，不支持注释、函数或可执行表达式；README Markdown 仅作为说明文档。
+- `seeds/` 保存当前项目专属基础数据，可按业务建立子目录；文件名前缀用于表达默认执行顺序。
 - `generated/manifest.json` 由 `dsk build` 生成，禁止手工编辑；是否提交 Git 由项目配置决定。
-- `dsk/README.md` 说明 DSL 编写、模块拆分和 Resource DSL；`.dsk/README.md` 说明配置、seed、generated 文件和禁止手改范围。
-- 初始化示例默认导出空模块或空数据，不应在用户未修改示例时创建真实业务集合或 seed 数据。
+- `dsk/README.md` 统一说明 DSL 编写、文件拆分、配置、seed、generated 文件和禁止手改范围。
+- 初始化示例默认导出空 Schema 或空数据，不应在用户未修改示例时创建真实业务集合或 seed 数据。
 - DSK 按配置和文件名字典序确定性加载源码与 seed；引用依赖仍需经过解析和校验，不能只依赖文件顺序。
 - 项目级命名、安全和校验选项直接写入 `config.json`，不建立可执行 policy 文件。
-- V1 不提供 `.dsk/extensions/`、自定义执行器、自定义校验函数或 DSK 生命周期钩子。
+- V1 不提供 `dsk/extensions/`、自定义执行器、自定义校验函数或 DSK 生命周期钩子。
 
 ### 8.3 Config
 
-`.dsk/config.json` 是轻量项目入口，负责声明：
+`dsk/config.json` 是轻量项目入口，负责声明：
 
 - 定义规范版本。
 - Schema DSL、resources、seeds 和 generated Manifest 的路径规则。
@@ -239,17 +237,11 @@ directus-project/
 
 连接信息优先复用 Directus 项目的 `.env`。配置中不得保存明文 token，也不得要求用户为 DSK 重复维护一份环境文件。
 
-### 8.4 Schema DSL Module
+### 8.4 Schema DSL 文件
 
-`dsk/schema/<module-id>.ts` 是可独立加载和组合的人工编写模块，使用 DSK 提供的 `collection()`、`field.*()` 等固定 DSL API，包含：
+`dsk/schema/*.ts` 是可独立加载和组合的人工编写文件，使用 DSK 提供的 `collection()`、`field.*()`、`relation.*()` 和 `defineSchema()` 等固定 DSL API。文件名用于业务组织和错误定位，不形成 Directus 命名空间或独立 apply/clear 范围。
 
-- 稳定模块标识。
-- collection groups。
-- collections。
-- fields。
-- relations。
-- 可选的模块版本和依赖。
-- 可选的清理范围声明。
+所有文件编译后进入一个扁平 Manifest。collection 名全局唯一；一个 collection 只能由一个文件完整定义，其他文件可以通过 relation 引用它，但不得重复声明或局部扩展。
 
 DSL 应采用对象参数而非大量位置参数；常用字段通过固定函数简写，复杂 Directus 属性允许通过受类型约束的高级配置表达。
 
@@ -332,7 +324,7 @@ Schema DSL、Resource DSL 和 seed JSON 通过稳定引用表达运行时信息�
 
 ### 8.7 Generated Manifest
 
-`.dsk/generated/manifest.json` 是 Schema DSL 和 Resource DSL 的标准化编译结果，也是 DSK 执行层与未来独立同步工具之间的稳定交换格式。
+`dsk/generated/manifest.json` 是 Schema DSL 和 Resource DSL 的标准化编译结果，也是 DSK 执行层与未来独立同步工具之间的稳定交换格式。
 
 Manifest 必须：
 
@@ -363,23 +355,23 @@ Manifest 目标状态与本地开发实例当前状态比较后的标准化操�
 
 ### 8.10 JSON 文件约定
 
-`.dsk/` 中的 config、seed 和 generated Manifest 必须包含版本信息，不得直接使用没有版本信息的裸数组。V1 采用以下统一外形：
+`dsk/` 中的 config、seed 和 generated Manifest 必须包含版本信息，不得直接使用没有版本信息的裸数组。V1 采用以下统一外形：
 
-`.dsk/config.json`：
+`dsk/config.json`：
 
 ```json
 {
   "schemaVersion": 1,
   "paths": {
-    "schemaSource": "../dsk/schema/**/*.ts",
-    "resourceSource": "../dsk/resources/**/*.ts",
+    "schemaSource": "schema/**/*.ts",
+    "resourceSource": "resources/**/*.ts",
     "seeds": "seeds/**/*.json",
     "manifest": "generated/manifest.json"
   }
 }
 ```
 
-`.dsk/seeds/content/10-categories.json`：
+`dsk/seeds/content/10-categories.json`：
 
 ```json
 {
@@ -390,16 +382,15 @@ Manifest 目标状态与本地开发实例当前状态比较后的标准化操�
 }
 ```
 
-`.dsk/generated/manifest.json`：
+`dsk/generated/manifest.json`：
 
 ```json
 {
-  "manifestVersion": 1,
+  "manifestVersion": 3,
   "generator": {
     "name": "@deeptimes/directus-schema-kit",
     "version": "1.0.0"
   },
-  "modules": [],
   "collections": [],
   "fields": [],
   "relations": [],
@@ -415,10 +406,10 @@ DSK 应为每类 JSON 文档提供对应 JSON Schema，并在错误中报告文�
 
 ```text
 识别 Directus 项目根目录
-  -> 读取 package.json、.env 与 .dsk/config.json
+  -> 读取 package.json、.env 与 dsk/config.json
   -> 加载并类型检查 dsk/ 中的 Schema DSL 与 Resource DSL
   -> 编译、标准化并校验 generated/manifest.json
-  -> 加载并校验 .dsk/seeds/ JSON
+  -> 加载并校验 dsk/seeds/ JSON
   -> 读取本地开发实例当前状态
   -> 生成 Plan 并进行风险分类
   -> 输出计划 / CI 审查
@@ -438,16 +429,16 @@ pnpm dsk resources apply
 pnpm dsk seed
 ```
 
-`dsk init` 创建 `dsk/` 源码目录、`.dsk/` 数据目录、示例和说明文档；`dsk build` 生成标准 Manifest；`dsk resources apply` 负责应用本地 Directus 系统资源，三者职责不得合并。
+`dsk init` 创建统一的 `dsk/` 工作区、示例和说明文档；`dsk build` 生成标准 Manifest；`dsk resources apply` 负责应用本地 Directus 系统资源，三者职责不得合并。
 
 ### 9.3 安全清理流程
 
 ```text
-读取目标模块
-  -> 计算模块内集合与关系依赖
+读取 Manifest 声明的全部自定义集合
+  -> 计算集合与关系依赖
   -> 排除 directus_* 系统资源
   -> 输出删除顺序与影响范围
-  -> 要求 --confirm 和范围标识
+  -> 交互确认，或在非交互模式要求 --confirm
   -> 删除关系字段及集合
   -> 输出成功、跳过和失败列表
 ```
@@ -463,7 +454,7 @@ pnpm dsk seed
 | CFG-01 | P0 | 以 npm package 发布，并提供 `dsk` 可执行命令。 |
 | CFG-02 | P0 | 支持 pnpm、npm、yarn 和 bun 可调用的标准 Node.js 包形态。 |
 | CFG-03 | P0 | 支持在已安装 DSK 的 Directus 项目中通过 `pnpm dsk init` 执行初始化。 |
-| CFG-04 | P0 | 支持 `.dsk/config.json`，并提供版本化 JSON Schema 用于校验和编辑器提示。 |
+| CFG-04 | P0 | 支持 `dsk/config.json`，并提供版本化 JSON Schema 用于校验和编辑器提示。 |
 | CFG-05 | P0 | 从当前目录向上识别 Directus 项目，并读取项目 `package.json`。 |
 | CFG-06 | P0 | 从 `package.json` 识别 Directus 依赖版本、包管理器信息和相关 scripts，为兼容性检查与命令提示提供依据。 |
 | CFG-07 | P0 | 默认读取 Directus 项目根目录的 `.env`，并支持 Directus 常用连接变量及显式变量映射。 |
@@ -471,9 +462,9 @@ pnpm dsk seed
 | CFG-09 | P0 | 支持 `--cwd` 和 `--config`，确保 monorepo 和非标准目录可用。 |
 | CFG-10 | P0 | Schema DSL、Resource DSL 和 seeds 支持按约定目录拆分；DSK 根据配置确定性加载，不要求单一大入口文件。 |
 | CFG-11 | P1 | 项目脚手架生成最小 DSL 示例、JSON 配置、seed 示例和 npm scripts，但不额外生成重复的 `.env`。 |
-| CFG-12 | P1 | `dsk doctor` 报告项目识别结果、Directus 版本、`.env` 加载来源和 `.dsk/` 完整性，但对敏感值脱敏。 |
-| CFG-13 | P0 | init 创建 `dsk/schema/`、`dsk/resources/`、`.dsk/seeds/`、`.dsk/generated/` 及必要父目录。 |
-| CFG-14 | P0 | init 创建 `.dsk/config.json`、安全的空示例 Schema/Resource/Seed，以及 `dsk/README.md` 和 `.dsk/README.md`；随后复用 build 流程生成初始 Manifest。 |
+| CFG-12 | P1 | `dsk doctor` 报告项目识别结果、Directus 版本、`.env` 加载来源和 `dsk/` 完整性，但对敏感值脱敏。 |
+| CFG-13 | P0 | init 创建 `dsk/schema/`、`dsk/resources/`、`dsk/seeds/`、`dsk/generated/` 及必要父目录。 |
+| CFG-14 | P0 | init 创建 `dsk/config.json`、安全的空示例 Schema/Resource/Seed 和 `dsk/README.md`；随后复用 build 流程生成初始 Manifest。 |
 | CFG-15 | P0 | init 必须幂等；重复执行只补充缺失目录和文件，默认不得覆盖用户已修改的内容。 |
 | CFG-16 | P0 | init 执行前识别 Directus `package.json`；无法确认是 Directus 项目时停止并说明原因，不在任意目录生成文件。 |
 | CFG-17 | P0 | init 完成后输出创建、保留、跳过的文件清单，以及 build、validate、plan 的下一步命令。 |
@@ -488,8 +479,8 @@ pnpm dsk seed
 | DSL-03 | P0 | 提供 `collection()`、`field.string()`、`field.text()`、`field.m2o()`、`field.status()`、`field.sort()`、审计字段等常用固定函数。 |
 | DSL-04 | P0 | 支持 UUID 与自增 integer 主键，以及字段 Meta、Schema、翻译、界面、显示、宽度、默认值、必填和唯一等属性。 |
 | DSL-05 | P0 | M2O 等关系可跟随字段声明；`onDelete` 等关系属性必须经过类型和合法值校验。 |
-| DSL-06 | P0 | 多个 DSL 模块组合时检测重复 collection、field、relation 和系统资源定义。 |
-| DSL-07 | P0 | `dsk build` 加载 DSL、展开简写、标准化定义并生成 `.dsk/generated/manifest.json`。 |
+| DSL-06 | P0 | 多个 DSL 文件组合时检测重复 collection、field、relation 和系统资源定义；collection 名全局唯一。 |
+| DSL-07 | P0 | `dsk build` 加载 DSL、展开简写、标准化定义并生成 `dsk/generated/manifest.json`。 |
 | DSL-08 | P0 | Manifest 输出必须确定、无函数、无 secret，并通过版本化 JSON Schema 校验。 |
 | DSL-09 | P0 | `plan/apply` 只读取 Manifest，不直接加载或执行 TypeScript DSL。 |
 | DSL-10 | P0 | 支持 `env()`、`ref()` 和 seed 外键引用；编译后转换为标准声明式引用。 |
@@ -503,7 +494,7 @@ pnpm dsk seed
 | DSL-18 | P0 | 提供 M2O、O2M、M2M、M2A、Translations、File、Image 和 Files 的固定关系 DSL。 |
 | DSL-19 | P0 | 复合关系通过 Relation Blueprint 确定性展开为完整 collections、fields 和 relations，不允许只生成 alias field 或残缺 junction。 |
 | DSL-20 | P0 | M2A 支持 Directus 允许的 nullable `related_collection`、collection discriminator 和 allowed collections。 |
-| DSL-21 | P0 | 现有 `field.m2o()` 保持源码兼容；Manifest V2 提供 V1 兼容读取、版本错误和迁移说明。 |
+| DSL-21 | P0 | 现有 `field.m2o()` 保持源码兼容；无模块结构使用 Manifest V3，旧 Manifest 必须提示重新 build。 |
 | DSL-22 | P1 | 高级配置保留受类型约束的 `interface`、`options`、`display`、`displayOptions` 和 relation meta 逃生口。 |
 
 ### 10.3 校验
@@ -512,7 +503,7 @@ pnpm dsk seed
 | --- | --- | --- |
 | VAL-01 | P0 | `validate` 可在不连接 Directus 的情况下完成本地结构校验。 |
 | VAL-02 | P0 | 校验主键、字段唯一性、关系完整性、引用目标和枚举值。 |
-| VAL-03 | P0 | 错误必须包含模块、资源路径、原因和修复提示。 |
+| VAL-03 | P0 | 错误必须包含源码文件、资源路径、原因和修复提示。 |
 | VAL-04 | P0 | 校验失败返回非零退出码，且不得产生本地 Directus 写入。 |
 | VAL-05 | P1 | 支持项目策略校验，例如命名规则、必需翻译、默认 accountability 和审计字段。 |
 | VAL-06 | P1 | 提供 `--format json` 供 IDE 或 CI 消费。 |
@@ -526,10 +517,10 @@ pnpm dsk seed
 | --- | --- | --- |
 | PLN-01 | P0 | `plan` 读取本地开发实例并输出目标差异，不执行写入。 |
 | PLN-02 | P0 | 能区分 create、safe update、unchanged、conflict 和 dangerous。 |
-| PLN-03 | P0 | 输出按模块和资源分组的操作摘要及计数。 |
+| PLN-03 | P0 | 输出按资源和源码文件定位的操作摘要及计数。 |
 | PLN-04 | P0 | 对字段类型、nullable、unique、主键、关系目标变化至少标记为危险或冲突。 |
 | PLN-05 | P0 | 支持 JSON 输出，并保证同一版本内结构稳定。 |
-| PLN-06 | P1 | 支持只规划指定模块、collection 或资源类型。 |
+| PLN-06 | P1 | Schema plan 始终基于完整 Manifest，不提供可能遗漏跨文件依赖的模块过滤。 |
 | PLN-07 | P1 | 支持 CI 漂移检测：存在未允许差异时返回约定退出码。 |
 | PLN-08 | P2 | 支持保存 plan artifact，并在 apply 时校验本地实例状态未发生变化。 |
 | PLN-09 | P0 | Manifest 缺失或与 DSL 源码不一致时拒绝 plan，并提示先执行 `dsk build`。 |
@@ -546,7 +537,7 @@ pnpm dsk seed
 | APP-05 | P0 | 默认拒绝执行 dangerous 操作。 |
 | APP-06 | P0 | 单项失败时明确报告已完成、失败和未执行操作，不得输出模糊的整体成功。 |
 | APP-07 | P0 | 网络超时、限流和可重试服务端错误采用有上限的退避重试。 |
-| APP-08 | P1 | 支持 `--module`、`--collection` 进行范围过滤。 |
+| APP-08 | P1 | Schema apply 始终应用完整 Manifest，不提供按文件或模块过滤。 |
 | APP-09 | P1 | 支持并发读取；写入顺序必须保持依赖正确和结果确定。 |
 | APP-10 | P2 | 支持基于已保存 plan 的受控 apply。 |
 | APP-11 | P0 | apply 只消费已校验且与源码一致的 Manifest。 |
@@ -583,15 +574,15 @@ pnpm dsk seed
 
 | 编号 | 优先级 | 需求 |
 | --- | --- | --- |
-| CLR-01 | P0 | 交互式终端执行 `clear <module>` 时，必须先输出完整计划，再以默认否定的 `y/N` 提示确认；仅输入 `y` 或 `yes` 才执行真实删除。 |
-| CLR-02 | P0 | 删除范围仅限目标模块显式声明的自定义集合和 cleanup allowlist。 |
+| CLR-01 | P0 | 交互式终端执行 `clear` 时，必须先输出完整计划，再以默认否定的 `y/N` 提示确认；仅输入 `y` 或 `yes` 才执行真实删除。 |
+| CLR-02 | P0 | 删除范围仅限完整 Manifest 声明的全部自定义集合；不支持局部 collection 或文件范围。 |
 | CLR-03 | P0 | 永远拒绝删除 `directus_*` 系统集合。 |
 | CLR-04 | P0 | 根据真实关系计算先子后父的删除顺序。 |
 | CLR-05 | P0 | 输出受影响关系字段、集合和失败项。 |
-| CLR-06 | P0 | 非交互终端、JSON 输出和 `--dry-run` 只输出计划；CI/脚本真实执行必须同时提供 `--confirm` 和与目标模块相同的 `--scope`，避免脚本变量错误导致误删。 |
+| CLR-06 | P0 | 非交互终端、JSON 输出和 `--dry-run` 只输出计划；CI/脚本真实执行必须提供 `--confirm`。 |
 | CLR-07 | P1 | 支持项目策略完全禁用 clear。 |
 | CLR-08 | P2 | 支持导出执行前快照引用，但不承诺自动恢复。 |
-| CLR-09 | P1 | `clear` 使用位置参数指定模块；兼容旧的 `--module <id>`，两者同时提供但值不一致时必须拒绝执行。 |
+| CLR-09 | P1 | `clear` 不接受模块、文件或 collection 参数，语义固定为清理全部自定义 Schema。 |
 
 ### 10.9 日志、报告与退出码
 
@@ -610,19 +601,19 @@ pnpm dsk seed
 # 项目与本地定义
 dsk init [--dry-run]
 dsk build [--check]
-dsk validate [--config .dsk/config.json] [--format text|json]
+dsk validate [--config dsk/config.json] [--format text|json]
 
 # 本地开发实例状态
-dsk plan [--module <id>] [--format text|json]
-dsk apply [--module <id>] [--dry-run]
+dsk plan [--format text|json]
+dsk apply [--dry-run]
 
 # 基础资源和数据
 dsk resources apply [--dry-run] [--confirm-destructive]
 dsk seed [path] [--dry-run]
 
 # 初始化阶段危险操作
-dsk clear <module> [--dry-run]
-dsk clear <module> --confirm --scope <module-id>
+dsk clear [--dry-run]
+dsk clear --confirm
 
 # 诊断
 dsk doctor
@@ -635,7 +626,7 @@ CLI 名称和层级在技术设计阶段可以调整，但必须保持以下语�
 - validate 不连接 Directus，也不写入。
 - plan 只连接当前项目的本地开发实例，但不写入。
 - apply 只执行 plan 中允许的安全操作。
-- clear 在交互式终端中先展示计划并默认拒绝执行；非交互真实删除具有双重范围确认。
+- clear 在交互式终端中先展示计划并默认拒绝执行；非交互真实删除必须显式提供 `--confirm`。
 
 ## 12. 非功能需求
 
@@ -665,7 +656,7 @@ CLI 名称和层级在技术设计阶段可以调整，但必须保持以下语�
 - 不在命令参数中推荐传入 token，避免 shell history 泄漏。
 - clear 和未来 destructive migration 必须使用独立授权路径。
 - `dsk build` 会加载当前项目的 TypeScript DSL，因此只应在可信项目源码中运行；不得将其描述为安全沙箱。
-- `plan/apply` 只读取 `.dsk/` JSON 和 Manifest，不使用动态 import、`eval` 或其他方式执行项目代码。
+- `plan/apply` 只读取 `dsk/` JSON 和 Manifest，不使用动态 import、`eval` 或其他方式执行项目代码。
 - JSON 中的 `$env` 只能读取 `config.json` 允许的变量，敏感值不得进入 plan、日志或报告。
 - 依赖发布启用 lockfile、依赖审计和最小发布文件清单。
 
@@ -687,7 +678,7 @@ V1 发布后使用以下指标评估产品是否有效：
 | 幂等性 | 连续第二次 apply 无可执行差异 |
 | 危险操作误执行 | 默认 apply 路径为 0 |
 | CI 可用性 | validate/plan 均有稳定 JSON 和退出码 |
-| 新项目上手时间 | 熟悉 Directus 的开发者 15 分钟内建立 `dsk/`、`.dsk/` 并完成本地实例初始化 |
+| 新项目上手时间 | 熟悉 Directus 的开发者 15 分钟内建立 `dsk/` 工作区并完成本地实例初始化 |
 | 核心自动化测试 | 规划、安全策略和执行路径具备高覆盖；具体阈值在测试策略中定义 |
 
 不将 npm 下载量作为首版唯一成功标准。首版更关注真实项目采用、幂等性、故障可定位性和版本兼容质量。
@@ -696,8 +687,8 @@ V1 发布后使用以下指标评估产品是否有效：
 
 满足以下条件才可定义为独立版 V1：
 
-1. 在标准 Directus 项目中执行 `pnpm dsk init`，能正确读取 `package.json` 和 `.env`，并生成标准 `dsk/` 与 `.dsk/` 工作区。
-2. init 生成安全的空示例、`.dsk/config.json`、初始 Manifest、`dsk/README.md` 和 `.dsk/README.md`，并输出下一步命令。
+1. 在标准 Directus 项目中执行 `pnpm dsk init`，能正确读取 `package.json` 和 `.env`，并生成标准 `dsk/` 工作区。
+2. init 生成安全的空示例、`dsk/config.json`、初始 Manifest 和 `dsk/README.md`，并输出下一步命令。
 3. init 重复执行不覆盖已有文件，只补充缺失内容；`--dry-run` 不产生文件写入。
 4. 非 Directus 项目执行 init 时不创建目录，并给出可操作的错误说明。
 5. 示例 Schema/Resource DSL 在 TypeScript strict mode 下通过类型检查，配置、seed 和 Manifest 通过对应 JSON Schema 校验。
@@ -707,10 +698,10 @@ V1 发布后使用以下指标评估产品是否有效：
 9. folders、roles、policies、access、permissions、presets 和自然键 seed 可重复执行，不产生重复资源或数据。
 10. roles、policies、access、permissions、presets 均覆盖读取、差异识别、创建、更新和带显式确认的删除流程。
 11. 默认 apply 不执行字段删除、集合删除、类型变更和关系目标变更。
-12. clear 仅在交互式计划经 `y/yes` 确认，或非交互参数 `--confirm --scope <module>` 完整匹配时产生删除，并永远排除系统集合。
+12. clear 仅在交互式计划经 `y/yes` 确认，或非交互提供 `--confirm` 时清理全部自定义集合，并永远排除系统集合。
 13. text 与 JSON 输出均通过契约测试，token 不出现在日志中。
 14. 至少在声明支持的 Node.js、Directus 和操作系统矩阵上通过自动集成测试。
-16. 示例项目的定义已按 Schema modules、resource types 和 seed modules 拆分，不存在承担全部业务定义的单一大文件。
+16. 示例项目的定义已按 Schema 业务文件、resource types 和 seed 目录拆分，不存在承担全部业务定义的单一大文件。
 17. `dsk build` 能生成确定、无 secret、完全展开且通过 JSON Schema 校验的 Manifest。
 18. Manifest 缺失或落后于 DSL 源码时，plan/apply 会拒绝执行并提示重新 build。
 19. plan/apply 不执行 TypeScript，只消费配置、seed 和 Manifest JSON。
@@ -723,7 +714,7 @@ V1 发布后使用以下指标评估产品是否有效：
 1. Markdown、Tags、Code、Toggle 均可通过类型安全 helper 声明，不要求用户手写 interface ID。
 2. M2O、O2M、M2M、M2A、Translations、File、Image、Files 均能生成完整且可应用的 Manifest。
 3. M2M、Files、Translations 和 M2A 生成的 junction collection、实体字段、alias 字段及 relation meta 均通过静态校验。
-4. 旧有 `field.m2o()` 示例与现有 Manifest V1 项目具有明确兼容路径。
+4. 旧有 `field.m2o()` 示例保持源码兼容；Manifest V1/V2 项目通过重新 build 迁移到 V3。
 5. 每种新增 helper 覆盖 DSL 单元测试、Manifest 快照、validate、plan 幂等和 Directus 11.17.4 SQLite 集成测试。
 6. 在 Directus Data Studio 中完成新增字段的创建、编辑、选择和展示人工验收。
 7. 输出 Directus 12.x 兼容性评估结果；未验证能力不得标记为正式支持。
@@ -732,23 +723,22 @@ V1 发布后使用以下指标评估产品是否有效：
 
 ### V1：Standalone Provisioning
 
-- 完成独立包、`pnpm dsk init` 脚手架、`dsk/` Schema DSL 源码目录、`.dsk/` JSON 数据目录、Manifest 构建链路、项目识别、validate、plan、apply、seed、V1 系统资源同步、clear 护栏与 CI 输出。
+- 完成独立包、`pnpm dsk init` 脚手架、统一 `dsk/` 工作区、Manifest 构建链路、项目识别、validate、plan、apply、seed、V1 系统资源同步、clear 护栏与 CI 输出。
 
 ### V1.1：Directus DSL 对齐
 
 - 区分 Field Type、Interface 和 Relational Type。
 - 补齐 Directus 11.17.4 字段类型及 Markdown、Tags、Code、Toggle helper。
 - 引入 Relation Blueprint，支持 M2O、O2M、M2M、M2A、Translations、File、Image 和 Files。
-- 升级 Manifest 关系模型、校验、计划和应用顺序，并保留 V1 兼容读取。
+- 升级 Manifest 关系模型、校验、计划和应用顺序；旧 Manifest 通过重新 build 迁移。
 - 完成 Directus 11.17.4 自动验收和 Directus 12.x 兼容性评估。
 
-### V1.2：团队规范与模块生态
+### V1.2：团队规范与定义复用
 
 - 更丰富的项目校验与安全配置项。
-- 可共享的 Schema DSL Module 包。
-- 模块依赖与版本元数据。
-- 更细粒度范围过滤。
-- `dsk/` 模块模板与目录约束增强。
+- 可共享的 Schema DSL 定义包。
+- 可复用业务定义包与版本元数据。
+- `dsk/` 业务文件模板与目录约束增强。
 
 ### V1.3：本地 Drift 与项目治理
 
@@ -788,7 +778,7 @@ V3 是否实现通用回滚需根据 Directus API、数据库差异和真实需�
 | roles/policies/access/permissions/presets | 纳入 V1 完整本地同步，使用对应 Resource DSL 并编译进入 Manifest |
 | flows/operations/dashboards/panels | 移至 V2，不作为 V1 验收或兼容承诺 |
 | accountability 批量更新 | 改为 `config.json` 配置项或显式资源命令，不作为孤立核心概念 |
-| clear | 保留，但增加模块范围、双重确认和 CI 保护 |
+| clear | 保留为全量自定义 Schema 清理，并增加确认和 CI 保护 |
 | 中文字段翻译强制校验 | 下沉为 `config.json` 中的可选校验项 |
 | 教学中心 Schema、章节数据与 Markdown 生成器 | 不迁移，不进入 DSK 产品范围 |
 | `.mjs` 定义 | 提供到新版 TypeScript DSL 的转换工具或迁移指南；plan/apply 不加载 `.mjs` |
@@ -799,9 +789,9 @@ V3 是否实现通用回滚需根据 Directus API、数据库差异和真实需�
 | --- | --- | --- |
 | Directus 不同版本 API/Meta 结构变化 | apply 失败或错误差异 | 建立版本探测、adapter 和集成测试矩阵 |
 | 将 Meta 更新误判为安全 | 影响后台体验或数据约束 | 使用明确白名单；未知差异默认 conflict |
-| Schema 模块之间定义冲突 | 结果不确定 | 组合阶段阻断并给出资源路径 |
+| Schema 文件之间定义冲突 | 结果不确定 | 组合阶段阻断并给出源码文件和资源路径 |
 | 部分写入后失败 | 实例处于中间状态 | 预先 plan、确定性顺序、结果报告和可重试幂等设计 |
-| clear 或系统资源同步误删本地数据 | 本地开发数据丢失 | 默认展示计划、交互默认否定、非交互双重范围确认、配置禁用和系统集合硬保护 |
+| clear 或系统资源同步误删本地数据 | 本地开发数据丢失 | 默认展示计划、交互默认否定、非交互显式确认、配置禁用和系统集合硬保护 |
 | JSON 引用解析错误 | 写入错误资源或泄漏环境变量 | 写入前完整解析和校验；限制 `$env` 白名单；报告始终脱敏 |
 | DSL 执行不可信项目代码 | 本机安全风险 | 明确 `dsk build` 的可信代码边界；plan/apply 只消费 Manifest，不执行 DSL |
 | Manifest 与 DSL 源码不一致 | 应用过期模型 | 记录源码摘要；build check、plan 和 apply 必须检查 Manifest 新鲜度 |

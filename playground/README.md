@@ -11,7 +11,7 @@ pnpm install
 pnpm dsk init
 ```
 
-仓库已经保留一套初始化后的 `dsk/` 与 `.dsk/` 示例。再次运行 `pnpm dsk init` 只会保留现有文件，不会覆盖课程项目定义，可用于验证初始化幂等性。
+仓库已经保留一套初始化后的 `dsk/` 示例。再次运行 `pnpm dsk init` 只会保留现有文件，不会覆盖课程项目定义，可用于验证初始化幂等性。
 
 ## 启动与应用
 
@@ -38,7 +38,7 @@ pnpm dsk resources apply
 
 ## 测试重点
 
-- Schema 模块依赖、collection group、清理范围。
+- Schema 跨文件关系、collection group、全量清理范围。
 - string、text、integer、decimal、boolean、dateTime、json、status、sort、audit 和 M2O 字段。
 - `CASCADE`、`SET NULL`、`RESTRICT` 等关系删除策略。
 - Seed 自然键、跨集合引用和重复应用。

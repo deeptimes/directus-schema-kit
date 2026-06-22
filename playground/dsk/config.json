@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "paths": {
-    "schemaSource": "../dsk/schema/**/*.ts",
-    "resourceSource": "../dsk/resources/**/*.ts",
+    "schemaSource": "schema/**/*.ts",
+    "resourceSource": "resources/**/*.ts",
     "seeds": "seeds/**/*.json",
     "manifest": "generated/manifest.json"
   },

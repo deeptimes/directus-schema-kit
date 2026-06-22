@@ -1,7 +1,7 @@
 export { env, ref } from './dsl/references.js'
 export { field } from './dsl/field.js'
 export { relation } from './dsl/relation.js'
-export { collection, collectionGroup, defineModule, resource } from './dsl/schema.js'
+export { collection, collectionGroup, defineSchema, resource } from './dsl/schema.js'
 export { createPlan } from './plan.js'
 export { executeApply } from './apply.js'
 export { loadSeedBatches, runSeeds, validateBatch } from './seed.js'

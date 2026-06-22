@@ -1,4 +1,4 @@
-import type { CollectionDefinition, CollectionGroupDefinition, CollectionOptions, FieldDefinition, ModuleDefinition, ResourceDefinition, ResourceType } from '../types.js'
+import type { CollectionDefinition, CollectionGroupDefinition, CollectionOptions, FieldDefinition, ResourceDefinition, ResourceType, SchemaDefinition } from '../types.js'
 
 export function collection(options: CollectionOptions): CollectionDefinition {
   const fields = options.fields ?? []
@@ -48,7 +48,7 @@ export function collectionGroup(options: { name: string; label: string; icon?: s
   }
 }
 
-export function defineModule(definition: ModuleDefinition): ModuleDefinition {
+export function defineSchema(definition: SchemaDefinition): SchemaDefinition {
   return definition
 }
 

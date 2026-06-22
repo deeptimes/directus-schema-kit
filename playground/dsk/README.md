@@ -1,8 +1,8 @@
 # DSK TypeScript 定义
 
-本目录只保存可信的 TypeScript Schema/Resource DSL。`dsk build` 会执行这些文件并生成标准 JSON Manifest。
+本目录统一保存可信的 TypeScript Schema/Resource DSL、配置、Seed 和生成的 JSON Manifest。
 
-Schema 文件位于 `schema/`，每个文件代表一个稳定业务模块。常用写法：
+Schema 文件位于 `schema/`，按业务组织源码但不形成 Directus 命名空间；collection 名必须全局唯一。常用写法：
 
 ```ts
 import { collection, field } from '@deeptimes/directus-schema-kit'

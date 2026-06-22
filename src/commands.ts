@@ -62,12 +62,12 @@ export async function validateCommand(context: CommandContext): Promise<{ manife
   }
 }
 
-export async function planCommand(context: CommandContext, moduleFilter?: string): Promise<Plan> {
-  return (await preparePlan(context, moduleFilter)).plan
+export async function planCommand(context: CommandContext): Promise<Plan> {
+  return (await preparePlan(context)).plan
 }
 
-export async function applyCommand(context: CommandContext, options: { module?: string; dryRun?: boolean }): Promise<ApplyResult> {
-  const prepared = await preparePlan(context, options.module)
+export async function applyCommand(context: CommandContext, options: { dryRun?: boolean }): Promise<ApplyResult> {
+  const prepared = await preparePlan(context)
   const writer = new DirectusWriter(prepared.connection.url, prepared.connection.token)
   return executeApply({ manifest: prepared.manifest, plan: prepared.plan, writer, dryRun: options.dryRun ?? false })
 }
@@ -104,9 +104,7 @@ export async function resourcesApplyCommand(context: CommandContext, options: { 
 }
 
 export async function clearCommand(context: CommandContext, options: {
-  module: string
   confirm?: boolean
-  scope?: string
   authorize?: (operations: readonly ClearOperation[]) => Promise<boolean>
 }): Promise<ClearResult> {
   const project = discoverDirectusProject(context.cwd)
@@ -119,10 +117,8 @@ export async function clearCommand(context: CommandContext, options: {
   return executeClear({
     manifest: validated.manifest,
     state,
-    module: options.module,
     writer,
     confirm: options.confirm ?? false,
-    ...(options.scope ? { scope: options.scope } : {}),
     ...(options.authorize ? { authorize: options.authorize } : {}),
     enabled: loaded.config.safety?.clearEnabled ?? true,
   })
@@ -132,7 +128,7 @@ export function doctorCommand(context: CommandContext): Promise<DoctorResult> {
   return diagnoseProject(context.cwd, context.configPath)
 }
 
-async function preparePlan(context: CommandContext, moduleFilter?: string): Promise<{
+async function preparePlan(context: CommandContext): Promise<{
   manifest: Manifest
   plan: Plan
   connection: { url: string; token?: string }
@@ -140,14 +136,11 @@ async function preparePlan(context: CommandContext, moduleFilter?: string): Prom
   const project = discoverDirectusProject(context.cwd)
   const loaded = loadConfig(project.root, context.configPath)
   const validated = await validateWorkspace({ config: loaded.config, configDirectory: loaded.directory, projectRoot: project.root })
-  if (moduleFilter && !validated.manifest.modules.some((item) => item.id === moduleFilter)) {
-    throw new DskError(`Manifest 中不存在模块: ${moduleFilter}`, 'CONFIG_ERROR')
-  }
   const connection = directusConnection(loaded.config, loaded.directory)
   const state = await new DirectusReader(connection.url, connection.token).readState()
   return {
     manifest: validated.manifest,
-    plan: createPlan(validated.manifest, state, connection.url, moduleFilter, connection.databaseClient),
+    plan: createPlan(validated.manifest, state, connection.url, connection.databaseClient),
     connection,
   }
 }

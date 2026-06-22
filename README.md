@@ -7,15 +7,15 @@ Directus Schema Kit 是面向 Directus 本地开发项目的声明式 Schema Pro
 ## 当前实现
 
 - 固定、严格类型的 `collection()`、`field.*()`、`env()`、`ref()` DSL。
-- `dsk init`：识别 Directus 项目，幂等创建 `dsk/` 与 `.dsk/`，支持 `--dry-run`。
+- `dsk init`：识别 Directus 项目，幂等创建统一的 `dsk/` 工作区，支持 `--dry-run`。
 - `dsk build`：确定性加载目录化 DSL，展开字段关系并生成带 SHA-256 源码摘要的 Manifest。
 - `dsk build --check`：检查 Manifest 是否最新，不写文件。
-- `dsk validate`：离线校验配置、Manifest 语义、危险 cleanup、源码新鲜度和 JSON seed。
+- `dsk validate`：离线校验配置、Manifest 语义、源码新鲜度和 JSON seed。
 - `dsk plan`：只读获取本地 Directus 状态，分类 create、update、unchanged、conflict 和 dangerous。
 - `dsk apply`：全量预检后按依赖顺序执行安全 create/update，默认阻断 conflict/dangerous。
 - `dsk seed`：严格 JSON Seed，自然键 upsert、跨集合/同集合引用以及 plan/apply。
 - `dsk resources apply`：Directus 11 的 folders、roles、policies、access、permissions、presets 同步。
-- `dsk clear`：模块范围清理计划、交互确认、系统集合硬保护及非交互 `--confirm --scope` 双重确认。
+- `dsk clear`：全量自定义 Schema 清理计划、交互确认、系统集合硬保护及非交互 `--confirm`。
 - `--cwd`、`--config`、`--format json` 与稳定错误退出码。
 
 ## 开发
@@ -42,11 +42,11 @@ pnpm dsk seed --dry-run
 pnpm dsk seed --plan
 pnpm dsk seed
 pnpm dsk resources apply --dry-run
-pnpm dsk clear content
-pnpm dsk clear content --dry-run
-pnpm dsk clear content --confirm --scope content
+pnpm dsk clear
+pnpm dsk clear --dry-run
+pnpm dsk clear --confirm
 ```
 
-`build` 会执行可信的项目 TypeScript 源码；后续 `plan/apply` 执行层只允许消费 `.dsk/generated/manifest.json`。
+`build` 会执行可信的项目 TypeScript 源码；后续 `plan/apply` 执行层只允许消费 `dsk/generated/manifest.json`。
 
 详细文档：[快速开始](docs/quick-start.md)、[Schema DSL](docs/schema-dsl.md)、[Manifest](docs/manifest.md)、[安全边界](docs/security.md)、[认证环境](docs/test-matrix.md)。

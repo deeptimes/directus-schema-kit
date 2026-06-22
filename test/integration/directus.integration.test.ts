@@ -47,8 +47,8 @@ test('Directus 11.17.4 完整 provisioning 生命周期', { skip: !url || (!conf
   } finally {
     await syncResources({ definitions: integrationResources(true), reader, writer, confirmDestructive: true })
     const state = await reader.readState()
-    if (createClearPlan(manifest, state, 'integration').length > 0) {
-      const cleared = await executeClear({ manifest, state, module: 'integration', writer, confirm: true, scope: 'integration' })
+    if (createClearPlan(manifest, state).length > 0) {
+      const cleared = await executeClear({ manifest, state, writer, confirm: true })
       assert.equal(cleared.status, 'success')
     }
   }
@@ -86,15 +86,14 @@ function integrationManifest(): Manifest {
   const baseCollections = [categories, articles, tags, comments, textBlocks, imageBlocks, languages]
   const collections = [...baseCollections, ...expanded.flatMap((item) => item.collections)]
   return {
-    manifestVersion: 2, generator: { name: 'integration', version: '2' },
+    manifestVersion: 3, generator: { name: 'integration', version: '3' },
     source: { algorithm: 'sha256', digest: 'a'.repeat(64), files: [] },
-    modules: [{ id: 'integration', dependsOn: [], cleanupCollections: [], sources: [] }],
-    collections: collections.map((item) => ({ ...item, fields: [], module: 'integration' })),
+    collections: collections.map((item) => ({ ...item, fields: [], source: 'dsk/schema/integration.ts' })),
     fields: [
-      ...baseCollections.flatMap((item) => item.fields.map(({ relation: _relation, ...definition }) => ({ ...definition, collection: item.collection, module: 'integration' }))),
-      ...expanded.flatMap((item) => item.fields.map((definition) => ({ ...definition, module: 'integration' }))),
+      ...baseCollections.flatMap((item) => item.fields.map(({ relation: _relation, ...definition }) => ({ ...definition, collection: item.collection, source: 'dsk/schema/integration.ts' }))),
+      ...expanded.flatMap((item) => item.fields.map((definition) => ({ ...definition, source: 'dsk/schema/integration.ts' }))),
     ],
-    relations: expanded.flatMap((item) => item.relations.map((definition) => ({ ...definition, module: 'integration' }))),
+    relations: expanded.flatMap((item) => item.relations.map((definition) => ({ ...definition, source: 'dsk/schema/integration.ts' }))),
     resources: emptyResources(),
   }
 }

@@ -1,10 +1,8 @@
-import { collection, collectionGroup, defineModule, field, relation } from '@deeptimes/directus-schema-kit'
+import { collection, collectionGroup, defineSchema, field, relation } from '@deeptimes/directus-schema-kit'
 
 const group = 'course_catalog_v2'
 
-export default defineModule({
-  id: 'catalog2',
-  version: '1.1.0',
+export default defineSchema({
   groups: [
     collectionGroup({ name: group, label: '课程内容 V2', icon: 'school', order: 20 }),
   ],
@@ -204,15 +202,5 @@ export default defineModule({
       allowedCollections: ['lesson_text_blocks_v2', 'lesson_code_blocks_v2'],
       fieldOptions: { label: '课时内容块' },
     }),
-  ],
-  cleanupCollections: [
-    'course_categories_v2',
-    'courses_v2',
-    'course_chapters_v2',
-    'course_lessons_v2',
-    'course_tags_v2',
-    'course_languages_v2',
-    'lesson_text_blocks_v2',
-    'lesson_code_blocks_v2',
   ],
 })

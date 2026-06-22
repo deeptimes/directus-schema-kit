@@ -6,17 +6,16 @@ import type { DirectusState, Manifest } from '../src/types.js'
 function fixture(): { manifest: Manifest; state: DirectusState } {
   return {
     manifest: {
-      manifestVersion: 1, generator: { name: 'test', version: '1' },
+      manifestVersion: 3, generator: { name: 'test', version: '1' },
       source: { algorithm: 'sha256', digest: 'a'.repeat(64), files: [] },
-      modules: [{ id: 'content', dependsOn: [], cleanupCollections: ['legacy'], sources: [] }],
       collections: [
-        { collection: 'content_group', meta: {}, schema: null, fields: [], module: 'content' },
-        { collection: 'parents', meta: {}, schema: {}, fields: [], module: 'content' },
-        { collection: 'children', meta: {}, schema: {}, fields: [], module: 'content' },
+        { collection: 'content_group', meta: {}, schema: null, fields: [], source: 'dsk/schema/content.ts' },
+        { collection: 'parents', meta: {}, schema: {}, fields: [], source: 'dsk/schema/content.ts' },
+        { collection: 'children', meta: {}, schema: {}, fields: [], source: 'dsk/schema/content.ts' },
       ], fields: [], relations: [], resources: { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [] },
     },
     state: {
-      collections: ['content_group', 'parents', 'children', 'legacy', 'outside'].map((collection) => ({ collection })),
+      collections: ['content_group', 'parents', 'children', 'outside'].map((collection) => ({ collection })),
       fields: [],
       relations: [{ collection: 'children', field: 'parent_id', related_collection: 'parents' }],
     },
@@ -31,29 +30,27 @@ class MemoryClear implements ClearWriter {
 
 test('clear 先删除关系字段、子集合、父集合，最后删除 group', () => {
   const { manifest, state } = fixture()
-  const plan = createClearPlan(manifest, state, 'content')
+  const plan = createClearPlan(manifest, state)
   assert.deepEqual(plan.map((item) => `${item.resourceType}:${item.resource}`), [
-    'field:children.parent_id', 'collection:children', 'collection:parents', 'collection:legacy', 'collection:content_group',
+    'field:children.parent_id', 'collection:children', 'collection:parents', 'collection:content_group',
   ])
 })
 
-test('没有双重确认时只计划或阻断，且零删除', async () => {
+test('没有确认时只生成计划且零删除', async () => {
   const { manifest, state } = fixture()
   const writer = new MemoryClear()
-  const planned = await executeClear({ manifest, state, module: 'content', writer })
-  const blocked = await executeClear({ manifest, state, module: 'content', writer, confirm: true, scope: 'wrong' })
+  const planned = await executeClear({ manifest, state, writer })
   assert.equal(planned.status, 'planned')
-  assert.equal(blocked.status, 'blocked')
   assert.deepEqual(writer.calls, [])
 })
 
-test('完整确认后只删除模块范围', async () => {
+test('确认后删除 Manifest 声明的全部自定义集合', async () => {
   const { manifest, state } = fixture()
   const writer = new MemoryClear()
-  const result = await executeClear({ manifest, state, module: 'content', writer, confirm: true, scope: 'content' })
+  const result = await executeClear({ manifest, state, writer, confirm: true })
   assert.equal(result.status, 'success')
   assert.equal(writer.calls.some((item) => item.includes('outside')), false)
-  assert.equal(writer.calls.length, 5)
+  assert.equal(writer.calls.length, 4)
 })
 
 test('交互授权基于已生成计划执行，拒绝授权时零删除', async () => {
@@ -61,7 +58,7 @@ test('交互授权基于已生成计划执行，拒绝授权时零删除', async
   const writer = new MemoryClear()
   let plannedResources: string[] = []
   const accepted = await executeClear({
-    manifest, state, module: 'content', writer,
+    manifest, state, writer,
     authorize: async (operations) => {
       plannedResources = operations.map((item) => item.resource)
       return true
@@ -72,7 +69,7 @@ test('交互授权基于已生成计划执行，拒绝授权时零删除', async
 
   const rejectedWriter = new MemoryClear()
   const rejected = await executeClear({
-    manifest, state, module: 'content', writer: rejectedWriter,
+    manifest, state, writer: rejectedWriter,
     authorize: async () => false,
   })
   assert.equal(rejected.status, 'planned')
@@ -82,8 +79,15 @@ test('交互授权基于已生成计划执行，拒绝授权时零删除', async
 
 test('系统集合无条件拒绝', () => {
   const { manifest, state } = fixture()
-  manifest.modules[0]!.cleanupCollections.push('directus_users')
-  assert.throws(() => createClearPlan(manifest, state, 'content'), /禁止清理系统集合/)
+  manifest.collections.push({ collection: 'directus_users', meta: {}, schema: {}, fields: [], source: 'dsk/schema/content.ts' })
+  assert.throws(() => createClearPlan(manifest, state), /禁止清理系统集合/)
+})
+
+test('不删除 Directus 系统集合上的反向关系字段', () => {
+  const { manifest, state } = fixture()
+  state.relations.push({ collection: 'directus_users', field: 'child', related_collection: 'children' })
+  state.collections.push({ collection: 'directus_users' })
+  assert.equal(createClearPlan(manifest, state).some((item) => item.resource === 'directus_users.child'), false)
 })
 
 test('循环关系仍生成每个集合一次', () => {

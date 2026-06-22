@@ -20,7 +20,7 @@ program
   .option('--format <format>', '输出格式: text 或 json', 'text')
 
 program.command('init')
-  .description('初始化 dsk/ 与 .dsk/ 工作区')
+  .description('初始化 dsk/ 工作区')
   .option('--dry-run', '只展示将创建的文件')
   .action(async (options: { dryRun?: boolean }) => {
     const context = commandContext()
@@ -62,9 +62,8 @@ program.command('doctor')
 
 program.command('plan')
   .description('只读比较 Manifest 与本地 Directus 实例')
-  .option('--module <id>', '只规划指定模块')
-  .action(async (options: { module?: string }) => {
-    const result = await planCommand(commandContext(), options.module)
+  .action(async () => {
+    const result = await planCommand(commandContext())
     output({ command: 'plan', ok: true, ...result }, () => {
       for (const item of result.operations) {
         const marker = item.action === 'dangerous' ? '!' : item.action === 'unchanged' ? '=' : '+'
@@ -79,9 +78,8 @@ program.command('plan')
 
 program.command('apply')
   .description('执行 Plan 中允许的安全创建和更新')
-  .option('--module <id>', '只应用指定模块')
   .option('--dry-run', '生成执行报告但不写入')
-  .action(async (options: { module?: string; dryRun?: boolean }) => {
+  .action(async (options: { dryRun?: boolean }) => {
     const result = await applyCommand(commandContext(), options)
     output({ command: 'apply', ok: result.status === 'success', ...result }, () => {
       console.log(`状态：${result.status}${result.dryRun ? ' (dry-run)' : ''}`)
@@ -125,33 +123,27 @@ resources.command('apply')
   })
 
 program.command('clear')
-  .description('规划或清理指定模块声明的自定义集合')
-  .argument('[module]', '目标模块')
-  .option('--module <id>', '目标模块（兼容旧用法）')
+  .description('规划或清理 Manifest 声明的全部自定义集合')
   .option('--dry-run', '只输出删除计划，不进行交互')
   .option('--confirm', '非交互执行真实删除')
-  .option('--scope <id>', '真实删除时必须与 module 完全一致')
-  .action(async (moduleArgument: string | undefined, options: { module?: string; dryRun?: boolean; confirm?: boolean; scope?: string }) => {
-    const moduleId = resolveClearModule(moduleArgument, options.module)
-    if (options.dryRun && (options.confirm || options.scope)) {
-      throw new DskError('--dry-run 不能与 --confirm 或 --scope 同时使用', 'CONFIG_ERROR')
+  .action(async (options: { dryRun?: boolean; confirm?: boolean }) => {
+    if (options.dryRun && options.confirm) {
+      throw new DskError('--dry-run 不能与 --confirm 同时使用', 'CONFIG_ERROR')
     }
     const interactive = !options.dryRun && !options.confirm && textFormat() && process.stdin.isTTY === true && process.stdout.isTTY === true
     let planDisplayed = false
     const result = await clearCommand(commandContext(), {
-      module: moduleId,
       confirm: options.confirm ?? false,
-      ...(options.scope ? { scope: options.scope } : {}),
       ...(interactive ? {
         authorize: async (operations) => {
-          printClearPlan(moduleId, operations)
+          printClearPlan(operations)
           planDisplayed = true
-          return confirmClear(moduleId)
+          return confirmClear()
         },
       } : {}),
     })
     output({ command: 'clear', ok: result.status === 'planned' || result.status === 'success', ...result }, () => {
-      console.log(`Clear ${result.module}：${result.status}${result.dryRun ? ' (dry-run)' : ''}`)
+      console.log(`Clear：${result.status}${result.dryRun ? ' (dry-run)' : ''}`)
       if (!planDisplayed) for (const item of result.operations) console.log(`  delete ${item.resourceType} ${item.resource}`)
       if (result.reason) console.error(result.status === 'blocked' ? `阻断：${result.reason}` : result.reason)
       for (const failure of result.failures) console.error(`失败 ${failure.resource}: ${failure.message}`)
@@ -193,27 +185,18 @@ function textFormat(): boolean {
   return program.opts<{ format: string }>().format === 'text'
 }
 
-function resolveClearModule(moduleArgument?: string, moduleOption?: string): string {
-  if (moduleArgument && moduleOption && moduleArgument !== moduleOption) {
-    throw new DskError(`位置参数 ${moduleArgument} 与 --module ${moduleOption} 不一致`, 'CONFIG_ERROR')
-  }
-  const moduleId = moduleArgument ?? moduleOption
-  if (!moduleId) throw new DskError('缺少目标模块，请使用 dsk clear <module>', 'CONFIG_ERROR')
-  return moduleId
-}
-
-function printClearPlan(moduleId: string, operations: readonly { resourceType: 'field' | 'collection'; resource: string }[]): void {
-  console.log(`Clear ${moduleId} 删除计划：`)
+function printClearPlan(operations: readonly { resourceType: 'field' | 'collection'; resource: string }[]): void {
+  console.log('Clear 全部自定义 Schema 删除计划：')
   for (const item of operations) console.log(`  delete ${item.resourceType} ${item.resource}`)
   const fields = operations.filter((item) => item.resourceType === 'field').length
   const collections = operations.length - fields
   console.log(`汇总：${fields} 个关系字段，${collections} 个集合`)
 }
 
-async function confirmClear(moduleId: string): Promise<boolean> {
+async function confirmClear(): Promise<boolean> {
   const prompt = createInterface({ input: process.stdin, output: process.stdout })
   try {
-    const answer = await prompt.question(`即将清理模块 ${moduleId}，此操作无法自动恢复。是否继续？(y/N) `)
+    const answer = await prompt.question('即将清理 Manifest 声明的全部自定义集合，此操作无法自动恢复。是否继续？(y/N) ')
     return /^(y|yes)$/i.test(answer.trim())
   } finally {
     prompt.close()

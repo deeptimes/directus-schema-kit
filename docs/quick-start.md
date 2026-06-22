@@ -20,14 +20,14 @@ pnpm dsk resources apply
 第二次 `plan` 应不存在可执行差异。人工清理会先展示删除计划，再要求 `y/N` 确认：
 
 ```bash
-pnpm dsk clear content
+pnpm dsk clear
 ```
 
-只查看计划使用 `--dry-run`。CI 或脚本不进行交互，真实清理必须提供双重范围确认：
+只查看计划使用 `--dry-run`。CI 或脚本不进行交互，真实清理必须显式确认：
 
 ```bash
-pnpm dsk clear content --dry-run
-pnpm dsk clear content --confirm --scope content
+pnpm dsk clear --dry-run
+pnpm dsk clear --confirm
 ```
 
 V1 不包含 Flow、Operation、Dashboard、Panel 或旧教学中心数据迁移。

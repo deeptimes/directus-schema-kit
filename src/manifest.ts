@@ -5,7 +5,7 @@ import { createJiti } from 'jiti'
 import { glob } from 'tinyglobby'
 import { DskError } from './errors.js'
 import { expandRelationBlueprint } from './dsl/expand.js'
-import type { CollectionDefinition, DskConfig, Manifest, ModuleDefinition, ResourceDefinition, ResourceType } from './types.js'
+import type { CollectionDefinition, DskConfig, Manifest, ResourceDefinition, ResourceType, SchemaDefinition } from './types.js'
 
 const resourceTypes: ResourceType[] = ['folders', 'roles', 'policies', 'access', 'permissions', 'presets']
 
@@ -35,11 +35,11 @@ export async function compileManifest(options: {
 }): Promise<Manifest> {
   const files = await sourceFiles(options.config, options.configDirectory)
   if (files.length === 0) {
-    throw new DskError('没有找到 Schema DSL 或 Resource DSL 文件', 'BUILD_ERROR', ['请检查 .dsk/config.json 中的 paths 配置'])
+    throw new DskError('没有找到 Schema DSL 或 Resource DSL 文件', 'BUILD_ERROR', ['请检查 dsk/config.json 中的 paths 配置'])
   }
 
   const jiti = createJiti(import.meta.url, { interopDefault: true, moduleCache: false })
-  const modules = new Map<string, ModuleDefinition & { sources: string[] }>()
+  const definitions: Array<SchemaDefinition & { source: string }> = []
 
   for (const file of files) {
     let exported: unknown
@@ -48,21 +48,8 @@ export async function compileManifest(options: {
     } catch (error) {
       throw new DskError(`加载 DSL 失败: ${normalizePath(path.relative(options.projectRoot, file))}`, 'BUILD_ERROR', [error instanceof Error ? error.message : String(error)])
     }
-    const defaultModuleId = path.basename(file, path.extname(file))
-    for (const definition of normalizeDefinitions(exported, defaultModuleId)) {
-      const relative = normalizePath(path.relative(options.projectRoot, file))
-      const existing = modules.get(definition.id)
-      if (existing) {
-        existing.collections = [...(existing.collections ?? []), ...(definition.collections ?? [])]
-        existing.groups = [...(existing.groups ?? []), ...(definition.groups ?? [])]
-        existing.relations = [...(existing.relations ?? []), ...(definition.relations ?? [])]
-        existing.resources = [...(existing.resources ?? []), ...(definition.resources ?? [])]
-        existing.cleanupCollections = [...(existing.cleanupCollections ?? []), ...(definition.cleanupCollections ?? [])]
-        existing.sources.push(relative)
-      } else {
-        modules.set(definition.id, { ...definition, sources: [relative] })
-      }
-    }
+    const relative = normalizePath(path.relative(options.projectRoot, file))
+    definitions.push({ ...normalizeDefinitions(exported, relative), source: relative })
   }
 
   const collections: Manifest['collections'] = []
@@ -72,44 +59,37 @@ export async function compileManifest(options: {
     folders: [], roles: [], policies: [], access: [], permissions: [], presets: [],
   }
 
-  for (const module of [...modules.values()].sort((a, b) => a.id.localeCompare(b.id, 'en'))) {
-    for (const definition of [...(module.groups ?? []), ...(module.collections ?? [])]) {
-      const normalizedCollection = { ...definition, module: module.id, fields: [] }
+  for (const unit of definitions.sort((a, b) => a.source.localeCompare(b.source, 'en'))) {
+    for (const definition of [...(unit.groups ?? []), ...(unit.collections ?? [])]) {
+      const normalizedCollection = { ...definition, source: unit.source, fields: [] }
       collections.push(normalizedCollection)
       for (const sourceField of definition.fields) {
         const { relation, ...plainField } = sourceField
-        fields.push({ ...plainField, collection: definition.collection, module: module.id })
+        fields.push({ ...plainField, collection: definition.collection, source: unit.source })
         if (relation) {
           relations.push({
             collection: definition.collection, field: sourceField.field, ...relation,
-            meta: { many_collection: definition.collection, many_field: sourceField.field, ...relation.meta }, module: module.id,
+            meta: { many_collection: definition.collection, many_field: sourceField.field, ...relation.meta }, source: unit.source,
           })
         }
       }
     }
-    for (const blueprint of module.relations ?? []) {
+    for (const blueprint of unit.relations ?? []) {
       const expanded = expandRelationBlueprint(blueprint)
-      collections.push(...expanded.collections.map((item) => ({ ...item, fields: [], module: module.id })))
-      fields.push(...expanded.fields.map((item) => ({ ...item, module: module.id })))
-      relations.push(...expanded.relations.map((item) => ({ ...item, module: module.id })))
+      collections.push(...expanded.collections.map((item) => ({ ...item, fields: [], source: unit.source })))
+      fields.push(...expanded.fields.map((item) => ({ ...item, source: unit.source })))
+      relations.push(...expanded.relations.map((item) => ({ ...item, source: unit.source })))
     }
-    for (const definition of module.resources ?? []) {
-      resources[definition.type].push({ ...definition, module: module.id })
+    for (const definition of unit.resources ?? []) {
+      resources[definition.type].push({ ...definition, source: unit.source })
     }
   }
 
   const relativeFiles = files.map((file) => normalizePath(path.relative(options.projectRoot, file)))
   return sortDeep({
-    manifestVersion: 2,
+    manifestVersion: 3,
     generator: { name: '@deeptimes/directus-schema-kit', version: options.packageVersion },
     source: { algorithm: 'sha256', digest: calculateSourceDigest(files, options.projectRoot), files: relativeFiles },
-    modules: [...modules.values()].map((module) => ({
-      id: module.id,
-      ...(module.version ? { version: module.version } : {}),
-      dependsOn: [...(module.dependsOn ?? [])].sort(),
-      cleanupCollections: [...new Set(module.cleanupCollections ?? [])].sort(),
-      sources: [...new Set(module.sources)].sort(),
-    })),
     collections,
     fields,
     relations: relations.map(completeRelation),
@@ -135,26 +115,29 @@ function completeRelation(relation: Manifest['relations'][number]): Manifest['re
   }
 }
 
-function normalizeDefinitions(value: unknown, defaultModuleId: string): ModuleDefinition[] {
+function normalizeDefinitions(value: unknown, source: string): SchemaDefinition {
   const values = Array.isArray(value) ? value : [value]
-  const module: ModuleDefinition = { id: defaultModuleId, collections: [], groups: [], relations: [], resources: [] }
-  const explicit: ModuleDefinition[] = []
+  const result: SchemaDefinition = { collections: [], groups: [], relations: [], resources: [] }
 
   for (const item of values) {
-    if (!item || typeof item !== 'object') throw new DskError(`模块 ${defaultModuleId} 的默认导出必须是 DSL 定义`, 'BUILD_ERROR')
+    if (!item || typeof item !== 'object') throw new DskError(`${source} 的默认导出必须是 DSL 定义`, 'BUILD_ERROR')
     const candidate = item as Record<string, unknown>
-    if (typeof candidate.id === 'string') explicit.push(item as ModuleDefinition)
-    else if (typeof candidate.collection === 'string' && Array.isArray(candidate.fields)) {
-      if (candidate.schema === null) module.groups?.push(item as CollectionDefinition & { schema: null })
-      else module.collections?.push(item as CollectionDefinition)
+    if (Object.keys(candidate).length === 0 || Array.isArray(candidate.collections) || Array.isArray(candidate.groups) || Array.isArray(candidate.relations) || Array.isArray(candidate.resources)) {
+      const definition = item as SchemaDefinition
+      result.collections?.push(...(definition.collections ?? []))
+      result.groups?.push(...(definition.groups ?? []))
+      result.relations?.push(...(definition.relations ?? []))
+      result.resources?.push(...(definition.resources ?? []))
+    } else if (typeof candidate.collection === 'string' && Array.isArray(candidate.fields)) {
+      if (candidate.schema === null) result.groups?.push(item as CollectionDefinition & { schema: null })
+      else result.collections?.push(item as CollectionDefinition)
     } else if (resourceTypes.includes(candidate.type as ResourceType) && typeof candidate.key === 'string') {
-      module.resources?.push(item as ResourceDefinition)
+      result.resources?.push(item as ResourceDefinition)
     } else {
-      throw new DskError(`模块 ${defaultModuleId} 包含无法识别的 DSL 定义`, 'BUILD_ERROR')
+      throw new DskError(`${source} 包含无法识别的 DSL 定义`, 'BUILD_ERROR')
     }
   }
-  if ((module.collections?.length ?? 0) + (module.groups?.length ?? 0) + (module.resources?.length ?? 0) > 0) explicit.push(module)
-  return explicit
+  return result
 }
 
 function sortDeep<T>(value: T): T {

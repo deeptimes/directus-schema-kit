@@ -14,12 +14,11 @@ export function validateManifest(manifest: Manifest, config: DskConfig): string[
   const validate = ajv.compile(manifestJsonSchema)
   if (!validate(manifest)) errors.push(...formatAjvErrors(validate.errors).map((item) => `manifest${item}`))
 
-  collectDuplicates(manifest.modules.map((item) => item.id), '模块', errors)
-  collectDuplicates(manifest.collections.map((item) => item.collection), '集合', errors)
-  collectDuplicates(manifest.fields.map((item) => `${item.collection}.${item.field}`), '字段', errors)
-  collectDuplicates(manifest.relations.map((item) => `${item.collection}.${item.field}`), '关系', errors)
+  collectDefinitionDuplicates(manifest.collections, (item) => item.collection, '集合', errors)
+  collectDefinitionDuplicates(manifest.fields, (item) => `${item.collection}.${item.field}`, '字段', errors)
+  collectDefinitionDuplicates(manifest.relations, (item) => `${item.collection}.${item.field}`, '关系', errors)
   for (const [type, definitions] of Object.entries(manifest.resources)) {
-    collectDuplicates(definitions.map((item) => item.key), `${type} 资源`, errors)
+    collectDefinitionDuplicates(definitions, (item) => item.key, `${type} 资源`, errors)
   }
   validateResourceReferences(manifest, config, errors)
 
@@ -44,31 +43,23 @@ export function validateManifest(manifest: Manifest, config: DskConfig): string[
       }
     }
   }
-  for (const module of manifest.modules) {
-    for (const name of module.cleanupCollections) {
-      if (name.startsWith('directus_')) errors.push(`模块 ${module.id} 的 cleanupCollections 不得包含系统集合 ${name}`)
-      if (!collections.has(name)) errors.push(`模块 ${module.id} 的 cleanupCollections 包含未声明集合 ${name}`)
-    }
-  }
   return errors
 }
 
 function validateRelation(manifest: Manifest, relation: Manifest['relations'][number], errors: string[]): void {
   const name = `${relation.collection}.${relation.field}`
   const meta = relation.meta ?? {}
-  if (manifest.manifestVersion === 2) {
-    if (meta.many_collection !== relation.collection || meta.many_field !== relation.field) {
-      errors.push(`关系 ${name} 的 meta.many_collection/many_field 与来源字段不一致`)
+  if (meta.many_collection !== relation.collection || meta.many_field !== relation.field) {
+    errors.push(`关系 ${name} 的 meta.many_collection/many_field 与来源字段不一致`)
+  }
+  if (relation.related_collection === null) {
+    if (!meta.one_collection_field) errors.push(`M2A 关系 ${name} 缺少 meta.one_collection_field`)
+    if (!meta.one_allowed_collections?.length) errors.push(`M2A 关系 ${name} 缺少 meta.one_allowed_collections`)
+    if (meta.one_collection_field && !hasField(manifest, relation.collection, meta.one_collection_field)) {
+      errors.push(`M2A 关系 ${name} 的 collection discriminator 字段不存在: ${relation.collection}.${meta.one_collection_field}`)
     }
-    if (relation.related_collection === null) {
-      if (!meta.one_collection_field) errors.push(`M2A 关系 ${name} 缺少 meta.one_collection_field`)
-      if (!meta.one_allowed_collections?.length) errors.push(`M2A 关系 ${name} 缺少 meta.one_allowed_collections`)
-      if (meta.one_collection_field && !hasField(manifest, relation.collection, meta.one_collection_field)) {
-        errors.push(`M2A 关系 ${name} 的 collection discriminator 字段不存在: ${relation.collection}.${meta.one_collection_field}`)
-      }
-    } else if (meta.one_collection !== relation.related_collection) {
-      errors.push(`关系 ${name} 的 meta.one_collection 与 related_collection 不一致`)
-    }
+  } else if (meta.one_collection !== relation.related_collection) {
+    errors.push(`关系 ${name} 的 meta.one_collection 与 related_collection 不一致`)
   }
   if (meta.one_field) {
     const oneCollection = relation.related_collection ?? meta.one_collection
@@ -148,8 +139,8 @@ export async function validateWorkspace(options: {
   try {
     const parsed: unknown = JSON.parse(readFileSync(manifestPath, 'utf8'))
     const version = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>).manifestVersion : undefined
-    if (version !== 1 && version !== 2) {
-      throw new DskError(`不支持的 Manifest 版本: ${String(version)}`, 'VALIDATION_ERROR', ['当前支持 Manifest V1/V2；请运行 dsk build 迁移到 V2'])
+    if (version !== 3) {
+      throw new DskError(`不支持的 Manifest 版本: ${String(version)}`, 'VALIDATION_ERROR', ['当前仅支持无模块结构的 Manifest V3；请运行 dsk build 重新生成'])
     }
     manifest = parsed as Manifest
   } catch (error) {
@@ -179,10 +170,15 @@ export async function validateWorkspace(options: {
   return { manifest, seedFiles: seedFiles.length }
 }
 
-function collectDuplicates(values: string[], label: string, errors: string[]): void {
-  const seen = new Set<string>()
-  for (const value of values) {
-    if (seen.has(value)) errors.push(`${label}重复定义: ${value}`)
-    seen.add(value)
+function collectDefinitionDuplicates<T extends { source?: string }>(items: T[], key: (item: T) => string, label: string, errors: string[]): void {
+  const sources = new Map<string, string[]>()
+  for (const item of items) {
+    const value = key(item)
+    const current = sources.get(value) ?? []
+    current.push(item.source ?? 'unknown')
+    sources.set(value, current)
+  }
+  for (const [value, definitions] of sources) {
+    if (definitions.length > 1) errors.push(`${label}重复定义: ${value}（${definitions.join('、')}）`)
   }
 }

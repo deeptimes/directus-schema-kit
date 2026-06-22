@@ -19,8 +19,8 @@
 
 - 普通 Schema apply 永不删除资源。
 - 系统资源删除必须由 DSL 显式声明并提供 `--confirm-destructive`。
-- Collection clear 使用独立命令。人工操作使用 `clear <module>`，在同一执行上下文中先展示计划，再通过默认否定的 `y/N` 确认；CI/脚本真实删除仍要求 `--confirm` 和与模块相同的 `--scope`。
-- 旧的 `clear --module <id>` 暂时保留兼容；位置参数是新的标准入口，冲突值不允许执行。
+- Collection clear 使用独立命令，仅清理 Manifest 声明的全部自定义集合。人工操作先展示计划，再通过默认否定的 `y/N` 确认；CI/脚本真实删除要求 `--confirm`。
+- Schema 文件只负责业务组织，不形成运行时模块；plan/apply/clear 不提供模块过滤，Manifest V3 使用 `source` 定位定义文件。
 - 系统资源依赖按 `$ref` 拓扑排序，不依赖文件顺序；缺失、循环引用在写入前阻断。
 
 ## 2026-06-19：收紧 V1 产品范围
@@ -37,5 +37,5 @@
 - 普通字段界面由 `field.*` helper 表达；M2O、O2M、M2M、M2A、Translations、File、Image、Files 由统一的 `relation.*` API 表达。
 - M2M、M2A、Translations 和 Files 属于复合关系，必须通过 Relation Blueprint 展开完整的 alias field、junction collection、实体字段和 relations；不得用单一 FieldDefinition 模拟。
 - 现有 `field.m2o()` 保留源码兼容，并编译到统一关系模型。
-- M2A 要求关系目标允许为空并使用 relation meta 声明 collection discriminator 和 allowed collections，因此升级 Manifest 关系模型并提供 V1 兼容读取。
+- M2A 要求关系目标允许为空并使用 relation meta 声明 collection discriminator 和 allowed collections，因此升级 Manifest 关系模型；旧 Manifest 通过重新 build 迁移。
 - 关系结构、目标和删除策略变化仍视为危险变更；relation meta 的安全更新范围需经集成测试后单独列入白名单。

@@ -97,7 +97,7 @@ export interface RelationDefinition {
   related_collection: string | null
   schema: RelationSchema | null
   meta?: RelationMeta
-  module?: string
+  source?: string
 }
 
 export interface FieldDefinition {
@@ -105,7 +105,7 @@ export interface FieldDefinition {
   type: FieldType
   meta: FieldMeta
   schema: FieldSchema | null
-  relation?: Omit<RelationDefinition, 'collection' | 'field' | 'module'>
+  relation?: Omit<RelationDefinition, 'collection' | 'field' | 'source'>
 }
 
 export interface RelationFieldOptions {
@@ -198,7 +198,7 @@ export interface CollectionDefinition {
   meta: Record<string, DeclarativeValue>
   schema: Record<string, DeclarativeValue> | null
   fields: FieldDefinition[]
-  module?: string
+  source?: string
 }
 
 export interface CollectionGroupDefinition extends CollectionDefinition {
@@ -211,36 +211,23 @@ export interface ResourceDefinition {
   type: ResourceType
   key: string
   data: Record<string, DeclarativeValue>
-  module?: string
+  source?: string
   delete?: boolean
 }
 
-export interface ModuleDefinition {
-  id: string
-  version?: string
-  dependsOn?: string[]
+export interface SchemaDefinition {
   collections?: CollectionDefinition[]
   groups?: CollectionGroupDefinition[]
   relations?: RelationBlueprint[]
   resources?: ResourceDefinition[]
-  cleanupCollections?: string[]
-}
-
-export interface ManifestModule {
-  id: string
-  version?: string
-  dependsOn: string[]
-  cleanupCollections: string[]
-  sources: string[]
 }
 
 export interface Manifest {
-  manifestVersion: 1 | 2
+  manifestVersion: 3
   generator: { name: string; version: string }
   source: { algorithm: 'sha256'; digest: string; files: string[] }
-  modules: ManifestModule[]
   collections: CollectionDefinition[]
-  fields: Array<FieldDefinition & { collection: string; module: string }>
+  fields: Array<FieldDefinition & { collection: string; source: string }>
   relations: RelationDefinition[]
   resources: Record<ResourceType, ResourceDefinition[]>
 }
@@ -276,7 +263,7 @@ export interface PlanChange {
 }
 
 export interface PlanOperation {
-  module: string
+  source: string
   resourceType: PlanResourceType
   resource: string
   action: PlanAction
@@ -386,7 +373,6 @@ export interface ClearOperation {
 
 export interface ClearResult {
   clearVersion: 1
-  module: string
   dryRun: boolean
   status: 'planned' | 'success' | 'blocked' | 'failed'
   operations: ClearOperation[]

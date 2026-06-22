@@ -5,7 +5,7 @@
 - [x] 幂等 init、build、validate
 - [x] Plan 数据模型与安全分类
 - [x] collections/fields/relations 只读 Adapter
-- [x] `dsk plan` 文本/JSON 输出与模块过滤
+- [x] `dsk plan` 完整 Manifest 的文本/JSON 输出
 - [x] 安全 apply Adapter 与执行编排
 - [x] Seed plan/apply
 - [x] folders、roles、policies、access、permissions、presets
@@ -33,7 +33,7 @@
 - [x] 设计并实现 `RelationBlueprint` 及其确定性展开协议
 - [x] 定义 junction collection 的命名、主键、外键、排序字段和删除策略默认值
 - [x] 保留 `field.m2o()` 源码兼容，并接入统一关系模型
-- [x] 升级 Manifest V2、JSON Schema、V1 兼容读取和迁移错误提示
+- [x] 升级 Manifest V3、JSON Schema 和旧版本迁移错误提示
 
 ### 普通字段 helper
 

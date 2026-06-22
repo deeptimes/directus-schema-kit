@@ -89,7 +89,7 @@ export class DirectusWriter {
   }
 
   createRelation(definition: RelationDefinition): Promise<void> {
-    const { module: _module, ...payload } = definition
+    const { source: _source, ...payload } = definition
     return this.request('/relations', 'POST', payload)
   }
 

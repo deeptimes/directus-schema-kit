@@ -9,9 +9,9 @@ import type { DoctorCheck, DoctorResult } from './types.js'
 export async function diagnoseProject(cwd: string, customConfig?: string): Promise<DoctorResult> {
   const project = discoverDirectusProject(cwd)
   const checks: DoctorCheck[] = []
-  const configPath = path.resolve(project.root, customConfig ?? '.dsk/config.json')
+  const configPath = path.resolve(project.root, customConfig ?? 'dsk/config.json')
   if (!existsSync(configPath)) {
-    checks.push({ name: 'config', status: 'fail', message: '缺少 .dsk/config.json，请运行 dsk init' })
+    checks.push({ name: 'config', status: 'fail', message: '缺少 dsk/config.json，请运行 dsk init' })
     return result(project.root, project.directusVersion, configPath, null, checks, path.join(project.root, '.env'), [], ['DIRECTUS_URL'])
   }
 
@@ -35,7 +35,7 @@ export async function diagnoseProject(cwd: string, customConfig?: string): Promi
   })
 
   const manifestPath = path.resolve(loaded.directory, loaded.config.paths.manifest)
-  for (const directory of ['dsk/schema', 'dsk/resources', '.dsk/seeds', '.dsk/generated']) {
+  for (const directory of ['dsk/schema', 'dsk/resources', 'dsk/seeds', 'dsk/generated']) {
     checks.push({ name: directory, status: existsSync(path.join(project.root, directory)) ? 'pass' : 'fail', message: existsSync(path.join(project.root, directory)) ? '目录存在' : '目录缺失' })
   }
   try {

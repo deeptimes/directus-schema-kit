@@ -13,30 +13,30 @@ const structuralRelationMeta = [
 ] as const
 const safeRelationMeta = ['sort_field'] as const
 
-export function createPlan(manifest: Manifest, state: DirectusState, targetUrl: string, moduleFilter?: string, databaseClient?: string): Plan {
+export function createPlan(manifest: Manifest, state: DirectusState, targetUrl: string, databaseClient?: string): Plan {
   const operations: PlanOperation[] = []
   const collections = new Map(state.collections.map((item) => [item.collection, item]))
   const fields = new Map(state.fields.map((item) => [`${item.collection}.${item.field}`, item]))
   const relations = new Map(state.relations.map((item) => [`${item.collection}.${item.field}`, item]))
   const targetRelations = new Map(manifest.relations.map((item) => [`${item.collection}.${item.field}`, item]))
 
-  for (const target of manifest.collections.filter((item) => !moduleFilter || item.module === moduleFilter)) {
+  for (const target of manifest.collections) {
     const current = collections.get(target.collection)
-    if (!current) operations.push(operation(target.module ?? 'unknown', 'collection', target.collection, 'create', [], '集合不存在'))
+    if (!current) operations.push(operation(target.source ?? 'unknown', 'collection', target.collection, 'create', [], '集合不存在'))
     else {
       const changes = compareProperties(asRecord(current.meta), target.meta, safeCollectionMeta, 'meta')
       const conflicts = compareUnsupported(asRecord(current.meta), target.meta, safeCollectionMeta, 'meta')
-      operations.push(operation(target.module ?? 'unknown', 'collection', target.collection,
+      operations.push(operation(target.source ?? 'unknown', 'collection', target.collection,
         conflicts.length ? 'conflict' : changes.length ? 'update' : 'unchanged', [...changes, ...conflicts],
         conflicts.length ? '集合包含未列入安全更新白名单的差异' : undefined))
     }
   }
 
-  for (const target of manifest.fields.filter((item) => !moduleFilter || item.module === moduleFilter)) {
+  for (const target of manifest.fields) {
     const resource = `${target.collection}.${target.field}`
     const current = fields.get(resource)
     if (!current) {
-      operations.push(operation(target.module, 'field', resource, 'create', [], '字段不存在'))
+      operations.push(operation(target.source, 'field', resource, 'create', [], '字段不存在'))
       continue
     }
     const dangerous: PlanChange[] = []
@@ -59,15 +59,15 @@ export function createPlan(manifest: Manifest, state: DirectusState, targetUrl: 
     const conflicts = [...metaConflicts, ...schemaConflicts]
     const all = [...dangerous, ...safe, ...defaultChanges, ...conflicts]
     const action = dangerous.length ? 'dangerous' : conflicts.length ? 'conflict' : all.length ? 'update' : 'unchanged'
-    operations.push(operation(target.module, 'field', resource, action, all,
+    operations.push(operation(target.source, 'field', resource, action, all,
       dangerous.length ? '字段类型或数据库约束变化需要显式迁移' : conflicts.length ? '字段包含未列入安全更新白名单的差异' : undefined))
   }
 
-  for (const target of manifest.relations.filter((item) => !moduleFilter || item.module === moduleFilter)) {
+  for (const target of manifest.relations) {
     const resource = `${target.collection}.${target.field}`
     const current = relations.get(resource)
     if (!current) {
-      operations.push(operation(target.module ?? 'unknown', 'relation', resource, 'create', [], '关系不存在'))
+      operations.push(operation(target.source ?? 'unknown', 'relation', resource, 'create', [], '关系不存在'))
       continue
     }
     const changes: PlanChange[] = []
@@ -81,7 +81,7 @@ export function createPlan(manifest: Manifest, state: DirectusState, targetUrl: 
       ...compareUnsupported(asRecord(current.schema), asRecord(target.schema), ['on_delete', 'on_update'] as const, 'schema'),
       ...compareUnsupported(asRecord(current.meta), asRecord(target.meta), [...structuralRelationMeta, ...safeRelationMeta] as const, 'meta'),
     ]
-    operations.push(operation(target.module ?? 'unknown', 'relation', resource, changes.length ? 'dangerous' : conflicts.length ? 'conflict' : safe.length ? 'update' : 'unchanged', [...changes, ...safe, ...conflicts],
+    operations.push(operation(target.source ?? 'unknown', 'relation', resource, changes.length ? 'dangerous' : conflicts.length ? 'conflict' : safe.length ? 'update' : 'unchanged', [...changes, ...safe, ...conflicts],
       changes.length ? '关系目标或删除策略变化需要显式迁移' : conflicts.length ? '关系包含未支持自动更新的差异' : undefined))
   }
 
@@ -90,9 +90,9 @@ export function createPlan(manifest: Manifest, state: DirectusState, targetUrl: 
   return { planVersion: 1, manifestDigest: manifest.source.digest, target: { url: new URL(targetUrl).origin }, operations, summary }
 }
 
-function operation(module: string, resourceType: PlanOperation['resourceType'], resource: string, action: PlanAction, changes: PlanChange[], reason?: string): PlanOperation {
+function operation(source: string, resourceType: PlanOperation['resourceType'], resource: string, action: PlanAction, changes: PlanChange[], reason?: string): PlanOperation {
   const risk = action === 'dangerous' ? 'high' : action === 'conflict' ? 'medium' : action === 'create' || action === 'update' ? 'low' : 'none'
-  return { module, resourceType, resource, action, risk, executable: action === 'create' || action === 'update', changes, ...(reason ? { reason } : {}) }
+  return { source, resourceType, resource, action, risk, executable: action === 'create' || action === 'update', changes, ...(reason ? { reason } : {}) }
 }
 
 function compareProperties<const T extends readonly string[]>(current: Record<string, unknown>, target: Record<string, unknown>, keys: T, prefix: string): PlanChange[] {
