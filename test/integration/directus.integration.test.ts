@@ -88,12 +88,12 @@ function integrationManifest(): Manifest {
   return {
     manifestVersion: 3, generator: { name: 'integration', version: '3' },
     source: { algorithm: 'sha256', digest: 'a'.repeat(64), files: [] },
-    collections: collections.map((item) => ({ ...item, fields: [], source: 'dsk/schema/integration.ts' })),
+    collections: collections.map((item) => ({ ...item, fields: [], source: 'dsk/schemas/integration.ts' })),
     fields: [
-      ...baseCollections.flatMap((item) => item.fields.map(({ relation: _relation, ...definition }) => ({ ...definition, collection: item.collection, source: 'dsk/schema/integration.ts' }))),
-      ...expanded.flatMap((item) => item.fields.map((definition) => ({ ...definition, source: 'dsk/schema/integration.ts' }))),
+      ...baseCollections.flatMap((item) => item.fields.map(({ relation: _relation, ...definition }) => ({ ...definition, collection: item.collection, source: 'dsk/schemas/integration.ts' }))),
+      ...expanded.flatMap((item) => item.fields.map((definition) => ({ ...definition, source: 'dsk/schemas/integration.ts' }))),
     ],
-    relations: expanded.flatMap((item) => item.relations.map((definition) => ({ ...definition, source: 'dsk/schema/integration.ts' }))),
+    relations: expanded.flatMap((item) => item.relations.map((definition) => ({ ...definition, source: 'dsk/schemas/integration.ts' }))),
     resources: emptyResources(),
   }
 }

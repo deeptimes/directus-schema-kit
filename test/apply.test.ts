@@ -8,12 +8,12 @@ function fixture(): { manifest: Manifest; plan: Plan } {
   const parent = collectionGroup({ name: 'parent', label: '父分组' })
   const child = collectionGroup({ name: 'child', label: '子分组', group: 'parent' })
   const articles = collection({ name: 'articles', label: '文章', group: 'child', fields: [field.string('title', { label: '标题' })] })
-  const fields = articles.fields.map(({ relation: _relation, ...item }) => ({ ...item, collection: 'articles', source: 'dsk/schema/content.ts' }))
+  const fields = articles.fields.map(({ relation: _relation, ...item }) => ({ ...item, collection: 'articles', source: 'dsk/schemas/content.ts' }))
   const manifest: Manifest = {
     manifestVersion: 3,
     generator: { name: 'test', version: '1' },
     source: { algorithm: 'sha256', digest: 'a'.repeat(64), files: [] },
-    collections: [{ ...child, source: 'dsk/schema/content.ts' }, { ...parent, source: 'dsk/schema/content.ts' }, { ...articles, fields: [], source: 'dsk/schema/content.ts' }],
+    collections: [{ ...child, source: 'dsk/schemas/content.ts' }, { ...parent, source: 'dsk/schemas/content.ts' }, { ...articles, fields: [], source: 'dsk/schemas/content.ts' }],
     fields,
     relations: [],
     resources: { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [] },
@@ -32,7 +32,7 @@ function fixture(): { manifest: Manifest; plan: Plan } {
 }
 
 function create(resourceType: PlanOperation['resourceType'], resource: string): PlanOperation {
-  return { source: 'dsk/schema/content.ts', resourceType, resource, action: 'create', risk: 'low', executable: true, changes: [] }
+  return { source: 'dsk/schemas/content.ts', resourceType, resource, action: 'create', risk: 'low', executable: true, changes: [] }
 }
 
 function fakeWriter(log: string[], failAt?: string): SchemaWriter {
@@ -61,7 +61,7 @@ test('apply 按父 group、子 group、collection、field 执行且主键不重�
 
 test('存在 dangerous 时在任何写入前阻断', async () => {
   const { manifest, plan } = fixture()
-  plan.operations.push({ source: 'dsk/schema/content.ts', resourceType: 'field', resource: 'articles.title', action: 'dangerous', risk: 'high', executable: false, changes: [], reason: 'type changed' })
+  plan.operations.push({ source: 'dsk/schemas/content.ts', resourceType: 'field', resource: 'articles.title', action: 'dangerous', risk: 'high', executable: false, changes: [], reason: 'type changed' })
   plan.summary.dangerous = 1
   const log: string[] = []
   const result = await executeApply({ manifest, plan, writer: fakeWriter(log) })
@@ -94,7 +94,7 @@ test('安全 update 只发送 Plan 中变化的白名单属性', async () => {
   assert.ok(article)
   article.meta.icon = 'article'
   plan.operations = [{
-    source: 'dsk/schema/content.ts', resourceType: 'collection', resource: 'articles', action: 'update', risk: 'low', executable: true,
+    source: 'dsk/schemas/content.ts', resourceType: 'collection', resource: 'articles', action: 'update', risk: 'low', executable: true,
     changes: [{ path: 'meta.icon', current: 'old', target: 'article' }],
   }]
   plan.summary = { create: 0, update: 1, unchanged: 0, conflict: 0, dangerous: 0 }

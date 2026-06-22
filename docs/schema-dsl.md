@@ -1,6 +1,6 @@
 # Schema DSL
 
-`dsk/schema/*.ts` 使用包公开 API，不允许依赖内部源码。文件按业务组织，例如 `catalog.ts`、`checkout.ts`、`customers.ts`；文件不会形成 Directus 命名空间或独立 apply/clear 范围。
+`dsk/schemas/*.ts` 使用包公开 API，不允许依赖内部源码。文件按业务组织，例如 `catalog.ts`、`checkout.ts`、`customers.ts`；文件不会形成 Directus 命名空间或独立 apply/clear 范围。
 
 ## 全局 Schema 模型
 
@@ -61,7 +61,7 @@ field.toggle('enabled', { labelOn: '启用' })
 关系可以引用其他文件声明的 collection，但不得重复声明目标 collection：
 
 ```ts
-// dsk/schema/checkout.ts
+// dsk/schemas/checkout.ts
 import { collection, defineSchema, relation } from '@deeptimes/directus-schema-kit'
 
 export default defineSchema({

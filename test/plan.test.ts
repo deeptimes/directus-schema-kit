@@ -15,9 +15,9 @@ function manifest(): Manifest {
     manifestVersion: 3,
     generator: { name: 'test', version: '1.0.0' },
     source: { algorithm: 'sha256', digest: 'a'.repeat(64), files: [] },
-    collections: definitions.map((item) => ({ ...item, fields: [], source: 'dsk/schema/content.ts' })),
-    fields: definitions.flatMap((item) => item.fields.map(({ relation: _relation, ...definition }) => ({ ...definition, collection: item.collection, source: 'dsk/schema/content.ts' }))),
-    relations: [{ collection: 'articles', field: 'author_id', related_collection: 'authors', schema: { on_delete: 'SET NULL' }, source: 'dsk/schema/content.ts' }],
+    collections: definitions.map((item) => ({ ...item, fields: [], source: 'dsk/schemas/content.ts' })),
+    fields: definitions.flatMap((item) => item.fields.map(({ relation: _relation, ...definition }) => ({ ...definition, collection: item.collection, source: 'dsk/schemas/content.ts' }))),
+    relations: [{ collection: 'articles', field: 'author_id', related_collection: 'authors', schema: { on_delete: 'SET NULL' }, source: 'dsk/schemas/content.ts' }],
     resources: { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [] },
   }
 }
@@ -113,7 +113,7 @@ test('SQLite 将 decimal 返回为无精度信息的 float 时视为等价', () 
   target.fields.push({
     ...field.decimal('price', { precision: 10, scale: 2 }),
     collection: 'articles',
-    source: 'dsk/schema/content.ts',
+    source: 'dsk/schemas/content.ts',
   })
   const state: DirectusState = {
     collections: target.collections.map((item) => ({ collection: item.collection, meta: item.meta })),

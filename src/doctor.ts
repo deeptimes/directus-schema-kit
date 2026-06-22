@@ -35,7 +35,7 @@ export async function diagnoseProject(cwd: string, customConfig?: string): Promi
   })
 
   const manifestPath = path.resolve(loaded.directory, loaded.config.paths.manifest)
-  for (const directory of ['dsk/schema', 'dsk/resources', 'dsk/seeds', 'dsk/generated']) {
+  for (const directory of ['dsk/schemas', 'dsk/resources', 'dsk/seeds', 'dsk/generated']) {
     checks.push({ name: directory, status: existsSync(path.join(project.root, directory)) ? 'pass' : 'fail', message: existsSync(path.join(project.root, directory)) ? '目录存在' : '目录缺失' })
   }
   try {

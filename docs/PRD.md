@@ -62,7 +62,7 @@ Directus 后台适合早期探索和少量手工配置，但项目进入团队�
 2. **计划先于写入**：任何本地 Directus 写入都应可先通过 `plan` 或 `--dry-run` 查看。
 3. **安全默认值**：默认仅允许新增和明确认定的低风险更新。
 4. **危险操作显式化**：删除、重命名、类型变化等不得由普通 `apply` 隐式执行。
-5. **目录化优先**：Schema 按业务域拆分为 `dsk/schema/*.ts` 文件，资源按类型拆分；文件只组织源码，不形成运行时模块或 Directus 命名空间。
+5. **目录化优先**：Schema 按业务域拆分为 `dsk/schemas/*.ts` 文件，资源按类型拆分；文件只组织源码，不形成运行时模块或 Directus 命名空间。
 6. **幂等执行**：相同定义重复执行不应失败，也不应产生重复资源或数据。
 7. **双层模型**：TypeScript Schema DSL 优化人工编写体验，标准 JSON Manifest 优化机器校验、执行和工具间交换。
 8. **核心与业务解耦**：核心包和 V1 交付物不得内置智慧教育业务语义或迁移旧教学中心数据。
@@ -181,7 +181,7 @@ Directus 后台适合早期探索和少量手工配置，但项目进入团队�
 
 DSK 项目使用一个目录承载职责明确的子目录和文件：
 
-- `dsk/schema/`、`dsk/resources/`：人工维护的 TypeScript 项目定义源码，只使用 DSK 公开 DSL。
+- `dsk/schemas/`、`dsk/resources/`：人工维护的 TypeScript 项目定义源码，只使用 DSK 公开 DSL。
 - `dsk/config.json`、`dsk/seeds/`、`dsk/generated/`：配置、seed 和生成产物。
 
 V1 推荐目录：
@@ -192,7 +192,7 @@ directus-project/
   .env
   dsk/
     README.md
-    schema/
+    schemas/
       example.ts
     resources/
       folders.ts
@@ -211,7 +211,7 @@ directus-project/
 
 目录约束：
 
-- `dsk/schema/*.ts` 按业务组织一个或一组强相关 collections；文件不形成命名空间，同名 collection 不得跨文件重复定义。
+- `dsk/schemas/*.ts` 按业务组织一个或一组强相关 collections；文件不形成命名空间，同名 collection 不得跨文件重复定义。
 - `dsk/resources/` 按 Directus 系统资源类型组织；体量较大时允许继续按业务域拆分。
 - TypeScript 定义只能依赖 DSK 公开 DSL 和项目内其他定义文件，不得依赖 DSK 内部源码。
 - `dsk/` 下供工具读取的配置、seed 和 Manifest 统一使用严格 JSON，不支持注释、函数或可执行表达式；README Markdown 仅作为说明文档。
@@ -239,7 +239,7 @@ directus-project/
 
 ### 8.4 Schema DSL 文件
 
-`dsk/schema/*.ts` 是可独立加载和组合的人工编写文件，使用 DSK 提供的 `collection()`、`field.*()`、`relation.*()` 和 `defineSchema()` 等固定 DSL API。文件名用于业务组织和错误定位，不形成 Directus 命名空间或独立 apply/clear 范围。
+`dsk/schemas/*.ts` 是可独立加载和组合的人工编写文件，使用 DSK 提供的 `collection()`、`field.*()`、`relation.*()` 和 `defineSchema()` 等固定 DSL API。文件名用于业务组织和错误定位，不形成 Directus 命名空间或独立 apply/clear 范围。
 
 所有文件编译后进入一个扁平 Manifest。collection 名全局唯一；一个 collection 只能由一个文件完整定义，其他文件可以通过 relation 引用它，但不得重复声明或局部扩展。
 
@@ -363,7 +363,7 @@ Manifest 目标状态与本地开发实例当前状态比较后的标准化操�
 {
   "schemaVersion": 1,
   "paths": {
-    "schemaSource": "schema/**/*.ts",
+    "schemaSource": "schemas/**/*.ts",
     "resourceSource": "resources/**/*.ts",
     "seeds": "seeds/**/*.json",
     "manifest": "generated/manifest.json"
@@ -463,7 +463,7 @@ pnpm dsk seed
 | CFG-10 | P0 | Schema DSL、Resource DSL 和 seeds 支持按约定目录拆分；DSK 根据配置确定性加载，不要求单一大入口文件。 |
 | CFG-11 | P1 | 项目脚手架生成最小 DSL 示例、JSON 配置、seed 示例和 npm scripts，但不额外生成重复的 `.env`。 |
 | CFG-12 | P1 | `dsk doctor` 报告项目识别结果、Directus 版本、`.env` 加载来源和 `dsk/` 完整性，但对敏感值脱敏。 |
-| CFG-13 | P0 | init 创建 `dsk/schema/`、`dsk/resources/`、`dsk/seeds/`、`dsk/generated/` 及必要父目录。 |
+| CFG-13 | P0 | init 创建 `dsk/schemas/`、`dsk/resources/`、`dsk/seeds/`、`dsk/generated/` 及必要父目录。 |
 | CFG-14 | P0 | init 创建 `dsk/config.json`、安全的空示例 Schema/Resource/Seed 和 `dsk/README.md`；随后复用 build 流程生成初始 Manifest。 |
 | CFG-15 | P0 | init 必须幂等；重复执行只补充缺失目录和文件，默认不得覆盖用户已修改的内容。 |
 | CFG-16 | P0 | init 执行前识别 Directus `package.json`；无法确认是 Directus 项目时停止并说明原因，不在任意目录生成文件。 |

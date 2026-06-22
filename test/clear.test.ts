@@ -9,9 +9,9 @@ function fixture(): { manifest: Manifest; state: DirectusState } {
       manifestVersion: 3, generator: { name: 'test', version: '1' },
       source: { algorithm: 'sha256', digest: 'a'.repeat(64), files: [] },
       collections: [
-        { collection: 'content_group', meta: {}, schema: null, fields: [], source: 'dsk/schema/content.ts' },
-        { collection: 'parents', meta: {}, schema: {}, fields: [], source: 'dsk/schema/content.ts' },
-        { collection: 'children', meta: {}, schema: {}, fields: [], source: 'dsk/schema/content.ts' },
+        { collection: 'content_group', meta: {}, schema: null, fields: [], source: 'dsk/schemas/content.ts' },
+        { collection: 'parents', meta: {}, schema: {}, fields: [], source: 'dsk/schemas/content.ts' },
+        { collection: 'children', meta: {}, schema: {}, fields: [], source: 'dsk/schemas/content.ts' },
       ], fields: [], relations: [], resources: { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [] },
     },
     state: {
@@ -79,7 +79,7 @@ test('交互授权基于已生成计划执行，拒绝授权时零删除', async
 
 test('系统集合无条件拒绝', () => {
   const { manifest, state } = fixture()
-  manifest.collections.push({ collection: 'directus_users', meta: {}, schema: {}, fields: [], source: 'dsk/schema/content.ts' })
+  manifest.collections.push({ collection: 'directus_users', meta: {}, schema: {}, fields: [], source: 'dsk/schemas/content.ts' })
   assert.throws(() => createClearPlan(manifest, state), /禁止清理系统集合/)
 })
 

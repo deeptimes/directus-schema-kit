@@ -20,7 +20,7 @@ test('init 幂等创建工作区并生成初始 Manifest', async () => {
 
   assert.ok(first.created.includes('dsk/config.json'))
   assert.equal(second.created.length, 0)
-  assert.ok(second.preserved.includes('dsk/schema/example.ts'))
+  assert.ok(second.preserved.includes('dsk/schemas/example.ts'))
   const manifest = JSON.parse(readFileSync(path.join(cwd, 'dsk/generated/manifest.json'), 'utf8')) as { manifestVersion: number; source: { digest: string } }
   assert.equal(manifest.manifestVersion, 3)
   assert.match(manifest.source.digest, /^[a-f0-9]{64}$/)
@@ -35,7 +35,7 @@ test('build --check 和 validate 检测源码新鲜度', async () => {
   const result = await validateCommand(context)
   assert.equal(result.collections, 0)
 
-  writeFileSync(path.join(cwd, 'dsk/schema/example.ts'), 'export default []\n// changed\n')
+  writeFileSync(path.join(cwd, 'dsk/schemas/example.ts'), 'export default []\n// changed\n')
   await assert.rejects(() => validateCommand(context), /工作区校验失败/)
   await assert.rejects(() => buildCommand(context, true), /Manifest 与 DSL 源码不一致/)
 })
@@ -58,7 +58,7 @@ test('build 将 Relation Blueprint 完整展开为无模块 Manifest V3', async 
   const context = { cwd, packageVersion: '0.1.0' }
   await initCommand(context, false)
   const api = path.resolve('src/index.ts')
-  writeFileSync(path.join(cwd, 'dsk/schema/example.ts'), `
+  writeFileSync(path.join(cwd, 'dsk/schemas/example.ts'), `
     import { collection, defineSchema, relation } from ${JSON.stringify(api)}
     export default defineSchema({
       collections: [
@@ -87,8 +87,8 @@ test('跨文件重复 collection 报告全部来源', async () => {
   await initCommand(context, false)
   const api = path.resolve('src/index.ts')
   const definition = `import { collection } from ${JSON.stringify(api)}\nexport default collection({ name: 'articles', label: 'Articles' })\n`
-  writeFileSync(path.join(cwd, 'dsk/schema/first.ts'), definition)
-  writeFileSync(path.join(cwd, 'dsk/schema/second.ts'), definition)
+  writeFileSync(path.join(cwd, 'dsk/schemas/first.ts'), definition)
+  writeFileSync(path.join(cwd, 'dsk/schemas/second.ts'), definition)
   await assert.rejects(
     () => buildCommand(context, false),
     (error: unknown) => error instanceof DskError

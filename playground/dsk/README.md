@@ -2,7 +2,7 @@
 
 本目录保存可信的 TypeScript Schema/Resource DSL、JSON 配置、Seed 和生成产物。`dsk build` 会执行 DSL 并生成标准 JSON Manifest。
 
-Schema 文件位于 `schema/`，按业务组织源码；文件不会形成 Directus 命名空间，collection 名必须全局唯一。常用写法：
+Schema 文件位于 `schemas/`，按业务组织源码；文件不会形成 Directus 命名空间，collection 名必须全局唯一。常用写法：
 
 ```ts
 import { collection, field } from '@deeptimes/directus-schema-kit'

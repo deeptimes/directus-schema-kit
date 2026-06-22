@@ -7,7 +7,7 @@ import type { DskConfig } from './types.js'
 export const defaultConfig: DskConfig = {
   schemaVersion: 1,
   paths: {
-    schemaSource: 'schema/**/*.ts',
+    schemaSource: 'schemas/**/*.ts',
     resourceSource: 'resources/**/*.ts',
     seeds: 'seeds/**/*.json',
     manifest: 'generated/manifest.json',
