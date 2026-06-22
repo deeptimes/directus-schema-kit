@@ -236,6 +236,20 @@ export interface ResourceDefinition {
   delete?: boolean
 }
 
+export interface TabularPresetOptions {
+  key?: string
+  collection: string
+  fields: string[]
+  icon?: string
+  color?: string
+  page?: number
+  widths?: Record<string, number>
+  defaultWidth?: number
+  bookmark?: string | null
+  role?: DeclarativeValue
+  user?: DeclarativeValue
+}
+
 export interface SchemaDefinition {
   collections?: CollectionDefinition[]
   groups?: CollectionGroupDefinition[]

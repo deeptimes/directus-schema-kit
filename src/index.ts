@@ -1,6 +1,7 @@
 export { env, ref, systemRef } from './dsl/references.js'
 export { field } from './dsl/field.js'
 export { relation } from './dsl/relation.js'
+export { preset } from './dsl/preset.js'
 export { collection, collectionGroup, defineSchema, resource } from './dsl/schema.js'
 export { createPlan } from './plan.js'
 export { executeApply } from './apply.js'

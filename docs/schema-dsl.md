@@ -118,6 +118,24 @@ export default resource('permissions', {
 
 `systemRef()` 首版只支持 `policies.public`。`dsk resources apply` 必须在实例中唯一找到 Directus 内置 `$t:public_label` policy，否则在任何写入前失败。该引用只用于关联，DSK 不管理系统 policy 的生命周期。
 
+## 表格 Preset
+
+使用 `preset.tabular()` 声明集合的默认表格视图，不需要重复编写 `layout_query` 和 `layout_options`：
+
+```ts
+import { preset } from '@deeptimes/directus-schema-kit'
+
+export default preset.tabular({
+  collection: 'articles',
+  icon: 'article',
+  color: '#6644FF',
+  fields: ['status', 'title', 'slug', 'description', 'cover'],
+  widths: { slug: 240 },
+})
+```
+
+默认生成全局 tabular preset（`bookmark`、`role`、`user` 均为 `null`），page 为 1，并根据常见字段名设置列宽；`widths` 可以逐字段覆盖，`defaultWidth` 控制其他字段的默认宽度。
+
 ## 全量 Clear
 
 `dsk clear` 仅用于数据库初期建模和 DSK 调试。它清理 Manifest 声明的全部非 `directus_*` collection，不支持按文件或 collection 局部清理：

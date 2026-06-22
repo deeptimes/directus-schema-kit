@@ -6,7 +6,7 @@
 
 - `blog.dbml`：完整数据关系图。
 - `schemas/`：分类、标签、文章、会员、评论和下载资源。
-- `resources/`：系统 Public policy 的 Blog 读取权限、Blog Member 权限与 role，以及媒体目录。
+- `resources/`：系统 Public policy 的 Blog 读取权限、Blog Member 权限与 role、媒体目录，以及各业务集合的默认表格 preset。
 - `seeds/`：分类、标签和公开/会员文章示例。
 
 ## 使用

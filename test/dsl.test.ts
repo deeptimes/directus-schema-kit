@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { collection, env, field, ref, relation } from '../src/index.js'
+import { collection, env, field, preset, ref, relation } from '../src/index.js'
 import { expandRelationBlueprint } from '../src/dsl/expand.js'
 
 test('collection 展开主键、字段和关系声明', () => {
@@ -18,6 +18,24 @@ test('collection 展开主键、字段和关系声明', () => {
   assert.equal(definition.fields[0]?.schema?.has_auto_increment, true)
   assert.equal(definition.fields[2]?.relation?.related_collection, 'authors')
   assert.equal(definition.meta.archive_field, 'status')
+})
+
+test('tabular preset 生成确定性字段顺序和约定列宽', () => {
+  const definition = preset.tabular({
+    collection: 'articles',
+    icon: 'article',
+    color: '#6644FF',
+    fields: ['status', 'title', 'slug', 'description', 'cover'],
+    widths: { slug: 240 },
+  })
+
+  assert.equal(definition.type, 'presets')
+  assert.equal(definition.key, 'default-articles-tabular')
+  assert.deepEqual(definition.data.layout_query, { tabular: { page: 1, fields: ['status', 'title', 'slug', 'description', 'cover'] } })
+  assert.deepEqual(definition.data.layout_options, { tabular: { widths: { status: 100, title: 220, slug: 240, description: 280, cover: 120 } } })
+  assert.equal(definition.data.role, null)
+  assert.equal(definition.data.user, null)
+  assert.equal(definition.data.bookmark, null)
 })
 
 test('自动生成的 UUID 主键不触发 Data Studio 必填校验', () => {

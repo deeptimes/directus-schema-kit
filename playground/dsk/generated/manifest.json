@@ -4407,7 +4407,270 @@
         "type": "policies"
       }
     ],
-    "presets": [],
+    "presets": [
+      {
+        "data": {
+          "bookmark": null,
+          "collection": "blog_categories",
+          "color": "#2ECDA7",
+          "icon": "folder",
+          "layout": "tabular",
+          "layout_options": {
+            "tabular": {
+              "widths": {
+                "date_updated": 160,
+                "description": 280,
+                "image": 120,
+                "name": 220,
+                "slug": 160,
+                "sort": 100,
+                "status": 100
+              }
+            }
+          },
+          "layout_query": {
+            "tabular": {
+              "fields": [
+                "status",
+                "name",
+                "slug",
+                "description",
+                "image",
+                "sort",
+                "date_updated"
+              ],
+              "page": 1
+            }
+          },
+          "role": null,
+          "user": null
+        },
+        "key": "default-blog_categories-tabular",
+        "source": "dsk/resources/presets.ts",
+        "type": "presets"
+      },
+      {
+        "data": {
+          "bookmark": null,
+          "collection": "blog_tags",
+          "color": "#3399FF",
+          "icon": "sell",
+          "layout": "tabular",
+          "layout_options": {
+            "tabular": {
+              "widths": {
+                "color": 160,
+                "date_updated": 160,
+                "description": 280,
+                "name": 220,
+                "slug": 160,
+                "sort": 100,
+                "status": 100
+              }
+            }
+          },
+          "layout_query": {
+            "tabular": {
+              "fields": [
+                "status",
+                "name",
+                "slug",
+                "description",
+                "color",
+                "sort",
+                "date_updated"
+              ],
+              "page": 1
+            }
+          },
+          "role": null,
+          "user": null
+        },
+        "key": "default-blog_tags-tabular",
+        "source": "dsk/resources/presets.ts",
+        "type": "presets"
+      },
+      {
+        "data": {
+          "bookmark": null,
+          "collection": "blog_posts",
+          "color": "#6644FF",
+          "icon": "article",
+          "layout": "tabular",
+          "layout_options": {
+            "tabular": {
+              "widths": {
+                "access_level": 160,
+                "category": 160,
+                "cover": 120,
+                "date_published": 160,
+                "date_updated": 160,
+                "is_featured": 100,
+                "reading_minutes": 160,
+                "slug": 160,
+                "status": 100,
+                "summary": 280,
+                "title": 220,
+                "user_author": 160
+              }
+            }
+          },
+          "layout_query": {
+            "tabular": {
+              "fields": [
+                "status",
+                "title",
+                "slug",
+                "summary",
+                "access_level",
+                "category",
+                "user_author",
+                "cover",
+                "date_published",
+                "is_featured",
+                "reading_minutes",
+                "date_updated"
+              ],
+              "page": 1
+            }
+          },
+          "role": null,
+          "user": null
+        },
+        "key": "default-blog_posts-tabular",
+        "source": "dsk/resources/presets.ts",
+        "type": "presets"
+      },
+      {
+        "data": {
+          "bookmark": null,
+          "collection": "blog_downloads",
+          "color": "#FFB020",
+          "icon": "download",
+          "layout": "tabular",
+          "layout_options": {
+            "tabular": {
+              "widths": {
+                "access_level": 160,
+                "date_available_from": 160,
+                "date_available_until": 160,
+                "description": 280,
+                "download_count": 160,
+                "file": 160,
+                "post": 160,
+                "slug": 160,
+                "status": 100,
+                "title": 220
+              }
+            }
+          },
+          "layout_query": {
+            "tabular": {
+              "fields": [
+                "status",
+                "title",
+                "slug",
+                "description",
+                "access_level",
+                "post",
+                "file",
+                "date_available_from",
+                "date_available_until",
+                "download_count"
+              ],
+              "page": 1
+            }
+          },
+          "role": null,
+          "user": null
+        },
+        "key": "default-blog_downloads-tabular",
+        "source": "dsk/resources/presets.ts",
+        "type": "presets"
+      },
+      {
+        "data": {
+          "bookmark": null,
+          "collection": "blog_member_profiles",
+          "color": "#E35169",
+          "icon": "badge",
+          "layout": "tabular",
+          "layout_options": {
+            "tabular": {
+              "widths": {
+                "date_membership_expires": 160,
+                "date_updated": 160,
+                "display_name": 220,
+                "membership_status": 160,
+                "status": 100,
+                "user_account": 160,
+                "website": 160
+              }
+            }
+          },
+          "layout_query": {
+            "tabular": {
+              "fields": [
+                "status",
+                "display_name",
+                "user_account",
+                "membership_status",
+                "date_membership_expires",
+                "website",
+                "date_updated"
+              ],
+              "page": 1
+            }
+          },
+          "role": null,
+          "user": null
+        },
+        "key": "default-blog_member_profiles-tabular",
+        "source": "dsk/resources/presets.ts",
+        "type": "presets"
+      },
+      {
+        "data": {
+          "bookmark": null,
+          "collection": "blog_comments",
+          "color": "#A2B5CD",
+          "icon": "comment",
+          "layout": "tabular",
+          "layout_options": {
+            "tabular": {
+              "widths": {
+                "content": 280,
+                "date_created": 160,
+                "is_pinned": 100,
+                "parent": 160,
+                "post": 160,
+                "status": 100,
+                "user_author": 160
+              }
+            }
+          },
+          "layout_query": {
+            "tabular": {
+              "fields": [
+                "status",
+                "content",
+                "post",
+                "user_author",
+                "parent",
+                "is_pinned",
+                "date_created"
+              ],
+              "page": 1
+            }
+          },
+          "role": null,
+          "user": null
+        },
+        "key": "default-blog_comments-tabular",
+        "source": "dsk/resources/presets.ts",
+        "type": "presets"
+      }
+    ],
     "roles": [
       {
         "data": {
@@ -4423,12 +4686,13 @@
   },
   "source": {
     "algorithm": "sha256",
-    "digest": "091fbb7b852161c04b608a90a185d9021aae38271d24a495ac47bd25db9175c7",
+    "digest": "8fc5b6625a04f1826c1866f74a1d4bb5b6be9292722c22a052e0bfd8c526ca49",
     "files": [
       "dsk/resources/access.ts",
       "dsk/resources/folders.ts",
       "dsk/resources/permissions/blog.ts",
       "dsk/resources/policies.ts",
+      "dsk/resources/presets.ts",
       "dsk/resources/roles.ts",
       "dsk/schemas/10-taxonomy.ts",
       "dsk/schemas/20-content.ts",

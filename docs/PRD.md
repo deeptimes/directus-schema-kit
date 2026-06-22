@@ -311,6 +311,8 @@ relation.files({ /* ... */ })
 
 Resource Definition（系统资源定义）描述 Directus 的 folders、roles、policies、access、permissions 和 presets。Directus 11.17.4 的 permission 必须绑定 policy，role-policy 关联由 access 模型维护，因此 policies 和 access 不得省略。每类资源具有独立类型、稳定业务键和引用解析规则，默认使用 `dsk/resources/<resource-type>.ts` 中对应的固定 DSL 定义。
 
+常用表格视图通过 `preset.tabular()` 生成标准 presets 资源，统一表达字段顺序、分页、图标、颜色和列宽，避免业务模板重复拼装 `layout_query` 与 `layout_options`。
+
 “完整同步”是指 DSK 能读取本地实例当前状态、生成差异，并执行创建、更新和显式确认后的删除；不是指把资源发布到其他 Directus 环境。
 
 ### 8.6 Declarative Reference
