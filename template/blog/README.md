@@ -6,7 +6,7 @@
 
 - `blog.dbml`：完整数据关系图。
 - `schemas/`：分类、标签、文章、会员、评论和下载资源。
-- `resources/`：Public 与 Member 权限、Member role，以及媒体目录。
+- `resources/`：项目级 Public policy、Blog Member 权限与 role，以及媒体目录。
 - `seeds/`：分类、标签和公开/会员文章示例。
 
 ## 使用
@@ -29,6 +29,7 @@ pnpm dsk seed
 ## 账号与文件约定
 
 - Public 表示未登录访客，不对应 `directus_users` 中的用户。
+- `Project Public Policy` 是整个项目共享的匿名策略；后续 Docs 等模块应在各自的 `resources/permissions/*.ts` 中引用 `policies.project-public`，不要重复创建 Public policy。
 - Member 是 `Blog Member` role 下的登录用户，可读取 `access_level = member` 的文章和下载资源；模板权限将下载文件限定为会员访问。
 - 本模板不创建真实用户或密码。请在 Directus 中创建用户并分配 `Blog Member` role。
 - 封面、视频和画廊文件上传到 `Blog Media` folder。

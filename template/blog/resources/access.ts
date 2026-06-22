@@ -2,10 +2,10 @@ import { ref, resource } from '@deeptimes/directus-schema-kit'
 
 export default [
   resource('access', {
-    key: 'blog-public',
+    key: 'project-public',
     data: {
       role: null,
-      policy: ref('policies.blog-public'),
+      policy: ref('policies.project-public'),
       user: null,
     },
   }),

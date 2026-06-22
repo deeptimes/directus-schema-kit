@@ -6,21 +6,21 @@ const memberContent = { _and: [published, { access_level: { _in: ['public', 'mem
 
 export default [
   resource('permissions', {
-    key: 'blog-public-categories-read',
-    data: { policy: ref('policies.blog-public'), collection: 'blog_categories', action: 'read', permissions: published, fields: ['*'] },
+    key: 'public-blog-categories-read',
+    data: { policy: ref('policies.project-public'), collection: 'blog_categories', action: 'read', permissions: published, fields: ['*'] },
   }),
   resource('permissions', {
-    key: 'blog-public-tags-read',
-    data: { policy: ref('policies.blog-public'), collection: 'blog_tags', action: 'read', permissions: published, fields: ['*'] },
+    key: 'public-blog-tags-read',
+    data: { policy: ref('policies.project-public'), collection: 'blog_tags', action: 'read', permissions: published, fields: ['*'] },
   }),
   resource('permissions', {
-    key: 'blog-public-posts-read',
-    data: { policy: ref('policies.blog-public'), collection: 'blog_posts', action: 'read', permissions: publicContent, fields: ['*'] },
+    key: 'public-blog-posts-read',
+    data: { policy: ref('policies.project-public'), collection: 'blog_posts', action: 'read', permissions: publicContent, fields: ['*'] },
   }),
   resource('permissions', {
-    key: 'blog-public-post-tags-read',
+    key: 'public-blog-post-tags-read',
     data: {
-      policy: ref('policies.blog-public'),
+      policy: ref('policies.project-public'),
       collection: 'blog_posts_tags',
       action: 'read',
       permissions: { blog_posts_id: publicContent },
@@ -28,9 +28,9 @@ export default [
     },
   }),
   resource('permissions', {
-    key: 'blog-public-post-gallery-read',
+    key: 'public-blog-post-gallery-read',
     data: {
-      policy: ref('policies.blog-public'),
+      policy: ref('policies.project-public'),
       collection: 'blog_posts_files',
       action: 'read',
       permissions: { blog_posts_id: publicContent },
@@ -38,13 +38,13 @@ export default [
     },
   }),
   resource('permissions', {
-    key: 'blog-public-comments-read',
-    data: { policy: ref('policies.blog-public'), collection: 'blog_comments', action: 'read', permissions: published, fields: ['*'] },
+    key: 'public-blog-comments-read',
+    data: { policy: ref('policies.project-public'), collection: 'blog_comments', action: 'read', permissions: published, fields: ['*'] },
   }),
   resource('permissions', {
-    key: 'blog-public-media-read',
+    key: 'public-blog-media-read',
     data: {
-      policy: ref('policies.blog-public'),
+      policy: ref('policies.project-public'),
       collection: 'directus_files',
       action: 'read',
       permissions: { folder: { _eq: ref('folders.blog-media') } },
