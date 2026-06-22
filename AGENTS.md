@@ -2,7 +2,8 @@
 - 请严格按照PRD文档中的要求来编写代码
 
 ## Architecture
-- 项目知识库：`.ai/`,`docs/`
+- 项目内部知识库：`.ai/`
+- 项目公开知识库: `docs/`
 
 ## Environment
 
