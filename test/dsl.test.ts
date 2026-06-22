@@ -103,6 +103,7 @@ test('M2M blueprint 确定性展开 junction、外键、relation 和 alias', () 
   ])
   assert.equal(expanded.fields[1]?.type, 'alias')
   assert.equal(expanded.relations[0]?.meta?.junction_field, 'tags_id')
+  assert.equal(expanded.relations[1]?.meta?.junction_field, 'articles_id')
 })
 
 test('M2A blueprint 使用 nullable related_collection 和 allowed collections', () => {
@@ -111,6 +112,7 @@ test('M2A blueprint 使用 nullable related_collection 和 allowed collections',
   assert.equal(polymorphic?.related_collection, null)
   assert.equal(polymorphic?.meta?.one_collection_field, 'collection')
   assert.deepEqual(polymorphic?.meta?.one_allowed_collections, ['text_blocks', 'image_blocks'])
+  assert.equal(polymorphic?.meta?.junction_field, 'pages_id')
 })
 
 test('File、Image、Files 与 Translations 使用固定目标和完整关系展开', () => {

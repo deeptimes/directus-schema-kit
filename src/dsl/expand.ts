@@ -72,6 +72,7 @@ function expandJunction(blueprint: Extract<RelationBlueprint, { type: 'm2m' | 'f
     ...source.relation.meta, one_field: blueprint.field, junction_field: targetField,
     ...(sortField ? { sort_field: sortField } : {}), ...blueprint.meta,
   }
+  target.relation.meta = { ...target.relation.meta, junction_field: sourceField }
   return {
     collections: [generated],
     fields: [
@@ -117,7 +118,7 @@ function expandM2A(blueprint: Extract<RelationBlueprint, { type: 'm2a' }>): Expa
     meta: {
       many_collection: junctionCollection, many_field: itemField, one_collection: null, one_field: null,
       one_collection_field: collectionField, one_allowed_collections: [...blueprint.allowedCollections],
-      one_deselect_action: 'nullify',
+      junction_field: sourceField, one_deselect_action: 'nullify',
     },
   }
   return {

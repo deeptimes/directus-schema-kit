@@ -1,0 +1,605 @@
+Table addresses {
+  id uuid [pk, unique, not null]
+  street_1 varchar(255)
+  street_2 varchar(255)
+  postal_code varchar(16)
+  dial_code varchar(8)
+  phone varchar(32)
+  name varchar(255) [unique, note: 'Address name eg. "office"']
+  is_default_shipping boolean
+  is_default_billing boolean
+  customer uuid
+  province varchar(8)
+  city varchar(64)
+  company varchar(64)
+  first_name varchar(64)
+  last_name varchar(64)
+  region_code varchar(2)
+  Note: '客户地址'
+}
+
+Table announcements {
+  id int [pk, unique, not null, increment]
+  status varchar(255) [not null, default: 'published']
+  sort int
+  date_created timestamptz
+  date_updated timestamptz
+  title varchar(255)
+  description text
+  icon varchar(32)
+  url varchar(255)
+  Note: '公开:公告'
+}
+
+Table announcements_translations {
+  id int [pk, unique, not null, increment]
+  announcements_id int
+  languages_code varchar(255)
+  title varchar(255)
+  description text
+  Note: '公开:翻译表'
+}
+
+Table attributes {
+  id int [pk, unique, not null, increment]
+  status varchar(255) [not null, default: 'published']
+  sort int
+  name varchar(255)
+  value varchar(64)
+  unit varchar(255)
+  product uuid
+  Note: '公开:商品属性'
+}
+
+Table cart_items {
+  id uuid [pk, unique, not null]
+  cart uuid
+  product uuid
+  variant uuid
+  quantity int [default: 1]
+  unit_price int [not null, default: 0]
+  line_total int [not null, default: 0]
+  Note: '购物车项'
+}
+
+Table carts {
+  id uuid [pk, unique, not null]
+  date_created timestamptz
+  date_updated timestamptz
+  customer uuid
+  session_id varchar(64)
+  subtotal int [not null, default: 0, note: '由后端根据 cart_items 自动计算']
+  discount_total int [not null, default: 0, note: '由后端根据 cart_items 自动计算']
+  tax_total int [not null, default: 0, note: '由后端根据 cart_items 自动计算']
+  shipping_total int [not null, default: 0, note: '结账时由后台计算（物流方式选择后写入）']
+  total int [not null, note: 'total = ( subtotal + tax + shipping ) - discount']
+  coupon uuid
+  shipping_method int
+  currency int
+  Note: '购物车列表'
+}
+
+Table categories {
+  id int [pk, unique, not null, increment]
+  status varchar(255) [not null, default: 'published']
+  sort int
+  name varchar(32)
+  slug varchar(32) [unique]
+  description text
+  image uuid
+  icon varchar(32)
+  parent int
+  Note: '公开:商品分类'
+}
+
+Table categories_category_filters {
+  id int [pk, unique, not null, increment]
+  categories_id int
+  category_filters_id int
+  sort int
+}
+
+Table category_filters {
+  id int [pk, unique, not null, increment]
+  sort int
+  label varchar(255) [unique]
+  multiple boolean [default: true]
+  key varchar(32) [unique]
+  exclude json [note: '不参与过滤的选项']
+  Note: '分类下的过滤器'
+}
+
+Table category_filters_translations {
+  id int [pk, unique, not null, increment]
+  category_filters_id int
+  languages_code varchar(255)
+  label varchar(255)
+}
+
+Table company {
+  id int [pk, unique, not null, increment]
+  about_image uuid
+  about_content text
+  about_title varchar(255)
+  about_subtitle varchar(255)
+  why_title varchar(255)
+  why_content text
+  why_image uuid
+}
+
+Table config {
+  id int [pk, unique, not null, increment]
+  copyright varchar(255)
+  countries json
+  currency int
+  Note: '配置'
+}
+
+Table cookies {
+  id int [pk, unique, not null, increment]
+  title varchar(255)
+  description text
+  options json
+  content text
+  optional text
+  Note: '公开:Cookie管理'
+}
+
+Table cookies_translations {
+  id int [pk, unique, not null, increment]
+  cookies_id int
+  languages_code varchar(255)
+  options json
+  title varchar(32)
+  description text
+  content text
+  optional text
+  Note: '公开:翻译表'
+}
+
+Table coupons {
+  id uuid [pk, unique, not null]
+  code varchar(16) [unique]
+  type varchar(255) [note: '折扣类型：公共/私人专用']
+  discount_type varchar(255) [not null, default: 'fixed', note: '固定金额 / 百分比']
+  value int
+  min_order_amount int [default: 0, note: '购物车订单金额门槛']
+  active boolean [default: true]
+  date_start timestamp
+  date_end timestamp
+  customer uuid
+  date_used timestamp [note: '标记 专属优惠码（private）是否已经被使用过。']
+  Note: '优惠券'
+}
+
+Table currencies {
+  id int [pk, unique, not null, increment]
+  sort int
+  status varchar(255) [not null, default: 'published']
+  code varchar(3)
+  name varchar(36) [unique]
+  symbol varchar(8)
+  decimal_digits int [default: 2]
+  Note: '公开:货币管理'
+}
+
+Table doc_type {
+  id int [pk, unique, not null, increment]
+  status varchar(255) [not null, default: 'published']
+  sort int
+  label varchar(32) [unique]
+  slug varchar(32) [unique]
+  icon varchar(32)
+  image uuid
+  description text
+  parent int
+  Note: '公开:文档类型'
+}
+
+Table doc_type_translations {
+  id int [pk, unique, not null, increment]
+  doc_type_id int
+  languages_code varchar(255)
+  label varchar(255)
+  description text
+  Note: '公开:翻译表'
+}
+
+Table docs {
+  id int [pk, unique, not null, increment]
+  status varchar(255) [not null, default: 'published']
+  sort int
+  title varchar(255) [unique]
+  slug varchar(255) [unique]
+  date_created timestamp
+  date_updated timestamp
+  content text
+  type int
+  description text
+  image uuid
+  icon varchar(255)
+  sticky boolean
+  Note: '公开:文档列表'
+}
+
+Table docs_translations {
+  id int [pk, unique, not null, increment]
+  docs_id int
+  languages_code varchar(255)
+  title varchar(255) [unique]
+  description text
+  content text
+  Note: '公开:翻译表'
+}
+
+Table help_center {
+  id int [pk, unique, not null, increment]
+  services json
+  faq json
+}
+
+Table languages {
+  code varchar(255) [pk, unique, not null]
+  name varchar(255)
+  direction varchar(255) [default: 'ltr']
+  status varchar(255) [default: 'published']
+  sort int
+  Note: '公开:语言管理'
+}
+
+Table nav_type {
+  id int [pk, unique, not null, increment]
+  status varchar(255) [not null, default: 'published']
+  sort int
+  label varchar(32)
+  slug varchar(32) [unique]
+  icon varchar(32)
+  description text
+  image uuid
+  parent int
+  config_header int
+  config_footer int
+  Note: '公开:导航类型'
+}
+
+Table nav_type_translations {
+  id int [pk, unique, not null, increment]
+  nav_type_id int
+  languages_code varchar(255)
+  label varchar(32)
+  description text
+  Note: '公开:翻译表'
+}
+
+Table navs {
+  id int [pk, unique, not null, increment]
+  status varchar(255) [not null, default: 'published']
+  sort int
+  label varchar(32)
+  slug varchar(32)
+  icon varchar(32)
+  url varchar(255)
+  description text
+  image uuid
+  parent int
+  Note: '公开:导航列表'
+}
+
+Table navs_nav_type {
+  id int [pk, unique, not null, increment]
+  navs_id int
+  nav_type_id int
+  sort int
+  Note: '公开:中间表'
+}
+
+Table navs_translations {
+  id int [pk, unique, not null, increment]
+  navs_id int
+  languages_code varchar(255)
+  label varchar(32)
+  description text
+  Note: '公开:翻译表'
+}
+
+Table options {
+  id int [pk, unique, not null, increment]
+  status varchar(255) [not null, default: 'published']
+  sort int
+  name varchar(64)
+  product uuid
+  Note: '公开:商品选项'
+}
+
+Table options_values {
+  id int [pk, unique, not null, increment]
+  status varchar(255) [not null, default: 'published']
+  sort int
+  value varchar(255)
+  option int
+  type varchar(255)
+  label varchar(255)
+  Note: '公开:选项值'
+}
+
+Table order_items {
+  id uuid [pk, unique, not null]
+  order uuid
+  product uuid
+  variant uuid
+  product_snapshot json
+  variant_snapshot json
+  unit_price int
+  quantity int
+  line_total int
+  Note: '订单项'
+}
+
+Table orders {
+  id uuid [pk, unique, not null]
+  status varchar(255) [not null, default: 'draft']
+  date_created timestamptz [note: '订单创建时，系统自动创建']
+  date_updated timestamptz [note: '订单更新时，系统自动更新']
+  customer uuid
+  order_no varchar(32) [unique, note: '按特定规则生成']
+  cart_id varchar(36) [note: '原购物车 ID（不做外键，仅用于回溯）']
+  date_paid timestamptz [note: '用户完成支付时间']
+  shipping_method int
+  shipping_snapshot json
+  coupon_id uuid
+  coupon_snapshot json
+  shipping_address json
+  billing_address json
+  payments json [note: '支付方式包含以下结构，provider,status,transaction_id,amount,date_paid']
+  note text
+  metadata json
+  currency varchar(8) [note: '来自 cart.currency']
+  subtotal int
+  discount_total int
+  tax_total int
+  shipping_total int
+  total int
+  refund_total int
+  Note: '订单列表'
+}
+
+Table payment_providers {
+  id int [pk, unique, not null, increment]
+  status varchar(255) [not null, default: 'published']
+  sort int
+  label varchar(32) [unique]
+  icon varchar(32)
+  Note: '公开:支付服务商'
+}
+
+Table prices {
+  id int [pk, unique, not null, increment]
+  original_price int
+  calculated_price int
+  variant uuid
+  currency int
+  Note: '公开:价格'
+}
+
+Table products {
+  id uuid [pk, unique, not null]
+  status varchar(255) [not null, default: 'published']
+  sort int
+  date_created timestamptz
+  date_updated timestamptz
+  title varchar(255)
+  description text
+  content text
+  slug varchar(255) [unique]
+  subtitle varchar(255)
+  thumbnail uuid
+  Note: '公开:商品主表'
+}
+
+Table products_categories {
+  id int [pk, unique, not null, increment]
+  products_id uuid
+  categories_id int
+  sort int
+  Note: '公开:中间表'
+}
+
+Table products_files {
+  id int [pk, unique, not null, increment]
+  products_id uuid
+  directus_files_id uuid
+  sort int
+  Note: '公开:中间表'
+}
+
+Table products_tags {
+  id int [pk, unique, not null, increment]
+  products_id uuid
+  tags_id int
+  sort int
+  Note: '公开:中间表'
+}
+
+Table products_translations {
+  id int [pk, unique, not null, increment]
+  products_id uuid
+  languages_code varchar(255)
+  title varchar(255)
+  subtitle varchar(255)
+  description text
+  content text
+  Note: '公开:翻译表'
+}
+
+Table reviews {
+  id uuid [pk, unique, not null]
+  status varchar(255) [not null, default: 'draft']
+  sort int
+  date_created timestamptz
+  date_updated timestamptz
+  rating int [default: 5]
+  comment text
+  product uuid
+  customer uuid
+  Note: '公开:评价'
+}
+
+Table reviews_files {
+  id int [pk, unique, not null, increment]
+  reviews_id uuid
+  directus_files_id uuid
+  Note: '公开:中间表'
+}
+
+Table shippings {
+  id int [pk, unique, not null, increment]
+  sort int
+  name varchar(255) [unique]
+  price int
+  min_order_amount int [not null, default: 0]
+  active boolean [not null, default: true]
+  is_default boolean [unique]
+  currency int
+  Note: '公开:运送方式'
+}
+
+Table socials {
+  id int [pk, unique, not null, increment]
+  status varchar(255) [not null, default: 'published']
+  sort int
+  label varchar(32) [unique]
+  icon varchar(32) [unique]
+  account varchar(64)
+  url varchar(255)
+  Note: '公开:社交媒体'
+}
+
+Table subscriptions {
+  id int [pk, unique, not null, increment]
+  status varchar(255) [not null, default: 'draft']
+  date_created timestamptz
+  date_updated timestamptz
+  ip_address varchar(255)
+  Note: '订阅邮件'
+}
+
+Table tags {
+  id int [pk, unique, not null, increment]
+  status varchar(255) [not null, default: 'published']
+  sort int
+  name varchar(32)
+  slug varchar(32) [unique]
+  color varchar(32)
+  image uuid
+  description text
+  Note: '公开:标签'
+}
+
+Table variants {
+  id uuid [pk, unique, not null]
+  title varchar(255)
+  sku varchar(64) [unique]
+  thumbnail uuid
+  stock int
+  product uuid
+  sort int
+  Note: '公开:变体'
+}
+
+Table variants_options_values {
+  id int [pk, unique, not null, increment]
+  variants_id uuid
+  options_values_id int
+  sort int
+}
+
+Table wishlists {
+  id uuid [pk, unique, not null]
+  date_created timestamptz
+  customer uuid
+  product uuid
+  Note: '愿望清单'
+}
+
+Table directus_files {
+  id uuid [pk, unique]
+}
+
+Table directus_users {
+  id uuid [pk, unique]
+}
+
+Ref: directus_users.id < addresses.customer
+Ref: languages.code < announcements_translations.languages_code
+Ref: announcements.id < announcements_translations.announcements_id
+Ref: products.id < attributes.product
+Ref: carts.id < cart_items.cart
+Ref: products.id < cart_items.product
+Ref: variants.id < cart_items.variant
+Ref: directus_users.id < carts.customer
+Ref: coupons.id < carts.coupon
+Ref: shippings.id < carts.shipping_method
+Ref: currencies.id < carts.currency
+Ref: directus_files.id < categories.image
+Ref: categories.id < categories.parent
+Ref: category_filters.id < categories_category_filters.category_filters_id
+Ref: categories.id < categories_category_filters.categories_id
+Ref: languages.code < category_filters_translations.languages_code
+Ref: category_filters.id < category_filters_translations.category_filters_id
+Ref: directus_files.id < company.about_image
+Ref: directus_files.id < company.why_image
+Ref: currencies.id < config.currency
+Ref: languages.code < cookies_translations.languages_code
+Ref: cookies.id < cookies_translations.cookies_id
+Ref: directus_users.id < coupons.customer
+Ref: directus_files.id < doc_type.image
+Ref: doc_type.id < doc_type.parent
+Ref: languages.code < doc_type_translations.languages_code
+Ref: doc_type.id < doc_type_translations.doc_type_id
+Ref: doc_type.id < docs.type
+Ref: directus_files.id < docs.image
+Ref: languages.code < docs_translations.languages_code
+Ref: docs.id < docs_translations.docs_id
+Ref: directus_files.id < nav_type.image
+Ref: nav_type.id < nav_type.parent
+Ref: config.id < nav_type.config_header
+Ref: config.id < nav_type.config_footer
+Ref: languages.code < nav_type_translations.languages_code
+Ref: nav_type.id < nav_type_translations.nav_type_id
+Ref: directus_files.id < navs.image
+Ref: navs.id < navs.parent
+Ref: nav_type.id < navs_nav_type.nav_type_id
+Ref: navs.id < navs_nav_type.navs_id
+Ref: languages.code < navs_translations.languages_code
+Ref: navs.id < navs_translations.navs_id
+Ref: products.id < options.product
+Ref: options.id < options_values.option
+Ref: orders.id < order_items.order
+Ref: products.id < order_items.product
+Ref: variants.id < order_items.variant
+Ref: directus_users.id < orders.customer
+Ref: shippings.id < orders.shipping_method
+Ref: coupons.id < orders.coupon_id
+Ref: variants.id < prices.variant
+Ref: currencies.id < prices.currency
+Ref: directus_files.id < products.thumbnail
+Ref: categories.id < products_categories.categories_id
+Ref: products.id < products_categories.products_id
+Ref: directus_files.id < products_files.directus_files_id
+Ref: products.id < products_files.products_id
+Ref: tags.id < products_tags.tags_id
+Ref: products.id < products_tags.products_id
+Ref: languages.code < products_translations.languages_code
+Ref: products.id < products_translations.products_id
+Ref: products.id < reviews.product
+Ref: directus_users.id < reviews.customer
+Ref: directus_files.id < reviews_files.directus_files_id
+Ref: reviews.id < reviews_files.reviews_id
+Ref: currencies.id < shippings.currency
+Ref: directus_files.id < tags.image
+Ref: directus_files.id < variants.thumbnail
+Ref: products.id < variants.product
+Ref: options_values.id < variants_options_values.options_values_id
+Ref: variants.id < variants_options_values.variants_id
+Ref: directus_users.id < wishlists.customer
+Ref: products.id < wishlists.product

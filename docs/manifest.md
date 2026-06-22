@@ -17,6 +17,8 @@ Manifest 不包含函数、解析后的 secret 或生成时间戳。`plan/apply`
 
 V2 允许 M2A 的 `related_collection: null`，并完整保存 Relation Meta。M2M、Files、Translations 和 M2A blueprint 在 build 时展开，Manifest 中不保留 blueprint。
 
+复合关系的两条 junction relations 必须通过 `meta.junction_field` 互相引用。缺少反向引用时 Directus Studio 会把 alias 误判为 O2M，并报告 M2M/M2A Interface 不可用；V2 validate 会拒绝这种不完整结构。
+
 创建顺序固定为 collection（含 junction）→ 非 alias 字段 → relation → alias 字段。关系目标、删除策略、junction 结构和 M2A allowed collections 的变化属于 dangerous；当前仅 `meta.sort_field` 属于可安全更新。
 
 ## 从 V1 迁移

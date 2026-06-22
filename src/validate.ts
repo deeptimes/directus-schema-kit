@@ -78,6 +78,14 @@ function validateRelation(manifest: Manifest, relation: Manifest['relations'][nu
   if (meta.junction_field && !hasField(manifest, relation.collection, meta.junction_field)) {
     errors.push(`关系 ${name} 的 junction_field 不存在: ${relation.collection}.${meta.junction_field}`)
   }
+  if (meta.junction_field) {
+    const reciprocal = manifest.relations.find((item) => item.collection === relation.collection && item.field === meta.junction_field)
+    if (!reciprocal) {
+      errors.push(`关系 ${name} 的 junction relation 不存在: ${relation.collection}.${meta.junction_field}`)
+    } else if (reciprocal.meta?.junction_field !== relation.field) {
+      errors.push(`关系 ${name} 与 ${reciprocal.collection}.${reciprocal.field} 的 junction_field 必须互相引用`)
+    }
+  }
   if (meta.sort_field && !hasField(manifest, relation.collection, meta.sort_field)) {
     errors.push(`关系 ${name} 的 sort_field 不存在: ${relation.collection}.${meta.sort_field}`)
   }

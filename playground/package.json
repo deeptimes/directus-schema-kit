@@ -17,7 +17,7 @@
     "directus": "11.17.4"
   },
   "devDependencies": {
-    "@deeptimes/directus-schema-kit": "file:..",
+    "@deeptimes/directus-schema-kit": "link:..",
     "typescript": "^5.9.3"
   },
   "engines": {
