@@ -1,6 +1,6 @@
 import { field } from './field.js'
 import { collection } from './schema.js'
-import type { CollectionDefinition, FieldDefinition, JunctionRelationBlueprint, RelationBlueprint, RelationDefinition, RelationFieldOptions } from '../types.js'
+import type { CollectionDefinition, FieldDefinition, FileRelationBlueprint, FilesRelationBlueprint, JunctionRelationBlueprint, RelationBlueprint, RelationDefinition, RelationFieldOptions } from '../types.js'
 
 export interface ExpandedRelationBlueprint {
   collections: CollectionDefinition[]
@@ -9,23 +9,23 @@ export interface ExpandedRelationBlueprint {
 }
 
 export function expandRelationBlueprint(blueprint: RelationBlueprint): ExpandedRelationBlueprint {
-  if (blueprint.type === 'm2o' || blueprint.type === 'file' || blueprint.type === 'image') return expandM2O(blueprint)
+  if (blueprint.type === 'm2o') return expandM2O(blueprint)
+  if (blueprint.type === 'file' || blueprint.type === 'image') return expandFile(blueprint)
   if (blueprint.type === 'o2m') return expandO2M(blueprint)
+  if (blueprint.type === 'files') return expandFiles(blueprint)
   if (blueprint.type === 'm2a') return expandM2A(blueprint)
   if (blueprint.type === 'translations') return expandTranslations(blueprint)
   return expandJunction(blueprint as JunctionRelationBlueprint)
 }
 
-function expandM2O(blueprint: Extract<RelationBlueprint, { type: 'm2o' | 'file' | 'image' }>): ExpandedRelationBlueprint {
+function expandM2O(blueprint: Extract<RelationBlueprint, { type: 'm2o' }>): ExpandedRelationBlueprint {
   const options = blueprint.fieldOptions ?? {}
-  const interfaceName = blueprint.type === 'image' ? 'file-image' : blueprint.type === 'file' ? 'file' : 'select-dropdown-m2o'
   const definition = field.m2o(blueprint.field, {
     collection: blueprint.relatedCollection,
     type: blueprint.foreignKeyType ?? 'uuid',
     onDelete: blueprint.onDelete ?? 'SET NULL',
     ...toFieldOptions(options),
-    interface: options.interface ?? interfaceName,
-    ...(blueprint.type === 'image' ? { options: { accept: 'image/*', ...(options.options ?? {}) } } : {}),
+    interface: options.interface ?? 'select-dropdown-m2o',
   })
   const { relation: _legacy, ...plain } = definition
   return {
@@ -46,6 +46,51 @@ function expandM2O(blueprint: Extract<RelationBlueprint, { type: 'm2o' | 'file' 
   }
 }
 
+const directusImageMimeTypes = [
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/avif', 'image/tiff',
+]
+
+function expandFile(blueprint: FileRelationBlueprint): ExpandedRelationBlueprint {
+  const options = blueprint.fieldOptions ?? {}
+  const allowedMimeTypes = blueprint.allowedMimeTypes ?? (blueprint.type === 'image' ? directusImageMimeTypes : undefined)
+  const interfaceOptions = {
+    ...(options.options ?? {}),
+    ...(allowedMimeTypes ? { allowedMimeTypes: [...allowedMimeTypes] } : {}),
+  }
+  const definition = field.m2o(blueprint.field, {
+    collection: 'directus_files',
+    type: blueprint.foreignKeyType ?? 'uuid',
+    onDelete: blueprint.onDelete ?? 'SET NULL',
+    ...toFieldOptions(options),
+    interface: options.interface ?? (blueprint.type === 'image' ? 'file-image' : 'file'),
+    options: Object.keys(interfaceOptions).length > 0 ? interfaceOptions : null,
+  })
+  const { relation: _legacy, ...plain } = definition
+  plain.meta = {
+    ...plain.meta,
+    display: options.display !== undefined ? options.display : blueprint.type === 'image' ? 'image' : 'file',
+    special: ['file'],
+  }
+  return {
+    collections: [],
+    fields: [{ ...plain, collection: blueprint.collection }],
+    relations: [{
+      collection: blueprint.collection,
+      field: blueprint.field,
+      related_collection: 'directus_files',
+      schema: { on_delete: blueprint.onDelete ?? 'SET NULL' },
+      meta: {
+        many_collection: blueprint.collection,
+        many_field: blueprint.field,
+        one_collection: 'directus_files',
+        one_field: null,
+        one_deselect_action: blueprint.onDelete === 'CASCADE' ? 'delete' : 'nullify',
+        ...blueprint.meta,
+      },
+    }],
+  }
+}
+
 function expandO2M(blueprint: Extract<RelationBlueprint, { type: 'o2m' }>): ExpandedRelationBlueprint {
   const many = expandM2O({
     kind: 'relation-blueprint', type: 'm2o', collection: blueprint.relatedCollection,
@@ -58,13 +103,14 @@ function expandO2M(blueprint: Extract<RelationBlueprint, { type: 'o2m' }>): Expa
   return { collections: [], fields: [...many.fields, { ...alias, collection: blueprint.collection }], relations: [relation] }
 }
 
-function expandJunction(blueprint: Extract<RelationBlueprint, { type: 'm2m' | 'files' }>): ExpandedRelationBlueprint {
+function expandJunction(blueprint: Extract<RelationBlueprint, { type: 'm2m' }>): ExpandedRelationBlueprint {
   const junction = blueprint.junction ?? {}
   const junctionCollection = junction.collection ?? `${blueprint.collection}_${blueprint.field}`
   const sourceField = junction.sourceField ?? `${blueprint.collection}_id`
   const targetField = junction.targetField ?? `${blueprint.relatedCollection}_id`
   const sortField = junction.sortField === false ? null : junction.sortField ?? 'sort'
   const generated = collection({ name: junctionCollection, label: junctionCollection, primaryKey: junction.primaryKey ?? 'uuid' })
+  hideGeneratedJunction(generated, blueprint.collection)
   const alias = aliasField(blueprint.field, blueprint.fieldOptions, 'list-m2m', ['m2m'])
   const source = relationField(junctionCollection, sourceField, blueprint.collection, junction.onDelete ?? 'CASCADE')
   const target = relationField(junctionCollection, targetField, blueprint.relatedCollection, junction.onDelete ?? 'CASCADE')
@@ -79,6 +125,89 @@ function expandJunction(blueprint: Extract<RelationBlueprint, { type: 'm2m' | 'f
       ...generated.fields.map((item) => ({ ...item, collection: junctionCollection })),
       { ...alias, collection: blueprint.collection }, source.field, target.field,
       ...(sortField ? [{ ...field.integer(sortField, { hidden: true }), collection: junctionCollection }] : []),
+    ],
+    relations: [source.relation, target.relation],
+  }
+}
+
+function expandFiles(blueprint: FilesRelationBlueprint): ExpandedRelationBlueprint {
+  const junction = blueprint.junction ?? {}
+  const junctionCollection = junction.collection ?? `${blueprint.collection}_files`
+  const sourceField = junction.sourceField ?? `${blueprint.collection}_id`
+  const targetField = junction.targetField ?? 'directus_files_id'
+  const sortField = junction.sortField === false ? null : junction.sortField ?? 'sort'
+  const onDelete = junction.onDelete ?? 'SET NULL'
+  const generated = collection({ name: junctionCollection, label: junctionCollection, primaryKey: junction.primaryKey ?? 'integer' })
+  hideGeneratedJunction(generated, blueprint.collection)
+  const primary = generated.fields[0]
+  if (primary && (junction.primaryKey ?? 'integer') === 'integer') {
+    primary.meta = {
+      ...primary.meta,
+      interface: null,
+      readonly: false,
+      required: false,
+      width: 'full',
+    }
+    primary.schema = {
+      ...primary.schema,
+      is_unique: false,
+    }
+  }
+
+  const options = blueprint.fieldOptions ?? {}
+  const alias: FieldDefinition = {
+    field: blueprint.field,
+    type: 'alias',
+    schema: null,
+    meta: {
+      interface: options.interface ?? 'files',
+      options: {
+        template: null,
+        ...(options.options ?? {}),
+        ...(blueprint.allowedMimeTypes ? { allowedMimeTypes: [...blueprint.allowedMimeTypes] } : {}),
+      },
+      display: options.display ?? 'related-values',
+      display_options: {
+        template: `{{${targetField}.$thumbnail}}{{${targetField}.title}}`,
+        ...(options.displayOptions ?? {}),
+      },
+      special: ['files'],
+      note: options.note ?? null,
+      hidden: options.hidden ?? false,
+      readonly: options.readonly ?? false,
+      required: false,
+      ...(options.order !== undefined ? { sort: options.order } : {}),
+      width: options.width ?? 'full',
+      translations: options.label ? [{ language: 'zh-CN', translation: options.label }] : [{ language: 'en-US', translation: blueprint.field }],
+    },
+  }
+  const source = hiddenJunctionRelationField(junctionCollection, sourceField, blueprint.collection, onDelete)
+  const target = hiddenJunctionRelationField(junctionCollection, targetField, 'directus_files', onDelete)
+  source.relation.meta = {
+    ...source.relation.meta,
+    one_field: blueprint.field,
+    junction_field: targetField,
+    ...(sortField ? { sort_field: sortField } : {}),
+    ...blueprint.meta,
+  }
+  target.relation.meta = { ...target.relation.meta, junction_field: sourceField }
+  const sort = sortField ? field.integer(sortField, { hidden: true }) : null
+  if (sort) {
+    sort.meta = {
+      ...sort.meta,
+      interface: null,
+      width: 'full',
+    }
+  }
+
+  return {
+    collections: [generated],
+    fields: [
+      ...generated.fields.map((item) => ({ ...item, collection: junctionCollection })),
+      { ...alias, collection: blueprint.collection },
+      source.field,
+      target.field,
+      ...(sort && sortField ? [{ ...sort, collection: junctionCollection }] : []),
     ],
     relations: [source.relation, target.relation],
   }
@@ -105,6 +234,7 @@ function expandM2A(blueprint: Extract<RelationBlueprint, { type: 'm2a' }>): Expa
   const collectionField = blueprint.collectionField ?? 'collection'
   const sortField = junction.sortField === false ? null : junction.sortField ?? 'sort'
   const generated = collection({ name: junctionCollection, label: junctionCollection, primaryKey: junction.primaryKey ?? 'uuid' })
+  hideGeneratedJunction(generated, blueprint.collection)
   const source = relationField(junctionCollection, sourceField, blueprint.collection, junction.onDelete ?? 'CASCADE')
   source.relation.meta = {
     ...source.relation.meta, one_field: blueprint.field, junction_field: itemField,
@@ -146,6 +276,18 @@ function aliasField(name: string, options: RelationFieldOptions = {}, interfaceN
   }
 }
 
+function hideGeneratedJunction(collectionDefinition: CollectionDefinition, parentCollection: string): void {
+  collectionDefinition.meta = {
+    ...collectionDefinition.meta,
+    accountability: 'all',
+    archive_app_filter: true,
+    hidden: true,
+    icon: 'import_export',
+    group: parentCollection,
+    translations: null,
+  }
+}
+
 function relationField(collectionName: string, name: string, relatedCollection: string, onDelete: 'NO ACTION' | 'CASCADE' | 'SET NULL' | 'SET DEFAULT' | 'RESTRICT'): {
   field: FieldDefinition & { collection: string }
   relation: RelationDefinition
@@ -159,6 +301,23 @@ function relationField(collectionName: string, name: string, relatedCollection: 
       meta: { many_collection: collectionName, many_field: name, one_collection: relatedCollection, one_field: null, one_deselect_action: onDelete === 'CASCADE' ? 'delete' as const : 'nullify' as const },
     },
   }
+}
+
+function hiddenJunctionRelationField(collectionName: string, name: string, relatedCollection: string, onDelete: 'NO ACTION' | 'CASCADE' | 'SET NULL' | 'SET DEFAULT' | 'RESTRICT'): {
+  field: FieldDefinition & { collection: string }
+  relation: RelationDefinition
+} {
+  const result = relationField(collectionName, name, relatedCollection, onDelete)
+  result.field.meta = {
+    ...result.field.meta,
+    interface: null,
+    display: null,
+    display_options: null,
+    special: null,
+    hidden: true,
+    width: 'full',
+  }
+  return result
 }
 
 function toFieldOptions(options: RelationFieldOptions) {

@@ -142,10 +142,18 @@ interface RelationBlueprintBase {
 }
 
 export interface M2ORelationBlueprint extends RelationBlueprintBase {
-  type: 'm2o' | 'file' | 'image'
+  type: 'm2o'
   relatedCollection: string
   foreignKeyType?: Exclude<FieldType, 'alias'>
   onDelete?: OnDelete
+}
+
+export interface FileRelationBlueprint extends RelationBlueprintBase {
+  type: 'file' | 'image'
+  relatedCollection: 'directus_files'
+  foreignKeyType?: Exclude<FieldType, 'alias'>
+  onDelete?: OnDelete
+  allowedMimeTypes?: string[]
 }
 
 export interface O2MRelationBlueprint extends RelationBlueprintBase {
@@ -156,8 +164,15 @@ export interface O2MRelationBlueprint extends RelationBlueprintBase {
 }
 
 export interface JunctionRelationBlueprint extends RelationBlueprintBase {
-  type: 'm2m' | 'files'
+  type: 'm2m'
   relatedCollection: string
+  junction?: JunctionOptions
+}
+
+export interface FilesRelationBlueprint extends RelationBlueprintBase {
+  type: 'files'
+  relatedCollection: 'directus_files'
+  allowedMimeTypes?: string[]
   junction?: JunctionOptions
 }
 
@@ -176,7 +191,7 @@ export interface M2ARelationBlueprint extends RelationBlueprintBase {
   junction?: JunctionOptions
 }
 
-export type RelationBlueprint = M2ORelationBlueprint | O2MRelationBlueprint | JunctionRelationBlueprint | TranslationsRelationBlueprint | M2ARelationBlueprint
+export type RelationBlueprint = M2ORelationBlueprint | FileRelationBlueprint | O2MRelationBlueprint | JunctionRelationBlueprint | FilesRelationBlueprint | TranslationsRelationBlueprint | M2ARelationBlueprint
 
 export interface CollectionOptions {
   name: string

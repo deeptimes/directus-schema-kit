@@ -26,9 +26,9 @@ Interface 与 Field Type 分离。Markdown、Tags、Code、Toggle 分别映射�
 | --- | --- | --- |
 | M2O | `relation.m2o()` / `field.m2o()` | 外键字段 + relation |
 | O2M | `relation.o2m()` | 多方外键 + relation + 一方 alias |
-| File / Image | `relation.file()` / `relation.image()` | 指向 `directus_files` 的 M2O；Image 默认 `image/*` |
+| File / Image | `relation.file()` / `relation.image()` | Directus 单文件专用界面、`special: file`、预览显示与 MIME 限制 |
 | M2M | `relation.m2m()` | junction + 两个外键 + 两条 relation + alias |
-| Files | `relation.files()` | 指向 `directus_files` 的 M2M |
+| Files | `relation.files()` | Directus Files 专用 alias、隐藏 junction、缩略图展示与 MIME 限制 |
 | Translations | `relation.translations()` | translations junction + languages relation + alias |
 | M2A | `relation.m2a()` | junction + discriminator + nullable-target relation + alias |
 

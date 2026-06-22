@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "collection": "blog_posts",
+  "upsertBy": ["slug"],
+  "defaults": {
+    "status": "published",
+    "is_featured": false
+  },
+  "refs": {
+    "category": {
+      "collection": "blog_categories",
+      "field": "slug",
+      "from": "category_slug"
+    }
+  },
+  "items": [
+    {
+      "slug": "directus-schema-as-code",
+      "title": "用 Schema as Code 管理 Directus",
+      "summary": "把 Collection、Field 和 Relation 纳入代码审查与可重复部署流程。",
+      "content": "# Schema as Code\n\n将数据模型保存在 TypeScript DSL 中，可以获得确定性构建、差异审查和环境复用能力。\n\n## 实践建议\n\n1. 使用稳定的业务命名。\n2. 将关系和权限纳入版本管理。\n3. 在应用前执行 validate 和 plan。",
+      "access_level": "public",
+      "reading_minutes": 6,
+      "is_featured": true,
+      "keywords": ["Directus", "Schema", "TypeScript"],
+      "seo": {
+        "title": "用 Schema as Code 管理 Directus",
+        "description": "Directus 数据模型工程化实践。"
+      },
+      "date_published": "2026-01-10T08:00:00.000Z",
+      "category_slug": "backend",
+      "sort": 10
+    },
+    {
+      "slug": "production-directus-deployment-checklist",
+      "title": "会员专享：Directus 生产部署检查清单",
+      "summary": "覆盖数据库、对象存储、缓存、权限、备份和可观测性的上线检查。",
+      "content": "# 生产部署检查清单\n\n这篇会员文章聚焦上线前的关键检查项。\n\n## 核心项目\n\n- 数据库备份与恢复演练\n- 文件存储访问控制\n- 最小权限策略\n- 日志、指标和告警\n- 回滚方案",
+      "access_level": "member",
+      "reading_minutes": 12,
+      "keywords": ["Directus", "DevOps", "Security"],
+      "seo": {
+        "title": "Directus 生产部署检查清单",
+        "description": "面向会员的 Directus 上线实践。"
+      },
+      "date_published": "2026-01-15T08:00:00.000Z",
+      "category_slug": "devops",
+      "sort": 20
+    },
+    {
+      "slug": "typescript-api-error-design",
+      "title": "TypeScript API 错误模型设计",
+      "summary": "让服务端错误既适合程序处理，也便于日志定位和前端展示。",
+      "content": "# API 错误模型\n\n错误响应应包含稳定代码、可读消息和结构化详情，同时避免泄露内部堆栈与敏感信息。",
+      "access_level": "public",
+      "reading_minutes": 5,
+      "keywords": ["TypeScript", "API"],
+      "date_published": "2026-01-20T08:00:00.000Z",
+      "category_slug": "backend",
+      "sort": 30
+    }
+  ]
+}

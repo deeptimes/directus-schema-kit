@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "collection": "blog_tags",
+  "upsertBy": ["slug"],
+  "defaults": {
+    "status": "published"
+  },
+  "items": [
+    { "name": "TypeScript", "slug": "typescript", "color": "#3178C6", "sort": 10 },
+    { "name": "Directus", "slug": "directus", "color": "#6644FF", "sort": 20 },
+    { "name": "Docker", "slug": "docker", "color": "#2496ED", "sort": 30 },
+    { "name": "性能优化", "slug": "performance", "color": "#2ECDA7", "sort": 40 }
+  ]
+}

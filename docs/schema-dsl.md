@@ -82,14 +82,20 @@ export default defineSchema({
 relation.m2o({ collection: 'articles', field: 'author_id', relatedCollection: 'directus_users' })
 relation.o2m({ collection: 'articles', field: 'comments', relatedCollection: 'comments', relatedField: 'article_id' })
 relation.m2m({ collection: 'articles', field: 'tags', relatedCollection: 'tags' })
-relation.file({ collection: 'articles', field: 'document' })
+relation.file({ collection: 'articles', field: 'video', allowedMimeTypes: ['video/*'] })
 relation.image({ collection: 'articles', field: 'cover' })
-relation.files({ collection: 'articles', field: 'attachments' })
+relation.files({ collection: 'articles', field: 'attachments', allowedMimeTypes: ['application/pdf'] })
 relation.translations({ collection: 'articles', languagesCollection: 'languages' })
 relation.m2a({ collection: 'articles', field: 'blocks', allowedCollections: ['text_blocks', 'image_blocks'] })
 ```
 
 复合关系默认使用 `<collection>_<field>` 作为 junction collection，UUID `id` 主键，`<collection>_id`/`<relatedCollection>_id` 外键、`sort` 排序字段和 `CASCADE` 删除策略。可通过 `junction` 显式覆盖；`sortField: false` 禁用排序字段。
+
+所有由 `relation.m2m()`、`relation.files()`、`relation.m2a()` 和 `relation.translations()` 自动生成的 junction collection 默认隐藏，并通过 `meta.group` 挂载到来源 collection 的下一层。业务人员只通过来源 collection 的 alias 字段维护关系。需要直接维护额外业务字段的中间模型应显式定义为普通 collection，而不是使用自动 junction。
+
+`relation.files()` 使用 Directus 专用 Files 界面，不按普通 M2M 展示。它默认生成隐藏的 `<collection>_files` junction、自增整数主键、`sort` 字段和 `SET NULL` 删除策略，并支持 `allowedMimeTypes`。同一 collection 定义多个 Files 字段时，必须通过 `junction.collection` 为每个字段指定不同的 junction 名称。
+
+`relation.file()` 和 `relation.image()` 使用 Directus 专用单文件界面并生成 `special: ['file']`。`relation.file()` 可通过 `allowedMimeTypes` 限制视频、文档等类型；`relation.image()` 默认使用 Directus 11.17.4 支持的图片 MIME 类型集合，也允许显式覆盖。
 
 ## 全量 Clear
 

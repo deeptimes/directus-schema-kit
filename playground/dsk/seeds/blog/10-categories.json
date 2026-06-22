@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "collection": "blog_categories",
+  "upsertBy": ["slug"],
+  "defaults": {
+    "status": "published"
+  },
+  "items": [
+    {
+      "name": "后端开发",
+      "slug": "backend",
+      "description": "Node.js、API、数据库与服务端架构。",
+      "sort": 10
+    },
+    {
+      "name": "前端工程",
+      "slug": "frontend",
+      "description": "TypeScript、Web 性能与现代前端工程。",
+      "sort": 20
+    },
+    {
+      "name": "DevOps",
+      "slug": "devops",
+      "description": "容器、CI/CD、可观测性与云原生实践。",
+      "sort": 30
+    }
+  ]
+}

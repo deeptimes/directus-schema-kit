@@ -1,5 +1,5 @@
 import type {
-  JunctionOptions, JunctionRelationBlueprint, M2ARelationBlueprint, M2ORelationBlueprint,
+  FileRelationBlueprint, FilesRelationBlueprint, JunctionOptions, JunctionRelationBlueprint, M2ARelationBlueprint, M2ORelationBlueprint,
   O2MRelationBlueprint, RelationFieldOptions, RelationMeta, TranslationsRelationBlueprint,
 } from '../types.js'
 
@@ -11,6 +11,10 @@ interface M2OOptions {
   onDelete?: M2ORelationBlueprint['onDelete']
   fieldOptions?: RelationFieldOptions
   meta?: RelationMeta
+}
+
+interface FileOptions extends Omit<M2OOptions, 'relatedCollection'> {
+  allowedMimeTypes?: string[]
 }
 
 interface O2MOptions {
@@ -30,6 +34,10 @@ interface M2MOptions {
   junction?: JunctionOptions
   fieldOptions?: RelationFieldOptions
   meta?: RelationMeta
+}
+
+interface FilesOptions extends Omit<M2MOptions, 'relatedCollection'> {
+  allowedMimeTypes?: string[]
 }
 
 interface TranslationsOptions {
@@ -63,11 +71,11 @@ function m2o(type: M2ORelationBlueprint['type'], options: M2OOptions): M2ORelati
 
 export const relation = {
   m2o(options: M2OOptions): M2ORelationBlueprint { return m2o('m2o', options) },
-  file(options: Omit<M2OOptions, 'relatedCollection'>): M2ORelationBlueprint {
-    return m2o('file', { ...options, relatedCollection: 'directus_files' })
+  file(options: FileOptions): FileRelationBlueprint {
+    return compact({ kind: 'relation-blueprint', type: 'file', ...options, relatedCollection: 'directus_files' }) as FileRelationBlueprint
   },
-  image(options: Omit<M2OOptions, 'relatedCollection'>): M2ORelationBlueprint {
-    return m2o('image', { ...options, relatedCollection: 'directus_files' })
+  image(options: FileOptions): FileRelationBlueprint {
+    return compact({ kind: 'relation-blueprint', type: 'image', ...options, relatedCollection: 'directus_files' }) as FileRelationBlueprint
   },
   o2m(options: O2MOptions): O2MRelationBlueprint {
     return compact({ kind: 'relation-blueprint', type: 'o2m', ...options }) as O2MRelationBlueprint
@@ -75,8 +83,8 @@ export const relation = {
   m2m(options: M2MOptions): JunctionRelationBlueprint {
     return compact({ kind: 'relation-blueprint', type: 'm2m', ...options }) as JunctionRelationBlueprint
   },
-  files(options: Omit<M2MOptions, 'relatedCollection'>): JunctionRelationBlueprint {
-    return compact({ kind: 'relation-blueprint', type: 'files', ...options, relatedCollection: 'directus_files' }) as JunctionRelationBlueprint
+  files(options: FilesOptions): FilesRelationBlueprint {
+    return compact({ kind: 'relation-blueprint', type: 'files', ...options, relatedCollection: 'directus_files' }) as FilesRelationBlueprint
   },
   translations(options: TranslationsOptions): TranslationsRelationBlueprint {
     return compact({ kind: 'relation-blueprint', type: 'translations', field: 'translations', ...options }) as TranslationsRelationBlueprint
