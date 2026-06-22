@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "paths": {
+    "schemaSource": "schema/**/*.ts",
+    "resourceSource": "resources/**/*.ts",
+    "seeds": "seeds/**/*.json",
+    "manifest": "generated/manifest.json"
+  },
+  "env": {
+    "file": "../.env",
+    "allowedVariables": [
+      "DIRECTUS_URL",
+      "DIRECTUS_TOKEN"
+    ]
+  },
+  "validation": {
+    "requireChineseTranslations": false
+  },
+  "safety": {
+    "clearEnabled": true
+  }
+}

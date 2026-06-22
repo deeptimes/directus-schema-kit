@@ -1,0 +1,31 @@
+{
+  "collections": [],
+  "fields": [],
+  "generator": {
+    "name": "@deeptimes/directus-schema-kit",
+    "version": "0.1.0"
+  },
+  "manifestVersion": 3,
+  "relations": [],
+  "resources": {
+    "access": [],
+    "folders": [],
+    "permissions": [],
+    "policies": [],
+    "presets": [],
+    "roles": []
+  },
+  "source": {
+    "algorithm": "sha256",
+    "digest": "090d119a4185890ab7d25d65dbafc3277b96ba205b4d68f5f2b425dc94d486eb",
+    "files": [
+      "dsk/resources/access.ts",
+      "dsk/resources/folders.ts",
+      "dsk/resources/permissions.ts",
+      "dsk/resources/policies.ts",
+      "dsk/resources/presets.ts",
+      "dsk/resources/roles.ts",
+      "dsk/schema/example.ts"
+    ]
+  }
+}
