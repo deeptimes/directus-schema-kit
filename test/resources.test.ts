@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { syncResources, type ResourceReader, type ResourceWriter } from '../src/resources.js'
-import { ref } from '../src/index.js'
+import { ref, systemRef } from '../src/index.js'
 import type { ResourceDefinition, ResourceType } from '../src/types.js'
 
 class MemoryResources implements ResourceReader, ResourceWriter {
@@ -55,6 +55,39 @@ test('系统资源按依赖顺序创建并解析稳定引用', async () => {
   assert.deepEqual(store.writes, ['create:folders', 'create:folders', 'create:roles', 'create:policies', 'create:access', 'create:permissions'])
   assert.equal(store.data.get('folders')?.[1]?.parent, 'folders-1')
   assert.equal(store.data.get('permissions')?.[0]?.policy, 'policies-1')
+})
+
+test('系统 Public policy 引用解析现有资源且不创建或更新 policy', async () => {
+  const store = new MemoryResources()
+  store.data.set('policies', [{ id: 'public-policy', name: '$t:public_label' }])
+  const result = await syncResources({
+    definitions: definitions({
+      permissions: [{
+        type: 'permissions', key: 'public-articles-read',
+        data: { policy: systemRef('policies.public'), collection: 'articles', action: 'read', permissions: {}, fields: ['*'] },
+      }],
+    }),
+    reader: store,
+    writer: store,
+  })
+  assert.equal(result.status, 'success')
+  assert.deepEqual(store.writes, ['create:permissions'])
+  assert.equal(store.data.get('permissions')?.[0]?.policy, 'public-policy')
+})
+
+test('系统 Public policy 缺失时在写入前失败', async () => {
+  const store = new MemoryResources()
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({
+        permissions: [{ type: 'permissions', key: 'public-read', data: { policy: systemRef('policies.public'), collection: 'articles', action: 'read' } }],
+      }),
+      reader: store,
+      writer: store,
+    }),
+    /无法唯一解析系统资源 policies\.public/,
+  )
+  assert.deepEqual(store.writes, [])
 })
 
 test('显式删除没有确认时整体阻断', async () => {

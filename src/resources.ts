@@ -1,5 +1,5 @@
 import { DskError } from './errors.js'
-import type { DeclarativeValue, ResourceDefinition, ResourceSyncOperation, ResourceSyncResult, ResourceType } from './types.js'
+import type { DeclarativeValue, ResourceDefinition, ResourceSyncOperation, ResourceSyncResult, ResourceType, SystemResourceKey } from './types.js'
 
 const order: ResourceType[] = ['folders', 'roles', 'policies', 'access', 'permissions', 'presets']
 const endpoints: Record<ResourceType, string> = {
@@ -24,11 +24,12 @@ export async function syncResources(options: {
   const dryRun = options.dryRun ?? false
   const current = Object.fromEntries(await Promise.all(order.map(async (type) => [type, await options.reader.listSystemResource(endpoints[type])]))) as Record<ResourceType, Array<Record<string, unknown>>>
   const idByRef = new Map<string, string | number>()
+  const systemIds = resolveSystemReferences(options.definitions, current)
   const operations: ResourceSyncOperation[] = []
 
   for (const definition of orderedDefinitions(options.definitions)) {
       const type = definition.type
-      const resolved = resolveValue(definition.data, idByRef, options.environment ?? {}, true) as Record<string, unknown>
+      const resolved = resolveValue(definition.data, idByRef, systemIds, options.environment ?? {}, true) as Record<string, unknown>
       const matches = current[type].filter((item) => matchesDefinition(type, item, resolved))
       if (matches.length > 1) {
         operations.push({ type, key: definition.key, action: 'conflict', dangerous: false, reason: '稳定业务键匹配到多条记录' })
@@ -59,7 +60,7 @@ export async function syncResources(options: {
     if (operation.action === 'unchanged') continue
     const definition = options.definitions[operation.type].find((item) => item.key === operation.key)!
     try {
-      const data = resolveValue(definition.data, idByRef, options.environment ?? {}) as Record<string, unknown>
+      const data = resolveValue(definition.data, idByRef, systemIds, options.environment ?? {}) as Record<string, unknown>
       if (operation.action === 'create') {
         const saved = await options.writer.createSystemResource(endpoints[operation.type], data)
         if (saved.id !== undefined) idByRef.set(`${operation.type}.${operation.key}`, saved.id as string | number)
@@ -120,8 +121,8 @@ function same(left: unknown, right: unknown): boolean {
   return JSON.stringify(left) === JSON.stringify(right)
 }
 
-function resolveValue(value: DeclarativeValue | Record<string, DeclarativeValue>, ids: Map<string, string | number>, environment: Record<string, string>, allowUnresolved = false): unknown {
-  if (Array.isArray(value)) return value.map((item) => resolveValue(item, ids, environment, allowUnresolved))
+function resolveValue(value: DeclarativeValue | Record<string, DeclarativeValue>, ids: Map<string, string | number>, systemIds: Map<SystemResourceKey, string | number>, environment: Record<string, string>, allowUnresolved = false): unknown {
+  if (Array.isArray(value)) return value.map((item) => resolveValue(item, ids, systemIds, environment, allowUnresolved))
   if (value && typeof value === 'object') {
     if ('$ref' in value && typeof value.$ref === 'string') {
       const id = ids.get(value.$ref)
@@ -136,9 +137,38 @@ function resolveValue(value: DeclarativeValue | Record<string, DeclarativeValue>
       if (result === undefined) throw new DskError(`环境变量不存在: ${value.$env}`, 'VALIDATION_ERROR')
       return result
     }
-    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, resolveValue(item as DeclarativeValue, ids, environment, allowUnresolved)]))
+    if ('$system' in value && typeof value.$system === 'string') {
+      const id = systemIds.get(value.$system as SystemResourceKey)
+      if (id === undefined) throw new DskError(`系统资源引用尚未解析: ${value.$system}`, 'VALIDATION_ERROR')
+      return id
+    }
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, resolveValue(item as DeclarativeValue, ids, systemIds, environment, allowUnresolved)]))
   }
   return value
+}
+
+function resolveSystemReferences(definitions: Record<ResourceType, ResourceDefinition[]>, current: Record<ResourceType, Array<Record<string, unknown>>>): Map<SystemResourceKey, string | number> {
+  const requested = new Set(Object.values(definitions).flatMap((items) => items.flatMap((item) => collectSystemReferences(item.data))))
+  const result = new Map<SystemResourceKey, string | number>()
+  for (const key of requested) {
+    if (key !== 'policies.public') throw new DskError(`不支持的系统资源引用: ${key}`, 'VALIDATION_ERROR')
+    const matches = current.policies.filter((item) => item.name === '$t:public_label' && item.id !== undefined)
+    if (matches.length !== 1) {
+      throw new DskError(`无法唯一解析系统资源 ${key}`, 'VALIDATION_ERROR', [`匹配到 ${matches.length} 个 Directus Public policy`])
+    }
+    result.set(key, matches[0]!.id as string | number)
+  }
+  return result
+}
+
+function collectSystemReferences(value: unknown): SystemResourceKey[] {
+  if (Array.isArray(value)) return value.flatMap(collectSystemReferences)
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>
+    if (typeof record.$system === 'string') return [record.$system as SystemResourceKey]
+    return Object.values(record).flatMap(collectSystemReferences)
+  }
+  return []
 }
 
 function collectReferences(value: unknown): string[] {

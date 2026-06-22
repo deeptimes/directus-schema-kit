@@ -3,7 +3,7 @@ import test from 'node:test'
 import { executeApply } from '../../src/apply.js'
 import { createClearPlan, executeClear } from '../../src/clear.js'
 import { DirectusReader, DirectusWriter } from '../../src/directus.js'
-import { collection, field, ref, relation } from '../../src/index.js'
+import { collection, field, ref, relation, systemRef } from '../../src/index.js'
 import { expandRelationBlueprint } from '../../src/dsl/expand.js'
 import { createPlan } from '../../src/plan.js'
 import { syncResources } from '../../src/resources.js'
@@ -41,7 +41,7 @@ test('Directus 11.17.4 完整 provisioning 生命周期', { skip: !url || (!conf
 
     const resources = await syncResources({ definitions: resourceDefinitions, reader, writer })
     assert.equal(resources.status, 'success', JSON.stringify(resources.failure, null, 2))
-    assert.equal(resources.completed.length, 6)
+    assert.equal(resources.completed.length, 7)
     const resourcesConverged = await syncResources({ definitions: resourceDefinitions, reader, writer, dryRun: true })
     assert.equal(resourcesConverged.operations.every((item) => item.action === 'unchanged'), true)
   } finally {
@@ -116,7 +116,10 @@ function integrationResources(remove: boolean): Record<ResourceType, ResourceDef
     roles: [mark({ type: 'roles', key: 'ci', data: { name: 'DSK CI Role', icon: 'science' } })],
     policies: [mark({ type: 'policies', key: 'ci', data: { name: 'DSK CI Policy', icon: 'science', app_access: false, admin_access: false } })],
     access: [mark({ type: 'access', key: 'ci', data: { role: ref('roles.ci'), policy: ref('policies.ci'), user: null } })],
-    permissions: [mark({ type: 'permissions', key: 'ci-read', data: { policy: ref('policies.ci'), collection: 'dsk_ci_articles', action: 'read', permissions: {} } })],
+    permissions: [
+      mark({ type: 'permissions', key: 'ci-read', data: { policy: ref('policies.ci'), collection: 'dsk_ci_articles', action: 'read', permissions: {} } }),
+      mark({ type: 'permissions', key: 'ci-public-read', data: { policy: systemRef('policies.public'), collection: 'dsk_ci_articles', action: 'read', permissions: {} } }),
+    ],
     presets: [mark({ type: 'presets', key: 'ci', data: { bookmark: 'DSK CI Preset', collection: 'dsk_ci_articles', role: ref('roles.ci'), user: null, layout: 'tabular' } })],
   }
 }

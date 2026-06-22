@@ -1,4 +1,4 @@
-export { env, ref } from './dsl/references.js'
+export { env, ref, systemRef } from './dsl/references.js'
 export { field } from './dsl/field.js'
 export { relation } from './dsl/relation.js'
 export { collection, collectionGroup, defineSchema, resource } from './dsl/schema.js'

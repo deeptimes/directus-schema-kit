@@ -1,4 +1,4 @@
-import { ref, resource } from '@deeptimes/directus-schema-kit'
+import { ref, resource, systemRef } from '@deeptimes/directus-schema-kit'
 
 const published = { status: { _eq: 'published' } }
 const publicContent = { _and: [published, { access_level: { _eq: 'public' } }] }
@@ -7,20 +7,20 @@ const memberContent = { _and: [published, { access_level: { _in: ['public', 'mem
 export default [
   resource('permissions', {
     key: 'public-blog-categories-read',
-    data: { policy: ref('policies.project-public'), collection: 'blog_categories', action: 'read', permissions: published, fields: ['*'] },
+    data: { policy: systemRef('policies.public'), collection: 'blog_categories', action: 'read', permissions: published, fields: ['*'] },
   }),
   resource('permissions', {
     key: 'public-blog-tags-read',
-    data: { policy: ref('policies.project-public'), collection: 'blog_tags', action: 'read', permissions: published, fields: ['*'] },
+    data: { policy: systemRef('policies.public'), collection: 'blog_tags', action: 'read', permissions: published, fields: ['*'] },
   }),
   resource('permissions', {
     key: 'public-blog-posts-read',
-    data: { policy: ref('policies.project-public'), collection: 'blog_posts', action: 'read', permissions: publicContent, fields: ['*'] },
+    data: { policy: systemRef('policies.public'), collection: 'blog_posts', action: 'read', permissions: publicContent, fields: ['*'] },
   }),
   resource('permissions', {
     key: 'public-blog-post-tags-read',
     data: {
-      policy: ref('policies.project-public'),
+      policy: systemRef('policies.public'),
       collection: 'blog_posts_tags',
       action: 'read',
       permissions: { blog_posts_id: publicContent },
@@ -30,7 +30,7 @@ export default [
   resource('permissions', {
     key: 'public-blog-post-gallery-read',
     data: {
-      policy: ref('policies.project-public'),
+      policy: systemRef('policies.public'),
       collection: 'blog_posts_files',
       action: 'read',
       permissions: { blog_posts_id: publicContent },
@@ -39,12 +39,12 @@ export default [
   }),
   resource('permissions', {
     key: 'public-blog-comments-read',
-    data: { policy: ref('policies.project-public'), collection: 'blog_comments', action: 'read', permissions: published, fields: ['*'] },
+    data: { policy: systemRef('policies.public'), collection: 'blog_comments', action: 'read', permissions: published, fields: ['*'] },
   }),
   resource('permissions', {
     key: 'public-blog-media-read',
     data: {
-      policy: ref('policies.project-public'),
+      policy: systemRef('policies.public'),
       collection: 'directus_files',
       action: 'read',
       permissions: { folder: { _eq: ref('folders.blog-media') } },

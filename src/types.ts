@@ -9,7 +9,13 @@ export interface ResourceReference {
   $ref: string
 }
 
-export type DeclarativeValue = JsonPrimitive | EnvReference | ResourceReference | DeclarativeValue[] | { [key: string]: DeclarativeValue }
+export type SystemResourceKey = 'policies.public'
+
+export interface SystemResourceReference {
+  $system: SystemResourceKey
+}
+
+export type DeclarativeValue = JsonPrimitive | EnvReference | ResourceReference | SystemResourceReference | DeclarativeValue[] | { [key: string]: DeclarativeValue }
 
 export type PrimaryKeyType = 'uuid' | 'integer'
 export type FieldType =

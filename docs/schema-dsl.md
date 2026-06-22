@@ -97,6 +97,27 @@ relation.m2a({ collection: 'articles', field: 'blocks', allowedCollections: ['te
 
 `relation.file()` 和 `relation.image()` 使用 Directus 专用单文件界面并生成 `special: ['file']`。`relation.file()` 可通过 `allowedMimeTypes` 限制视频、文档等类型；`relation.image()` 默认使用 Directus 11.17.4 支持的图片 MIME 类型集合，也允许显式覆盖。
 
+## 系统资源引用
+
+Public permission 使用只读系统引用绑定 Directus 内置 Public policy，不硬编码环境相关 UUID，也不重复创建匿名 policy：
+
+```ts
+import { resource, systemRef } from '@deeptimes/directus-schema-kit'
+
+export default resource('permissions', {
+  key: 'public-articles-read',
+  data: {
+    policy: systemRef('policies.public'),
+    collection: 'articles',
+    action: 'read',
+    permissions: { status: { _eq: 'published' } },
+    fields: ['*'],
+  },
+})
+```
+
+`systemRef()` 首版只支持 `policies.public`。`dsk resources apply` 必须在实例中唯一找到 Directus 内置 `$t:public_label` policy，否则在任何写入前失败。该引用只用于关联，DSK 不管理系统 policy 的生命周期。
+
 ## 全量 Clear
 
 `dsk clear` 仅用于数据库初期建模和 DSK 调试。它清理 Manifest 声明的全部非 `directus_*` collection，不支持按文件或 collection 局部清理：

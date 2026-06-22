@@ -319,6 +319,7 @@ Schema DSL、Resource DSL 和 seed JSON 通过稳定引用表达运行时信息�
 
 - DSL 使用 `env("VARIABLE_NAME")` 声明环境变量引用，编译后保留为 Manifest 中的 `$env` 标记，禁止把敏感值写入 Manifest。
 - DSL 使用 `ref("roles.editor")` 引用另一个资源的稳定业务键；seed JSON 使用对应的 `$ref` 对象。
+- DSL 使用 `systemRef("policies.public")` 只读引用 Directus 内置 Public policy；运行时解析环境内真实 ID，不得创建、更新或删除该系统资源。
 - seed 外键通过 collection、匹配字段和业务值声明，由 DSK 在本地实例解析真实 ID。
 - 对未知引用类型、缺失环境变量和循环依赖必须在写入前报错。
 
@@ -483,7 +484,7 @@ pnpm dsk seed
 | DSL-07 | P0 | `dsk build` 加载 DSL、展开简写、标准化定义并生成 `dsk/generated/manifest.json`。 |
 | DSL-08 | P0 | Manifest 输出必须确定、无函数、无 secret，并通过版本化 JSON Schema 校验。 |
 | DSL-09 | P0 | `plan/apply` 只读取 Manifest，不直接加载或执行 TypeScript DSL。 |
-| DSL-10 | P0 | 支持 `env()`、`ref()` 和 seed 外键引用；编译后转换为标准声明式引用。 |
+| DSL-10 | P0 | 支持 `env()`、`ref()`、`systemRef()` 和 seed 外键引用；编译后转换为标准声明式引用。 |
 | DSL-11 | P0 | 配置、seed 和 Manifest 均提供版本化 JSON Schema。 |
 | DSL-12 | P1 | 中文翻译可作为 `config.json` 中的项目校验选项开启，但不得成为核心包的强制规则。 |
 | DSL-13 | P1 | DSL API 或 Manifest 规范升级必须包含版本号、迁移说明和兼容性校验。 |

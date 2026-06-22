@@ -1,4 +1,4 @@
-import type { EnvReference, ResourceReference } from '../types.js'
+import type { EnvReference, ResourceReference, SystemResourceKey, SystemResourceReference } from '../types.js'
 
 const referencePattern = /^[a-zA-Z][a-zA-Z0-9_.-]*$/
 
@@ -14,4 +14,11 @@ export function ref(key: string): ResourceReference {
     throw new Error(`无效的资源引用: ${key}`)
   }
   return { $ref: key }
+}
+
+export function systemRef(key: SystemResourceKey): SystemResourceReference {
+  if (key !== 'policies.public') {
+    throw new Error(`不支持的系统资源引用: ${String(key)}`)
+  }
+  return { $system: key }
 }

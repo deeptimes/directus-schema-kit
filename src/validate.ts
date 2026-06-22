@@ -96,6 +96,7 @@ function validateResourceReferences(manifest: Manifest, config: DskConfig, error
     const references = collectMarkers(definition.data)
     dependencies.set(key, references.refs)
     for (const reference of references.refs) if (!keys.has(reference)) errors.push(`系统资源 ${key} 引用了不存在的资源 ${reference}`)
+    for (const reference of references.systems) if (reference !== 'policies.public') errors.push(`系统资源 ${key} 使用了不支持的系统引用 ${reference}`)
     for (const name of references.env) if (!allowedEnvironment.has(name)) errors.push(`系统资源 ${key} 使用了未授权环境变量 ${name}`)
   }
   const visited = new Set<string>()
@@ -114,14 +115,15 @@ function validateResourceReferences(manifest: Manifest, config: DskConfig, error
   for (const key of keys) visit(key)
 }
 
-function collectMarkers(value: unknown): { refs: string[]; env: string[] } {
-  const result = { refs: [] as string[], env: [] as string[] }
+function collectMarkers(value: unknown): { refs: string[]; env: string[]; systems: string[] } {
+  const result = { refs: [] as string[], env: [] as string[], systems: [] as string[] }
   const visit = (item: unknown): void => {
     if (Array.isArray(item)) return item.forEach(visit)
     if (!item || typeof item !== 'object') return
     const record = item as Record<string, unknown>
     if (typeof record.$ref === 'string') result.refs.push(record.$ref)
     else if (typeof record.$env === 'string') result.env.push(record.$env)
+    else if (typeof record.$system === 'string') result.systems.push(record.$system)
     else Object.values(record).forEach(visit)
   }
   visit(value)
