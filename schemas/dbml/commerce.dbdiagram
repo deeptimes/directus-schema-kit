@@ -1,0 +1,1420 @@
+{
+  "version": "2.0.0",
+  "darkMode": true,
+  "gridEnabling": false,
+  "currentViewName": null,
+  "defaultView": {
+    "detailLevel": "All",
+    "tablePositions": [
+      {
+        "name": "addresses",
+        "schemaName": "public",
+        "x": 2286.0244992508574,
+        "y": 12.048998501715346
+      },
+      {
+        "name": "announcements",
+        "schemaName": "public",
+        "x": 2840,
+        "y": 88
+      },
+      {
+        "name": "announcements_translations",
+        "schemaName": "public",
+        "x": 1744,
+        "y": 824
+      },
+      {
+        "name": "attributes",
+        "schemaName": "public",
+        "x": 3312,
+        "y": 1328
+      },
+      {
+        "name": "cart_items",
+        "schemaName": "public",
+        "x": 2400,
+        "y": 1584
+      },
+      {
+        "name": "carts",
+        "schemaName": "public",
+        "x": 2384,
+        "y": 1032
+      },
+      {
+        "name": "categories",
+        "schemaName": "public",
+        "x": 2832,
+        "y": 968
+      },
+      {
+        "name": "categories_category_filters",
+        "schemaName": "public",
+        "x": 1600,
+        "y": 552
+      },
+      {
+        "name": "category_filters",
+        "schemaName": "public",
+        "x": 1152,
+        "y": 1488
+      },
+      {
+        "name": "category_filters_translations",
+        "schemaName": "public",
+        "x": 1912,
+        "y": 552
+      },
+      {
+        "name": "company",
+        "schemaName": "public",
+        "x": 2608,
+        "y": 600
+      },
+      {
+        "name": "config",
+        "schemaName": "public",
+        "x": 2093.603266566781,
+        "y": 1520.7444683647227
+      },
+      {
+        "name": "cookies",
+        "schemaName": "public",
+        "x": 48,
+        "y": 2056
+      },
+      {
+        "name": "cookies_translations",
+        "schemaName": "public",
+        "x": 736,
+        "y": 1536
+      },
+      {
+        "name": "coupons",
+        "schemaName": "public",
+        "x": 1688,
+        "y": 1856
+      },
+      {
+        "name": "currencies",
+        "schemaName": "public",
+        "x": 2904,
+        "y": 1384
+      },
+      {
+        "name": "doc_type",
+        "schemaName": "public",
+        "x": 3296,
+        "y": 2368
+      },
+      {
+        "name": "doc_type_translations",
+        "schemaName": "public",
+        "x": 2312,
+        "y": 2728
+      },
+      {
+        "name": "docs",
+        "schemaName": "public",
+        "x": 2912,
+        "y": 2016
+      },
+      {
+        "name": "docs_translations",
+        "schemaName": "public",
+        "x": 2608,
+        "y": 2528
+      },
+      {
+        "name": "help_center",
+        "schemaName": "public",
+        "x": 3672,
+        "y": 48
+      },
+      {
+        "name": "languages",
+        "schemaName": "public",
+        "x": 2088,
+        "y": 1784
+      },
+      {
+        "name": "nav_type",
+        "schemaName": "public",
+        "x": 1402.850631785106,
+        "y": 1006.4130662671241
+      },
+      {
+        "name": "nav_type_translations",
+        "schemaName": "public",
+        "x": 1800,
+        "y": 1312
+      },
+      {
+        "name": "navs",
+        "schemaName": "public",
+        "x": 1708.1143298373358,
+        "y": 39.222865967467186
+      },
+      {
+        "name": "navs_nav_type",
+        "schemaName": "public",
+        "x": 1120,
+        "y": 424
+      },
+      {
+        "name": "navs_translations",
+        "schemaName": "public",
+        "x": 2184,
+        "y": 760
+      },
+      {
+        "name": "options",
+        "schemaName": "public",
+        "x": 1032,
+        "y": 1208
+      },
+      {
+        "name": "options_values",
+        "schemaName": "public",
+        "x": 584,
+        "y": 760
+      },
+      {
+        "name": "order_items",
+        "schemaName": "public",
+        "x": 1976,
+        "y": 2552
+      },
+      {
+        "name": "orders",
+        "schemaName": "public",
+        "x": 952,
+        "y": 1888
+      },
+      {
+        "name": "payment_providers",
+        "schemaName": "public",
+        "x": 3840,
+        "y": 48
+      },
+      {
+        "name": "prices",
+        "schemaName": "public",
+        "x": 3464,
+        "y": 1656
+      },
+      {
+        "name": "products",
+        "schemaName": "public",
+        "x": 2416,
+        "y": 1920
+      },
+      {
+        "name": "products_categories",
+        "schemaName": "public",
+        "x": 2280,
+        "y": 2392
+      },
+      {
+        "name": "products_files",
+        "schemaName": "public",
+        "x": 3096,
+        "y": 1792
+      },
+      {
+        "name": "products_tags",
+        "schemaName": "public",
+        "x": 2632,
+        "y": 2976
+      },
+      {
+        "name": "products_translations",
+        "schemaName": "public",
+        "x": 3344,
+        "y": 1944
+      },
+      {
+        "name": "reviews",
+        "schemaName": "public",
+        "x": 1576,
+        "y": 2312
+      },
+      {
+        "name": "reviews_files",
+        "schemaName": "public",
+        "x": 2008,
+        "y": 1112
+      },
+      {
+        "name": "shippings",
+        "schemaName": "public",
+        "x": 1551.98046875,
+        "y": 1536
+      },
+      {
+        "name": "socials",
+        "schemaName": "public",
+        "x": 4320,
+        "y": 48
+      },
+      {
+        "name": "subscriptions",
+        "schemaName": "public",
+        "x": 4080,
+        "y": 48
+      },
+      {
+        "name": "tags",
+        "schemaName": "public",
+        "x": 2976,
+        "y": 2616
+      },
+      {
+        "name": "variants",
+        "schemaName": "public",
+        "x": 2720,
+        "y": 1680
+      },
+      {
+        "name": "variants_options_values",
+        "schemaName": "public",
+        "x": 1392,
+        "y": 752
+      },
+      {
+        "name": "wishlists",
+        "schemaName": "public",
+        "x": 2000,
+        "y": 2232
+      },
+      {
+        "name": "directus_files",
+        "schemaName": "public",
+        "x": 2624,
+        "y": 1504
+      },
+      {
+        "name": "directus_users",
+        "schemaName": "public",
+        "x": 1848,
+        "y": 1656
+      }
+    ],
+    "tableGroupCollapseStates": [],
+    "stickyNoteLayouts": [],
+    "referencePaths": [
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_users",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "customer"
+        ],
+        "secondTableName": "addresses",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "code"
+        ],
+        "firstTableName": "languages",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "languages_code"
+        ],
+        "secondTableName": "announcements_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "announcements",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "announcements_id"
+        ],
+        "secondTableName": "announcements_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "products",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "product"
+        ],
+        "secondTableName": "attributes",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "carts",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "cart"
+        ],
+        "secondTableName": "cart_items",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "products",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "product"
+        ],
+        "secondTableName": "cart_items",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "variants",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "variant"
+        ],
+        "secondTableName": "cart_items",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_users",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "customer"
+        ],
+        "secondTableName": "carts",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "coupons",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "coupon"
+        ],
+        "secondTableName": "carts",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "shippings",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "shipping_method"
+        ],
+        "secondTableName": "carts",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "currencies",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "currency"
+        ],
+        "secondTableName": "carts",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_files",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "image"
+        ],
+        "secondTableName": "categories",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "categories",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "parent"
+        ],
+        "secondTableName": "categories",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "category_filters",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "category_filters_id"
+        ],
+        "secondTableName": "categories_category_filters",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "categories",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "categories_id"
+        ],
+        "secondTableName": "categories_category_filters",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "code"
+        ],
+        "firstTableName": "languages",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "languages_code"
+        ],
+        "secondTableName": "category_filters_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "category_filters",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "category_filters_id"
+        ],
+        "secondTableName": "category_filters_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_files",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "about_image"
+        ],
+        "secondTableName": "company",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_files",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "why_image"
+        ],
+        "secondTableName": "company",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "currencies",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "currency"
+        ],
+        "secondTableName": "config",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "code"
+        ],
+        "firstTableName": "languages",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "languages_code"
+        ],
+        "secondTableName": "cookies_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "cookies",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "cookies_id"
+        ],
+        "secondTableName": "cookies_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_users",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "customer"
+        ],
+        "secondTableName": "coupons",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_files",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "image"
+        ],
+        "secondTableName": "doc_type",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "doc_type",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "parent"
+        ],
+        "secondTableName": "doc_type",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "code"
+        ],
+        "firstTableName": "languages",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "languages_code"
+        ],
+        "secondTableName": "doc_type_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "doc_type",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "doc_type_id"
+        ],
+        "secondTableName": "doc_type_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "doc_type",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "type"
+        ],
+        "secondTableName": "docs",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_files",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "image"
+        ],
+        "secondTableName": "docs",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "code"
+        ],
+        "firstTableName": "languages",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "languages_code"
+        ],
+        "secondTableName": "docs_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "docs",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "docs_id"
+        ],
+        "secondTableName": "docs_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_files",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "image"
+        ],
+        "secondTableName": "nav_type",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "nav_type",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "parent"
+        ],
+        "secondTableName": "nav_type",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "config",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "config_header"
+        ],
+        "secondTableName": "nav_type",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "config",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "config_footer"
+        ],
+        "secondTableName": "nav_type",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "code"
+        ],
+        "firstTableName": "languages",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "languages_code"
+        ],
+        "secondTableName": "nav_type_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "nav_type",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "nav_type_id"
+        ],
+        "secondTableName": "nav_type_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_files",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "image"
+        ],
+        "secondTableName": "navs",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "navs",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "parent"
+        ],
+        "secondTableName": "navs",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "nav_type",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "nav_type_id"
+        ],
+        "secondTableName": "navs_nav_type",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "navs",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "navs_id"
+        ],
+        "secondTableName": "navs_nav_type",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "code"
+        ],
+        "firstTableName": "languages",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "languages_code"
+        ],
+        "secondTableName": "navs_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "navs",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "navs_id"
+        ],
+        "secondTableName": "navs_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "products",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "product"
+        ],
+        "secondTableName": "options",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "options",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "option"
+        ],
+        "secondTableName": "options_values",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "orders",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "order"
+        ],
+        "secondTableName": "order_items",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "products",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "product"
+        ],
+        "secondTableName": "order_items",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "variants",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "variant"
+        ],
+        "secondTableName": "order_items",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_users",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "customer"
+        ],
+        "secondTableName": "orders",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "shippings",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "shipping_method"
+        ],
+        "secondTableName": "orders",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "coupons",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "coupon_id"
+        ],
+        "secondTableName": "orders",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "variants",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "variant"
+        ],
+        "secondTableName": "prices",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "currencies",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "currency"
+        ],
+        "secondTableName": "prices",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_files",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "thumbnail"
+        ],
+        "secondTableName": "products",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "categories",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "categories_id"
+        ],
+        "secondTableName": "products_categories",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "products",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "products_id"
+        ],
+        "secondTableName": "products_categories",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_files",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "directus_files_id"
+        ],
+        "secondTableName": "products_files",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "products",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "products_id"
+        ],
+        "secondTableName": "products_files",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "tags",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "tags_id"
+        ],
+        "secondTableName": "products_tags",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "products",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "products_id"
+        ],
+        "secondTableName": "products_tags",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "code"
+        ],
+        "firstTableName": "languages",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "languages_code"
+        ],
+        "secondTableName": "products_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "products",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "products_id"
+        ],
+        "secondTableName": "products_translations",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "products",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "product"
+        ],
+        "secondTableName": "reviews",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_users",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "customer"
+        ],
+        "secondTableName": "reviews",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_files",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "directus_files_id"
+        ],
+        "secondTableName": "reviews_files",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "reviews",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "reviews_id"
+        ],
+        "secondTableName": "reviews_files",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "currencies",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "currency"
+        ],
+        "secondTableName": "shippings",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_files",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "image"
+        ],
+        "secondTableName": "tags",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_files",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "thumbnail"
+        ],
+        "secondTableName": "variants",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "products",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "product"
+        ],
+        "secondTableName": "variants",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "options_values",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "options_values_id"
+        ],
+        "secondTableName": "variants_options_values",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "variants",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "variants_id"
+        ],
+        "secondTableName": "variants_options_values",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "directus_users",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "customer"
+        ],
+        "secondTableName": "wishlists",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      },
+      {
+        "firstFieldNames": [
+          "id"
+        ],
+        "firstTableName": "products",
+        "firstSchemaName": "public",
+        "firstRelation": "1",
+        "secondFieldNames": [
+          "product"
+        ],
+        "secondTableName": "wishlists",
+        "secondSchemaName": "public",
+        "secondRelation": "*",
+        "checkPoints": []
+      }
+    ]
+  },
+  "views": {}
+}
