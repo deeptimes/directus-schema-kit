@@ -12,7 +12,7 @@ function manifest(): Manifest {
   })
   const definitions = [authors, articles]
   return {
-    manifestVersion: 3,
+    manifestVersion: 1,
     generator: { name: 'test', version: '1.0.0' },
     source: { algorithm: 'sha256', digest: 'a'.repeat(64), files: [] },
     collections: definitions.map((item) => ({ ...item, fields: [], source: 'dsk/schemas/content.ts' })),

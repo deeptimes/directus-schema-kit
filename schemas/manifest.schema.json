@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "required": ["manifestVersion", "generator", "source", "collections", "fields", "relations", "resources"],
   "properties": {
-    "manifestVersion": { "const": 3 },
+    "manifestVersion": { "const": 1 },
     "generator": {
       "type": "object",
       "additionalProperties": false,

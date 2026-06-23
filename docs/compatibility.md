@@ -14,7 +14,7 @@ Directus 12.0.2 官方类型中的字段常量、关系类型和 Relation Meta �
 | 项目 | 支持范围 |
 | --- | --- |
 | Node.js | 22+ |
-| Manifest | V3 |
+| Manifest | V1 |
 | 操作系统 | CI 使用 Linux；日常开发支持 macOS |
 
 ## Field Type 映射

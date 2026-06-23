@@ -6,7 +6,7 @@ export const manifestJsonSchema: JSONSchemaType<Manifest> = {
   type: 'object', additionalProperties: false,
   required: ['manifestVersion', 'generator', 'source', 'collections', 'fields', 'relations', 'resources'],
   properties: {
-    manifestVersion: { type: 'number', enum: [3] },
+    manifestVersion: { type: 'number', enum: [1] },
     generator: {
       type: 'object', additionalProperties: false, required: ['name', 'version'],
       properties: { name: { type: 'string' }, version: { type: 'string' } },

@@ -13,7 +13,7 @@ const execFileAsync = promisify(execFile)
 test('doctor 只报告变量名，不泄露变量值', async () => {
   const cwd = mkdtempSync(path.join(os.tmpdir(), 'dsk-doctor-'))
   writeFileSync(path.join(cwd, 'package.json'), JSON.stringify({ dependencies: { directus: '11.17.4' } }))
-  await initCommand({ cwd, packageVersion: '0.1.0' }, false)
+  await initCommand({ cwd, packageVersion: '1.0.0' }, false)
   writeFileSync(path.join(cwd, '.env'), 'DIRECTUS_URL=http://127.0.0.1:8055\nDIRECTUS_TOKEN=doctor-super-secret\n')
   const report = await diagnoseProject(cwd)
   const serialized = JSON.stringify(report)
@@ -25,7 +25,7 @@ test('doctor 只报告变量名，不泄露变量值', async () => {
 test('doctor --format json 的 stdout 只有单一 JSON 且已脱敏', async () => {
   const cwd = mkdtempSync(path.join(os.tmpdir(), 'dsk-doctor-cli-'))
   writeFileSync(path.join(cwd, 'package.json'), JSON.stringify({ dependencies: { directus: '11.17.4' } }))
-  await initCommand({ cwd, packageVersion: '0.1.0' }, false)
+  await initCommand({ cwd, packageVersion: '1.0.0' }, false)
   writeFileSync(path.join(cwd, '.env'), 'DIRECTUS_URL=http://127.0.0.1:8055\nDIRECTUS_TOKEN=cli-super-secret\n')
   const cli = path.join(process.cwd(), 'src/cli.ts')
   const { stdout, stderr } = await execFileAsync(process.execPath, ['--import', 'tsx', cli, '--cwd', cwd, '--format', 'json', 'doctor'], { cwd: process.cwd() })

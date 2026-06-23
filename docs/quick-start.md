@@ -35,9 +35,11 @@ dsk/
   resources/
   seeds/
   generated/manifest.json
+.ai/
+  directus-schema-kit.md
 ```
 
-人工维护 `schemas/`、`resources/`、`seeds/` 和 `config.json`；`generated/manifest.json` 由 `build` 生成，不要手工修改。
+人工维护 `schemas/`、`resources/`、`seeds/`、`config.json` 和 `.ai/directus-schema-kit.md`；`generated/manifest.json` 由 `build` 生成，不要手工修改。
 
 首次 Apply 后再次执行：
 

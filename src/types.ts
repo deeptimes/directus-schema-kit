@@ -258,7 +258,7 @@ export interface SchemaDefinition {
 }
 
 export interface Manifest {
-  manifestVersion: 3
+  manifestVersion: 1
   generator: { name: string; version: string }
   source: { algorithm: 'sha256'; digest: string; files: string[] }
   collections: CollectionDefinition[]

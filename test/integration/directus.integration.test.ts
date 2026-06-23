@@ -86,7 +86,7 @@ function integrationManifest(): Manifest {
   const baseCollections = [categories, articles, tags, comments, textBlocks, imageBlocks, languages]
   const collections = [...baseCollections, ...expanded.flatMap((item) => item.collections)]
   return {
-    manifestVersion: 3, generator: { name: 'integration', version: '3' },
+    manifestVersion: 1, generator: { name: 'integration', version: '1' },
     source: { algorithm: 'sha256', digest: 'a'.repeat(64), files: [] },
     collections: collections.map((item) => ({ ...item, fields: [], source: 'dsk/schemas/integration.ts' })),
     fields: [

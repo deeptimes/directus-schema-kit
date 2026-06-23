@@ -14,21 +14,23 @@ function project(): string {
 
 test('init 幂等创建工作区并生成初始 Manifest', async () => {
   const cwd = project()
-  const context = { cwd, packageVersion: '0.1.0' }
+  const context = { cwd, packageVersion: '1.0.0' }
   const first = await initCommand(context, false)
   const second = await initCommand(context, false)
 
   assert.ok(first.created.includes('dsk/config.json'))
+  assert.ok(first.created.includes('.ai/directus-schema-kit.md'))
   assert.equal(second.created.length, 0)
   assert.ok(second.preserved.includes('dsk/schemas/example.ts'))
+  assert.ok(second.preserved.includes('.ai/directus-schema-kit.md'))
   const manifest = JSON.parse(readFileSync(path.join(cwd, 'dsk/generated/manifest.json'), 'utf8')) as { manifestVersion: number; source: { digest: string } }
-  assert.equal(manifest.manifestVersion, 3)
+  assert.equal(manifest.manifestVersion, 1)
   assert.match(manifest.source.digest, /^[a-f0-9]{64}$/)
 })
 
 test('build --check 和 validate 检测源码新鲜度', async () => {
   const cwd = project()
-  const context = { cwd, packageVersion: '0.1.0' }
+  const context = { cwd, packageVersion: '1.0.0' }
   await initCommand(context, false)
   const checked = await buildCommand(context, true)
   assert.equal(checked.changed, false)
@@ -42,7 +44,7 @@ test('build --check 和 validate 检测源码新鲜度', async () => {
 
 test('init --dry-run 不写入文件', async () => {
   const cwd = project()
-  const result = await initCommand({ cwd, packageVersion: '0.1.0' }, true)
+  const result = await initCommand({ cwd, packageVersion: '1.0.0' }, true)
   assert.ok(result.created.length > 0)
   assert.throws(() => readFileSync(path.join(cwd, 'dsk/config.json')))
 })
@@ -50,12 +52,12 @@ test('init --dry-run 不写入文件', async () => {
 test('拒绝非 11.17.4 的 Directus 项目', async () => {
   const cwd = mkdtempSync(path.join(os.tmpdir(), 'dsk-version-test-'))
   writeFileSync(path.join(cwd, 'package.json'), JSON.stringify({ dependencies: { directus: '12.0.2' } }))
-  await assert.rejects(() => initCommand({ cwd, packageVersion: '0.1.0' }, true), /不支持 Directus 12\.0\.2/)
+  await assert.rejects(() => initCommand({ cwd, packageVersion: '1.0.0' }, true), /不支持 Directus 12\.0\.2/)
 })
 
-test('build 将 Relation Blueprint 完整展开为无模块 Manifest V3', async () => {
+test('build 将 Relation Blueprint 完整展开为无模块 Manifest V1', async () => {
   const cwd = project()
-  const context = { cwd, packageVersion: '0.1.0' }
+  const context = { cwd, packageVersion: '1.0.0' }
   await initCommand(context, false)
   const api = path.resolve('src/index.ts')
   writeFileSync(path.join(cwd, 'dsk/schemas/example.ts'), `
@@ -75,7 +77,7 @@ test('build 将 Relation Blueprint 完整展开为无模块 Manifest V3', async 
     fields: Array<{ collection: string; field: string; type: string }>
     relations: Array<{ collection: string; field: string }>
   }
-  assert.equal(manifest.manifestVersion, 3)
+  assert.equal(manifest.manifestVersion, 1)
   assert.equal(manifest.collections.some((item) => item.collection === 'articles_tags'), true)
   assert.equal(manifest.fields.some((item) => item.collection === 'articles' && item.field === 'tags' && item.type === 'alias'), true)
   assert.deepEqual(manifest.relations.map((item) => `${item.collection}.${item.field}`), ['articles_tags.articles_id', 'articles_tags.tags_id'])
@@ -83,7 +85,7 @@ test('build 将 Relation Blueprint 完整展开为无模块 Manifest V3', async 
 
 test('跨文件重复 collection 报告全部来源', async () => {
   const cwd = project()
-  const context = { cwd, packageVersion: '0.1.0' }
+  const context = { cwd, packageVersion: '1.0.0' }
   await initCommand(context, false)
   const api = path.resolve('src/index.ts')
   const definition = `import { collection } from ${JSON.stringify(api)}\nexport default collection({ name: 'articles', label: 'Articles' })\n`

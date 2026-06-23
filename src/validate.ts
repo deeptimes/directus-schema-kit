@@ -141,8 +141,8 @@ export async function validateWorkspace(options: {
   try {
     const parsed: unknown = JSON.parse(readFileSync(manifestPath, 'utf8'))
     const version = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>).manifestVersion : undefined
-    if (version !== 3) {
-      throw new DskError(`不支持的 Manifest 版本: ${String(version)}`, 'VALIDATION_ERROR', ['当前仅支持无模块结构的 Manifest V3；请运行 dsk build 重新生成'])
+    if (version !== 1) {
+      throw new DskError(`不支持的 Manifest 版本: ${String(version)}`, 'VALIDATION_ERROR', ['当前仅支持 Manifest V1；请运行 dsk build 重新生成'])
     }
     manifest = parsed as Manifest
   } catch (error) {

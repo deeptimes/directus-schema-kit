@@ -9,7 +9,7 @@
 | Directus | 11.17.4 |
 | 数据库 | SQLite |
 | 包管理器 | pnpm 11.5.2 |
-| Manifest | V3 |
+| Manifest | V1 |
 
 Directus 12.0.2 只完成结构评估，不能标记为正式支持。
 
@@ -60,6 +60,6 @@ pnpm check:release
 - Plan Engine 是纯函数，网络读取和写入使用分离 Adapter。
 - 未声明的实例资源不会被推断为删除；白名单外差异默认 conflict。
 - Apply 遇到任一 conflict/dangerous 全量阻断，写入串行且不伪装为事务。
-- Manifest V3 移除 modules；所有定义全局组合，`source` 只用于定位。
+- Manifest V1 不包含 modules；所有定义全局组合，`source` 只用于定位。
 - 复合关系必须展开为完整 junction、字段和 relations；不得用单 alias 模拟。
 - 普通 Schema apply 永不删除；系统资源删除和 Clear 使用不同的显式授权路径。

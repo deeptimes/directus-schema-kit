@@ -16,4 +16,4 @@
 - 产品决策、实现约束、测试策略和待办放在 `.ai/`。
 - 安装、使用、CLI 和公开格式说明放在 [`docs/`](../docs/README.md)。
 - 已由代码、测试或 Git 历史表达的过程信息不在文档中重复维护。
-- 当前“V3”指 Manifest 格式版本；npm 包版本以 `package.json` 为准。
+- 当前 Manifest 格式版本为 V1；npm 包版本以 `package.json` 为准。

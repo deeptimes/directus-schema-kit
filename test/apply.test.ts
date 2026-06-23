@@ -10,7 +10,7 @@ function fixture(): { manifest: Manifest; plan: Plan } {
   const articles = collection({ name: 'articles', label: '文章', group: 'child', fields: [field.string('title', { label: '标题' })] })
   const fields = articles.fields.map(({ relation: _relation, ...item }) => ({ ...item, collection: 'articles', source: 'dsk/schemas/content.ts' }))
   const manifest: Manifest = {
-    manifestVersion: 3,
+    manifestVersion: 1,
     generator: { name: 'test', version: '1' },
     source: { algorithm: 'sha256', digest: 'a'.repeat(64), files: [] },
     collections: [{ ...child, source: 'dsk/schemas/content.ts' }, { ...parent, source: 'dsk/schemas/content.ts' }, { ...articles, fields: [], source: 'dsk/schemas/content.ts' }],

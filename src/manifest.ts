@@ -87,7 +87,7 @@ export async function compileManifest(options: {
 
   const relativeFiles = files.map((file) => normalizePath(path.relative(options.projectRoot, file)))
   return sortDeep({
-    manifestVersion: 3,
+    manifestVersion: 1,
     generator: { name: '@deeptimes/directus-schema-kit', version: options.packageVersion },
     source: { algorithm: 'sha256', digest: calculateSourceDigest(files, options.projectRoot), files: relativeFiles },
     collections,

@@ -1,6 +1,6 @@
 # Schema 编写规则
 
-本文档面向使用 Codex/AI 为 Directus 项目编写 DSK schema 的场景。目标是让生成的 `dsk/schemas/*.ts` 稳定符合项目 DSL、Directus 规范和 Manifest V3 执行边界，避免 AI 自行发明 API 或产生 schema 漂移。
+本文档面向使用 Codex/AI 为 Directus 项目编写 DSK schema 的场景。目标是让生成的 `dsk/schemas/*.ts` 稳定符合项目 DSL、Directus 规范和 Manifest V1 执行边界，避免 AI 自行发明 API 或产生 schema 漂移。
 
 ## 开始前必须阅读
 

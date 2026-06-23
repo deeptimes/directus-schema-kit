@@ -6,7 +6,7 @@ import type { DirectusState, Manifest } from '../src/types.js'
 function fixture(): { manifest: Manifest; state: DirectusState } {
   return {
     manifest: {
-      manifestVersion: 3, generator: { name: 'test', version: '1' },
+      manifestVersion: 1, generator: { name: 'test', version: '1' },
       source: { algorithm: 'sha256', digest: 'a'.repeat(64), files: [] },
       collections: [
         { collection: 'content_group', meta: {}, schema: null, fields: [], source: 'dsk/schemas/content.ts' },

@@ -49,4 +49,4 @@ pnpm dsk clear --confirm
 
 `build` 会执行可信的项目 TypeScript 源码；后续 `plan/apply` 执行层只允许消费 `dsk/generated/manifest.json`。
 
-详细文档从 [文档首页](docs/README.md) 开始，也可直接查看 [快速开始](docs/quick-start.md)、[CLI 参考](docs/cli-reference.md)、[Schema DSL](docs/schema-dsl.md)、[Manifest V3](docs/manifest.md) 和 [兼容性](docs/compatibility.md)。
+详细文档从 [文档首页](docs/README.md) 开始，也可直接查看 [快速开始](docs/quick-start.md)、[CLI 参考](docs/cli-reference.md)、[Schema DSL](docs/schema-dsl.md)、[Manifest V1](docs/manifest.md) 和 [兼容性](docs/compatibility.md)。

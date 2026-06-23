@@ -1,7 +1,7 @@
 # Directus Schema Kit 产品需求
 
 > 状态：当前实现基线  
-> 当前里程碑：Manifest V3  
+> 当前里程碑：Manifest V1
 > 包：`@deeptimes/directus-schema-kit`
 
 ## 产品定位
@@ -37,7 +37,7 @@ DSK 的目标是让 Directus 数据模型具备代码审查、类型约束、可
 - 严格类型的 `collection()`、`collectionGroup()`、`defineSchema()` 和 `field.*()` DSL。
 - M2O、O2M、M2M、M2A、Translations、File、Image、Files 关系 blueprint。
 - Markdown、Tags、Code、Toggle 等 Directus interface helper。
-- Manifest V3：扁平、确定性、完整展开，并携带源码 SHA-256 摘要。
+- Manifest V1：扁平、确定性、完整展开，并携带源码 SHA-256 摘要。
 - 离线校验重复定义、主键、关系完整性、引用和源码新鲜度。
 
 ### Plan 与 Apply
@@ -84,7 +84,7 @@ DSK 的目标是让 Directus 数据模型具备代码审查、类型约束、可
 ## 验收标准
 
 - `init` 不覆盖已有文件，`--dry-run` 不写入，非 Directus 项目不生成工作区。
-- `build` 生成字节级稳定、无 secret、通过 JSON Schema 校验的 Manifest V3。
+- `build` 生成字节级稳定、无 secret、通过 JSON Schema 校验的 Manifest V1。
 - `validate` 能发现重复定义、无效关系、缺失引用和过期 Manifest。
 - 首次 Apply 可建立完整 Schema；第二次 Plan 不存在可执行差异。
 - 八类关系在 Directus 11.17.4 + SQLite 完成构建、校验、应用和幂等测试。
