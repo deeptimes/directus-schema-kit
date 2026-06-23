@@ -15,7 +15,7 @@ CLI：
 dsk plan [--format text|json]
 ```
 
-退出码：成功且无阻断差异为 0；存在 conflict/dangerous 为 3；连接或执行失败为 4；配置错误为 5。
+退出码：成功且无阻断差异为 0；构建或校验失败为 2；存在 conflict/dangerous 为 3；连接或执行失败为 4；配置错误为 5。
 
 ## Apply API 契约
 

@@ -23,7 +23,7 @@ Plan 只比较 Manifest 明确声明的属性，不把实例额外属性或额�
 
 - 从 Directus 项目 `.env` 或 shell 读取 `DIRECTUS_URL`、`DIRECTUS_TOKEN`。
 - token 不进入 Plan、日志或错误摘要。
-- V1 只允许回环、RFC1918 私网和 `.local` 地址。
+- 当前版本只允许回环、RFC1918 私网和 `.local` 地址。
 - collections、fields、relations 并发读取，写入能力使用独立 Adapter 实现。
 
 ## Apply 执行规则

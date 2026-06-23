@@ -1,13 +1,21 @@
-# Directus 兼容矩阵
+# 兼容性
 
 ## 认证状态
 
 | Directus | 状态 | 结论 |
 | --- | --- | --- |
-| 11.17.4 + SQLite | 正式认证 | typecheck、单元测试和完整 provisioning 集成测试覆盖 |
+| 11.17.4 + SQLite | 正式认证 | 单元测试和完整 provisioning 集成测试覆盖 |
 | 12.0.2 | 结构评估 | Field Type、Relational Type 和 Relation Meta 与 11.17.4 一致；尚未进入自动 Apply 认证矩阵 |
 
 Directus 12.0.2 官方类型中的字段常量、关系类型和 Relation Meta 与 11.17.4 相同，因此当前 Manifest 没有发现字段/关系结构级阻断差异。但 Directus 12 引入许可执行，并改变新集合默认归档字段等产品行为；DSK 仍拒绝把 12.x 标记为正式支持，直到完成独立集成和 Data Studio 回归。
+
+## 工具链
+
+| 项目 | 支持范围 |
+| --- | --- |
+| Node.js | 22+ |
+| Manifest | V3 |
+| 操作系统 | CI 使用 Linux；日常开发支持 macOS |
 
 ## Field Type 映射
 

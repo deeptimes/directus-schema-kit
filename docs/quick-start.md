@@ -1,6 +1,15 @@
 # 快速开始
 
-前提：Node.js 22+、Directus 11.17.4，且项目 `.env` 包含 `DIRECTUS_URL` 和具备管理权限的 `DIRECTUS_TOKEN`。
+## 前提
+
+- Node.js 22+
+- Directus 11.17.4 + SQLite
+- pnpm
+- Directus 项目 `.env` 中包含 `DIRECTUS_URL` 和具备管理权限的 `DIRECTUS_TOKEN`
+
+DSK 只允许连接 localhost、私网 IP 和 `.local` 地址，不用于生产实例发布。
+
+## 初始化与首次应用
 
 ```bash
 pnpm add -D @deeptimes/directus-schema-kit
@@ -17,7 +26,30 @@ pnpm dsk resources apply --dry-run
 pnpm dsk resources apply
 ```
 
-第二次 `plan` 应不存在可执行差异。人工清理会先展示删除计划，再要求 `y/N` 确认：
+`init` 不会覆盖已有文件。生成的工作区结构如下：
+
+```text
+dsk/
+  config.json
+  schemas/
+  resources/
+  seeds/
+  generated/manifest.json
+```
+
+人工维护 `schemas/`、`resources/`、`seeds/` 和 `config.json`；`generated/manifest.json` 由 `build` 生成，不要手工修改。
+
+首次 Apply 后再次执行：
+
+```bash
+pnpm dsk plan
+```
+
+结果应不存在可执行差异。
+
+## 清理本地 Schema
+
+`clear` 只用于初始化阶段或一次性本地实例。人工执行会先展示全部自定义 Schema 的删除计划，再要求 `y/N` 确认：
 
 ```bash
 pnpm dsk clear
@@ -30,6 +62,10 @@ pnpm dsk clear --dry-run
 pnpm dsk clear --confirm
 ```
 
-V1 不包含 Flow、Operation、Dashboard、Panel 或旧教学中心数据迁移。
+`clear` 永不删除 `directus_*` 系统集合，也不支持按文件局部清理。
 
-字段、关系和迁移示例见 [Schema DSL](./schema-dsl.md)、[Manifest 规范](./manifest.md) 与 [兼容矩阵](./compatibility.md)。
+## 当前边界
+
+DSK 不支持 Flow、Operation、Dashboard、Panel、字段类型迁移、存量数据迁移或跨环境发布。普通 `apply` 不执行删除。
+
+下一步阅读 [Schema DSL](./schema-dsl.md)；命令参数见 [CLI 参考](./cli-reference.md)。
