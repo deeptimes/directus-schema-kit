@@ -49,10 +49,18 @@ test('init --dry-run 不写入文件', async () => {
   assert.throws(() => readFileSync(path.join(cwd, 'dsk/config.json')))
 })
 
-test('拒绝非 11.17.4 的 Directus 项目', async () => {
+test('拒绝不受支持的 Directus 主版本', async () => {
   const cwd = mkdtempSync(path.join(os.tmpdir(), 'dsk-version-test-'))
-  writeFileSync(path.join(cwd, 'package.json'), JSON.stringify({ dependencies: { directus: '12.0.2' } }))
-  await assert.rejects(() => initCommand({ cwd, packageVersion: '1.0.0' }, true), /不支持 Directus 12\.0\.2/)
+  writeFileSync(path.join(cwd, 'package.json'), JSON.stringify({ dependencies: { directus: '13.0.0' } }))
+  await assert.rejects(() => initCommand({ cwd, packageVersion: '1.0.0' }, true), /不支持 Directus 13\.0\.0/)
+})
+
+test('接受 Directus 11.x 和 12.x 的精确版本及常用版本范围', async () => {
+  for (const version of ['11.17.4', '^11.17.4', '12.2.0', '~12.2.0']) {
+    const cwd = mkdtempSync(path.join(os.tmpdir(), 'dsk-version-test-'))
+    writeFileSync(path.join(cwd, 'package.json'), JSON.stringify({ dependencies: { directus: version } }))
+    await assert.doesNotReject(() => initCommand({ cwd, packageVersion: '1.0.0' }, true), version)
+  }
 })
 
 test('build 将 Relation Blueprint 完整展开为无模块 Manifest V1', async () => {

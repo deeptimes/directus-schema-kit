@@ -19,4 +19,4 @@ DSK 使用 TypeScript DSL 声明 Directus Schema，通过 Manifest V1 校验和�
 
 文档中的 Manifest V1 指 Manifest 格式版本，不代表 npm 包主版本。实际包版本以安装结果或 `dsk --version` 为准。
 
-当前正式认证环境为 Node.js 22+、Directus 11.17.4 和 SQLite。Directus 12.x 尚未正式认证。
+CLI 接受 Directus 11.x 与 12.x。当前正式认证环境为 Node.js 22+、Directus 11.17.4 和 SQLite；Directus 12.x 尚未正式认证。

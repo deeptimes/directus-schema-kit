@@ -9,7 +9,8 @@ export interface DirectusProject {
   directusVersion: string
 }
 
-export const supportedDirectusVersion = '11.17.4'
+export const supportedDirectusMajorVersions = [11, 12] as const
+export const supportedDirectusVersion = supportedDirectusMajorVersions.map(String).join('.x、') + '.x'
 
 export function discoverDirectusProject(startDirectory: string): DirectusProject {
   let current = path.resolve(startDirectory)
@@ -22,7 +23,7 @@ export function discoverDirectusProject(startDirectory: string): DirectusProject
       if (directusVersion) {
         const installedVersion = installedDirectusVersion(current)
         const effectiveVersion = installedVersion ?? normalizeDeclaredVersion(directusVersion)
-        if (effectiveVersion !== supportedDirectusVersion) {
+        if (!isSupportedDirectusVersion(effectiveVersion)) {
           throw new DskError(
             `不支持 Directus ${installedVersion ?? directusVersion}`, 'CONFIG_ERROR',
             [`当前仅支持 Directus ${supportedDirectusVersion}`],
@@ -52,8 +53,13 @@ function installedDirectusVersion(projectRoot: string): string | null {
 }
 
 function normalizeDeclaredVersion(value: string): string {
-  const match = /11\.17\.4/.exec(value)
-  return match?.[0] ?? value
+  const match = /(?:^|[\s~^>=<|])((?:11|12)\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)(?=$|[\s|])/.exec(value)
+  return match?.[1] ?? value
+}
+
+function isSupportedDirectusVersion(value: string): boolean {
+  const match = /^(\d+)\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.exec(value)
+  return match !== null && supportedDirectusMajorVersions.includes(Number(match[1]) as typeof supportedDirectusMajorVersions[number])
 }
 
 function readPackageJson(filePath: string): Record<string, unknown> {

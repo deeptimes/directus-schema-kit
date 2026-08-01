@@ -5,9 +5,9 @@
 | Directus | 状态 | 结论 |
 | --- | --- | --- |
 | 11.17.4 + SQLite | 正式认证 | 单元测试和完整 provisioning 集成测试覆盖 |
-| 12.0.2 | 结构评估 | Field Type、Relational Type 和 Relation Meta 与 11.17.4 一致；尚未进入自动 Apply 认证矩阵 |
+| 12.2.0 | 运行时支持、结构评估 | CLI 接受 12.x；Field Type、Relational Type 和 Relation Meta 与 11.17.4 一致；尚未进入自动 Apply 认证矩阵 |
 
-Directus 12.0.2 官方类型中的字段常量、关系类型和 Relation Meta 与 11.17.4 相同，因此当前 Manifest 没有发现字段/关系结构级阻断差异。但 Directus 12 引入许可执行，并改变新集合默认归档字段等产品行为；DSK 仍拒绝把 12.x 标记为正式支持，直到完成独立集成和 Data Studio 回归。
+Directus 12.2.0 官方类型中的字段常量、关系类型和 Relation Meta 与 11.17.4 相同，因此当前 Manifest 没有发现字段/关系结构级阻断差异。DSK 的版本准入覆盖 Directus 11.x 与 12.x；12.x 在完成独立集成和 Data Studio 回归前仍不计入正式认证矩阵。
 
 ## 工具链
 
@@ -40,4 +40,4 @@ Interface 与 Field Type 分离。Markdown、Tags、Code、Toggle 分别映射�
 | Translations | `relation.translations()` | translations junction + languages relation + alias |
 | M2A | `relation.m2a()` | junction + discriminator + nullable-target relation + alias |
 
-评估依据：[Directus 11.17.4 字段常量](https://github.com/directus/directus/blob/v11.17.4/packages/constants/src/fields.ts)、[Directus 11.17.4 Relation 类型](https://github.com/directus/directus/blob/v11.17.4/packages/types/src/relations.ts)、[Directus 12.0.2 字段常量](https://github.com/directus/directus/blob/v12.0.2/packages/constants/src/fields.ts)、[Directus 12.0.2 Relation 类型](https://github.com/directus/directus/blob/v12.0.2/packages/types/src/relations.ts) 和 [Directus 12.0.0 发布说明](https://github.com/directus/directus/releases/tag/v12.0.0)。
+评估依据：[Directus 11.17.4 字段常量](https://github.com/directus/directus/blob/v11.17.4/packages/constants/src/fields.ts)、[Directus 11.17.4 Relation 类型](https://github.com/directus/directus/blob/v11.17.4/packages/types/src/relations.ts)、[Directus 12.2.0 字段常量](https://github.com/directus/directus/blob/v12.2.0/packages/constants/src/fields.ts)、[Directus 12.2.0 Relation 类型](https://github.com/directus/directus/blob/v12.2.0/packages/types/src/relations.ts) 和 [Directus 12.2.0 发布说明](https://github.com/directus/directus/releases/tag/v12.2.0)。

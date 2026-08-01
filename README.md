@@ -2,7 +2,7 @@
 
 Directus Schema Kit 是面向 Directus 本地开发项目的声明式 Schema Provisioning 工具。TypeScript DSL 负责人工编写，版本化 JSON Manifest 负责校验、规划和执行边界。
 
-当前认证环境为 Node.js 22+、Directus 11.17.4 和 SQLite。其他 Directus 版本会被 CLI 明确拒绝。
+CLI 接受 Directus 11.x 与 12.x。当前认证环境为 Node.js 22+、Directus 11.17.4 和 SQLite；Directus 12.2.0 尚待独立集成测试认证。
 
 ## 当前实现
 
@@ -14,7 +14,7 @@ Directus Schema Kit 是面向 Directus 本地开发项目的声明式 Schema Pro
 - `dsk plan`：只读获取本地 Directus 状态，分类 create、update、unchanged、conflict 和 dangerous。
 - `dsk apply`：全量预检后按依赖顺序执行安全 create/update，默认阻断 conflict/dangerous。
 - `dsk seed`：严格 JSON Seed，自然键 upsert、跨集合/同集合引用以及 plan/apply。
-- `dsk resources apply`：Directus 11 的 folders、roles、policies、access、permissions、presets 同步。
+- `dsk resources apply`：folders、roles、policies、access、permissions、presets 同步。
 - `dsk clear`：全量自定义 Schema 清理计划、交互确认、系统集合硬保护及非交互 `--confirm`。
 - `--cwd`、`--config`、`--format json` 与稳定错误退出码。
 
