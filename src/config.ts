@@ -14,7 +14,7 @@ export const defaultConfig: DskConfig = {
   },
   env: {
     file: '../.env',
-    allowedVariables: ['DIRECTUS_URL', 'DIRECTUS_TOKEN'],
+    allowedVariables: ['PUBLIC_URL', 'ADMIN_TOKEN'],
   },
   validation: {
     requireChineseTranslations: false,

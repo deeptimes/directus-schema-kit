@@ -19,7 +19,7 @@ pnpm dsk init
 pnpm dev
 ```
 
-首次启动后，登录 `http://localhost:8055`，为管理员创建静态 Token 并写入 `.env` 的 `DIRECTUS_TOKEN`。然后在另一个终端执行：
+首次启动前，请在 `.env` 中填写 `ADMIN_TOKEN` 的安全静态 Token；Directus bootstrap 会将其写入管理员账号。启动完成后，在另一个终端执行：
 
 ```bash
 pnpm dsk doctor

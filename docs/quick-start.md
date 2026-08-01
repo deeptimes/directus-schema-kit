@@ -5,7 +5,7 @@
 - Node.js 22+
 - Directus 11.17.4 + SQLite
 - pnpm
-- Directus 项目 `.env` 中包含 `DIRECTUS_URL` 和具备管理权限的 `DIRECTUS_TOKEN`
+- Directus 项目 `.env` 中包含 `PUBLIC_URL` 和具备管理权限的 `ADMIN_TOKEN`
 
 DSK 只允许连接 localhost、私网 IP 和 `.local` 地址，不用于生产实例发布。
 

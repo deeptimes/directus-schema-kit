@@ -25,13 +25,13 @@ export function loadProjectEnvironment(config: DskConfig, configDirectory: strin
 
 export function directusConnection(config: DskConfig, configDirectory: string): { url: string; token?: string; databaseClient?: string } {
   const environment = loadProjectEnvironment(config, configDirectory)
-  const rawUrl = environment.DIRECTUS_URL
-  if (!rawUrl) throw new DskError('缺少 DIRECTUS_URL', 'CONFIG_ERROR', ['请在 Directus 项目的 .env 或 shell 环境中配置'])
+  const rawUrl = environment.PUBLIC_URL
+  if (!rawUrl) throw new DskError('缺少 PUBLIC_URL', 'CONFIG_ERROR', ['请在 Directus 项目的 .env 或 shell 环境中配置'])
   let url: URL
   try {
     url = new URL(rawUrl)
   } catch {
-    throw new DskError('DIRECTUS_URL 不是有效 URL', 'CONFIG_ERROR')
+    throw new DskError('PUBLIC_URL 不是有效 URL', 'CONFIG_ERROR')
   }
   if (!['http:', 'https:'].includes(url.protocol) || !isLocalHostname(url.hostname)) {
     throw new DskError(`拒绝连接非本地 Directus 地址: ${url.origin}`, 'CONFIG_ERROR', ['V1 plan 仅允许回环、私网或 .local 开发实例'])
@@ -39,7 +39,7 @@ export function directusConnection(config: DskConfig, configDirectory: string): 
   const normalized = url.toString().replace(/\/$/, '')
   return {
     url: normalized,
-    ...(environment.DIRECTUS_TOKEN ? { token: environment.DIRECTUS_TOKEN } : {}),
+    ...(environment.ADMIN_TOKEN ? { token: environment.ADMIN_TOKEN } : {}),
     ...(environment.DB_CLIENT ? { databaseClient: environment.DB_CLIENT.toLowerCase() } : {}),
   }
 }

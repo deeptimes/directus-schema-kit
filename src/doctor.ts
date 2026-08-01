@@ -12,7 +12,7 @@ export async function diagnoseProject(cwd: string, customConfig?: string): Promi
   const configPath = path.resolve(project.root, customConfig ?? 'dsk/config.json')
   if (!existsSync(configPath)) {
     checks.push({ name: 'config', status: 'fail', message: '缺少 dsk/config.json，请运行 dsk init' })
-    return result(project.root, project.directusVersion, configPath, null, checks, path.join(project.root, '.env'), [], ['DIRECTUS_URL'])
+    return result(project.root, project.directusVersion, configPath, null, checks, path.join(project.root, '.env'), [], ['PUBLIC_URL'])
   }
 
   let loaded
@@ -21,7 +21,7 @@ export async function diagnoseProject(cwd: string, customConfig?: string): Promi
     checks.push({ name: 'config', status: 'pass', message: '配置文件有效' })
   } catch (error) {
     checks.push({ name: 'config', status: 'fail', message: error instanceof Error ? error.message : String(error) })
-    return result(project.root, project.directusVersion, configPath, null, checks, path.join(project.root, '.env'), [], ['DIRECTUS_URL'])
+    return result(project.root, project.directusVersion, configPath, null, checks, path.join(project.root, '.env'), [], ['PUBLIC_URL'])
   }
 
   const envFile = path.resolve(loaded.directory, loaded.config.env?.file ?? '../.env')
@@ -30,8 +30,8 @@ export async function diagnoseProject(cwd: string, customConfig?: string): Promi
   const configured = allowed.filter((name) => environment[name] !== undefined).sort()
   const missing = allowed.filter((name) => environment[name] === undefined).sort()
   checks.push({
-    name: 'environment', status: environment.DIRECTUS_URL ? 'pass' : 'warn',
-    message: environment.DIRECTUS_URL ? 'Directus 连接变量已配置' : '缺少 DIRECTUS_URL；离线命令可用，实例命令不可用',
+    name: 'environment', status: environment.PUBLIC_URL ? 'pass' : 'warn',
+    message: environment.PUBLIC_URL ? 'Directus 连接变量已配置' : '缺少 PUBLIC_URL；离线命令可用，实例命令不可用',
   })
 
   const manifestPath = path.resolve(loaded.directory, loaded.config.paths.manifest)

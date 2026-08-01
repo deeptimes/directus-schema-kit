@@ -9,8 +9,8 @@
   "env": {
     "file": "../.env",
     "allowedVariables": [
-      "DIRECTUS_URL",
-      "DIRECTUS_TOKEN"
+      "PUBLIC_URL",
+      "ADMIN_TOKEN"
     ]
   },
   "validation": {

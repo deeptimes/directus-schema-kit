@@ -96,7 +96,7 @@ test('常用标量字段默认使用 half 宽度并允许覆盖', () => {
 })
 
 test('env/ref 只保留声明，不解析运行时值', () => {
-  assert.deepEqual(env('DIRECTUS_TOKEN'), { $env: 'DIRECTUS_TOKEN' })
+  assert.deepEqual(env('ADMIN_TOKEN'), { $env: 'ADMIN_TOKEN' })
   assert.deepEqual(ref('roles.editor'), { $ref: 'roles.editor' })
   assert.throws(() => env('invalid-name'))
 })
