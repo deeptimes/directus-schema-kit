@@ -46,7 +46,7 @@ pnpm dsk plan
 
 ```bash
 pnpm dsk build --check
-pnpm dsk validate --format json
+pnpm dsk --format json validate
 ```
 
 全局参数示例：`pnpm dsk --format json validate`。

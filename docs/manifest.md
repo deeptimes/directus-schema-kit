@@ -22,9 +22,4 @@ Manifest V1 不包含 modules。所有 Schema 文件编译到全局唯一的 col
 
 ## 重新生成 Manifest
 
-- 原 `field.m2o()` 无需修改。
-- 如果项目内存在早期实验 Manifest，将 Schema DSL 保持为 `defineSchema({ ... })` 或公开 DSL 导出。
-- 如果项目仍使用 `.dsk/`，将 config、seeds 和 generated 移入 `dsk/`，并更新配置中的相对路径。
-- 重新执行 `dsk build` 生成 Manifest V1；validate/plan/apply 只读取当前版本 Manifest。
-- 未知版本会明确报错并提示重新 build，不会尝试猜测结构。
-- 旧项目若用单一 alias 字段模拟 M2M/M2A，应改用对应 `relation.*`，由 build 生成完整资源。
+缺失、过期或未知版本的 Manifest 必须通过 `dsk build` 重新生成，再运行 `dsk validate`；执行层不猜测旧格式。修改关系时使用公开 `relation.*` blueprint，不用单 alias 模拟复合关系。

@@ -29,10 +29,12 @@ pnpm build
 
 ## 项目内使用
 
-安装后在 Directus 项目中执行：
+在已有 Directus 项目中安装并执行：
 
 ```bash
+pnpm add -D @deeptimes/directus-schema-kit
 pnpm dsk init
+pnpm dsk doctor
 pnpm dsk build
 pnpm dsk validate
 pnpm dsk plan
@@ -47,6 +49,8 @@ pnpm dsk clear --dry-run
 pnpm dsk clear --confirm
 ```
 
+Directus 项目的 `.env` 或 shell 需提供 `PUBLIC_URL` 和具备管理权限的 `ADMIN_TOKEN`。DSK 仅连接本地／私网开发实例，不用于生产发布。`clear` 会删除完整 Manifest 声明的自定义 Schema 及相关数据，真实执行需交互确认或显式 `--confirm`。
+
 `build` 会执行可信的项目 TypeScript 源码；后续 `plan/apply` 执行层只允许消费 `dsk/generated/manifest.json`。
 
-详细文档从 [文档首页](docs/README.md) 开始，也可直接查看 [快速开始](docs/quick-start.md)、[CLI 参考](docs/cli-reference.md)、[Schema DSL](docs/schema-dsl.md)、[Manifest V1](docs/manifest.md) 和 [兼容性](docs/compatibility.md)。
+开发文档见 [文档首页](docs/README.md)：[Roadmap](docs/roadmap.md)、[配合 Directus 开发](docs/directus-development.md)、[开发规则](docs/development-rules.md) 和 [DSK 实现与验收](docs/development.md)。命令与格式细节见 [CLI 参考](docs/cli-reference.md)、[Schema DSL](docs/schema-dsl.md)、[Manifest V1](docs/manifest.md) 和 [兼容性](docs/compatibility.md)。
