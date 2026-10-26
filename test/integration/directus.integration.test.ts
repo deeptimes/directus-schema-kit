@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import process from 'node:process'
 import test from 'node:test'
 import { executeApply } from '../../src/apply.js'
 import { createClearPlan, executeClear } from '../../src/clear.js'
@@ -15,8 +16,14 @@ const email = process.env.DSK_INTEGRATION_EMAIL
 const password = process.env.DSK_INTEGRATION_PASSWORD
 const configuredToken = process.env.DSK_INTEGRATION_TOKEN
 
-test('Directus 11.17.4 完整 provisioning 生命周期', { skip: !url || (!configuredToken && (!email || !password)), timeout: 120_000 }, async () => {
+test('Directus 完整 provisioning 生命周期', { skip: !url || (!configuredToken && (!email || !password)), timeout: 120_000 }, async (t) => {
   const token = configuredToken ?? await login(url!, email!, password!)
+  const infoResponse = await fetch(`${url}/server/info`, { headers: { Authorization: `Bearer ${token}` } })
+  assert.equal(infoResponse.ok, true)
+  const info = await infoResponse.json() as { data: { version: string } }
+  assert.match(info.data.version, /^(11|12)\./)
+  if (process.env.DSK_INTEGRATION_VERSION) assert.equal(info.data.version, process.env.DSK_INTEGRATION_VERSION)
+  t.diagnostic(`Directus ${info.data.version}`)
   const reader = new DirectusReader(url!, token, 20_000)
   const writer = new DirectusWriter(url!, token, 20_000)
   const manifest = integrationManifest()
@@ -33,9 +40,15 @@ test('Directus 11.17.4 完整 provisioning 生命周期', { skip: !url || (!conf
     assert.equal(remaining.length, 0, JSON.stringify(remaining, null, 2))
 
     const seedBatches = integrationSeeds()
+    const seedPreview = await runSeeds({ batches: seedBatches, mode: 'plan', reader })
+    assert.equal(seedPreview.status, 'success', seedPreview.failure?.message)
+    assert.equal(seedPreview.summary.create, 2)
     const seeded = await runSeeds({ batches: seedBatches, mode: 'apply', reader, writer })
     assert.equal(seeded.status, 'success')
     assert.equal(seeded.summary.create, 2)
+    const [article] = await reader.listItems('dsk_ci_articles', { filter: { slug: 'hello' } })
+    assert.equal(article?.is_featured, true)
+    assert.equal(article?.date_published, '2026-01-10T08:00:00')
     const seedConverged = await runSeeds({ batches: seedBatches, mode: 'plan', reader })
     assert.equal(seedConverged.summary.unchanged, 2)
 
@@ -44,8 +57,31 @@ test('Directus 11.17.4 完整 provisioning 生命周期', { skip: !url || (!conf
     assert.equal(resources.completed.length, 7)
     const resourcesConverged = await syncResources({ definitions: resourceDefinitions, reader, writer, dryRun: true })
     assert.equal(resourcesConverged.operations.every((item) => item.action === 'unchanged'), true)
+
+    const custom = integrationResources(false)
+    const publicPermission = custom.permissions.find((item) => item.key === 'ci-public-read')!
+    publicPermission.data.permissions = { slug: { _eq: 'hello' } }
+    custom.folders.push({ type: 'folders', key: 'guard', data: { name: 'DSK CI Permission Guard', parent: null } })
+    if (await reader.getCustomPermissionRulesEnabled()) {
+      const filtered = await syncResources({ definitions: custom, reader, writer })
+      assert.equal(filtered.status, 'success', JSON.stringify(filtered.failure))
+      await writer.createItem('dsk_ci_articles', { slug: 'private' })
+      const response = await fetch(`${url}/items/dsk_ci_articles?fields=slug`)
+      assert.equal(response.ok, true)
+      const visible = await response.json() as { data: Array<{ slug: string }> }
+      assert.deepEqual(visible.data, [{ slug: 'hello' }])
+    } else {
+      for (const dryRun of [true, false]) {
+        await assert.rejects(() => syncResources({ definitions: custom, reader, writer, dryRun }), /custom_permission_rules_enabled/)
+      }
+      const folders = await reader.listSystemResource('folders')
+      assert.equal(folders.some((item) => item.name === 'DSK CI Permission Guard'), false)
+    }
   } finally {
-    await syncResources({ definitions: integrationResources(true), reader, writer, confirmDestructive: true })
+    const cleanup = integrationResources(true)
+    cleanup.folders.push({ type: 'folders', key: 'guard', delete: true, data: { name: 'DSK CI Permission Guard', parent: null } })
+    const removed = await syncResources({ definitions: cleanup, reader, writer, confirmDestructive: true })
+    assert.equal(removed.status, 'success', JSON.stringify(removed.failure))
     const state = await reader.readState()
     if (createClearPlan(manifest, state).length > 0) {
       const cleared = await executeClear({ manifest, state, writer, confirm: true })
@@ -66,7 +102,10 @@ async function login(baseUrl: string, userEmail: string, userPassword: string): 
 
 function integrationManifest(): Manifest {
   const categories = collection({ name: 'dsk_ci_categories', label: 'DSK CI Categories', fields: [field.string('slug', { unique: true, required: true })] })
-  const articles = collection({ name: 'dsk_ci_articles', label: 'DSK CI Articles', fields: [field.string('slug', { unique: true, required: true })] })
+  const articles = collection({ name: 'dsk_ci_articles', label: 'DSK CI Articles', fields: [
+    field.string('slug', { unique: true, required: true }), field.status(), field.toggle('is_featured'),
+    field.dateTime('date_published'), field.markdown('content'), field.tags('keywords'), field.code('seo', { type: 'json' }),
+  ] })
   const tags = collection({ name: 'dsk_ci_tags', label: 'DSK CI Tags' })
   const comments = collection({ name: 'dsk_ci_comments', label: 'DSK CI Comments' })
   const textBlocks = collection({ name: 'dsk_ci_text_blocks', label: 'DSK CI Text Blocks' })
@@ -104,7 +143,7 @@ function integrationSeeds(): SeedBatch[] {
     {
       schemaVersion: 1, file: 'articles.json', collection: 'dsk_ci_articles', upsertBy: ['slug'],
       refs: { category_id: { collection: 'dsk_ci_categories', field: 'slug', from: 'category' } },
-      items: [{ slug: 'hello', category: 'news' }],
+      items: [{ slug: 'hello', category: 'news', is_featured: true, date_published: '2026-01-10T08:00:00' }],
     },
   ]
 }
@@ -117,8 +156,8 @@ function integrationResources(remove: boolean): Record<ResourceType, ResourceDef
     policies: [mark({ type: 'policies', key: 'ci', data: { name: 'DSK CI Policy', icon: 'science', app_access: false, admin_access: false } })],
     access: [mark({ type: 'access', key: 'ci', data: { role: ref('roles.ci'), policy: ref('policies.ci'), user: null } })],
     permissions: [
-      mark({ type: 'permissions', key: 'ci-read', data: { policy: ref('policies.ci'), collection: 'dsk_ci_articles', action: 'read', permissions: {} } }),
-      mark({ type: 'permissions', key: 'ci-public-read', data: { policy: systemRef('policies.public'), collection: 'dsk_ci_articles', action: 'read', permissions: {} } }),
+      mark({ type: 'permissions', key: 'ci-read', data: { policy: ref('policies.ci'), collection: 'dsk_ci_articles', action: 'read', permissions: {}, fields: ['*'] } }),
+      mark({ type: 'permissions', key: 'ci-public-read', data: { policy: systemRef('policies.public'), collection: 'dsk_ci_articles', action: 'read', permissions: {}, fields: ['*'] } }),
     ],
     presets: [mark({ type: 'presets', key: 'ci', data: { bookmark: 'DSK CI Preset', collection: 'dsk_ci_articles', role: ref('roles.ci'), user: null, layout: 'tabular' } })],
   }

@@ -36,7 +36,26 @@ export class DirectusReader {
     return this.get<Array<Record<string, unknown>>>(`/${endpoint}?limit=-1`)
   }
 
+  async getCustomPermissionRulesEnabled(): Promise<boolean> {
+    const info = await this.getData<{ version?: string }>('/server/info')
+    if (info.version?.startsWith('11.')) return true
+    if (!info.version?.startsWith('12.')) throw new DskError('无法识别 Directus 服务版本', 'CONNECTION_ERROR')
+    const license = await this.getData<{
+      entitlements?: { custom_permission_rules_enabled?: { default?: boolean; override?: boolean } }
+    }>('/license')
+    const capability = license.entitlements?.custom_permission_rules_enabled
+    const enabled = capability?.override ?? capability?.default
+    if (typeof enabled !== 'boolean') throw new DskError('Directus 未返回自定义权限规则许可信息', 'CONNECTION_ERROR')
+    return enabled
+  }
+
   private async get<T>(pathname: string): Promise<T> {
+    const data = await this.getData<T>(pathname)
+    if (!Array.isArray(data)) throw new DskError(`Directus ${pathname} 返回了无效数据`, 'CONNECTION_ERROR')
+    return data
+  }
+
+  private async getData<T>(pathname: string): Promise<T> {
     let response: Response
     try {
       response = await this.fetcher(`${this.url}${pathname}`, {
@@ -52,7 +71,7 @@ export class DirectusReader {
       throw new DskError(`读取 Directus ${pathname} 失败: HTTP ${response.status}`, 'CONNECTION_ERROR', message ? [message] : [])
     }
     const payload = await response.json() as DirectusResponse<T>
-    if (!payload || !Array.isArray(payload.data)) throw new DskError(`Directus ${pathname} 返回了无效数据`, 'CONNECTION_ERROR')
+    if (!payload || payload.data === undefined || payload.data === null) throw new DskError(`Directus ${pathname} 返回了无效数据`, 'CONNECTION_ERROR')
     return payload.data
   }
 }

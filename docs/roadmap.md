@@ -17,13 +17,13 @@ DSK 面向本地 Directus 项目，让数据模型和基础资源可以通过代
 | 清理 | 仅清理完整 Manifest 声明的自定义 Schema，必须明确确认 |
 | 工程化 | 文本／版本化 JSON 输出、稳定退出码、凭证脱敏 |
 
-CLI 接受 Directus 11.x 和 12.x；当前认证基线为 Node.js 22+、Directus 11.17.4 + SQLite。详细状态统一见 [兼容性](./compatibility.md)。
+CLI 接受 Directus 11.x 和 12.x；当前自动集成基线为 Node.js 22+，Directus 11.17.4 / 12.5.1 + SQLite。详细状态统一见 [兼容性](./compatibility.md)。
 
 ## 后续方向
 
 | 优先顺序 | 方向 | 完成条件 |
 | --- | --- | --- |
-| 优先 | 扩展 Directus 12.x 认证 | 独立集成生命周期、幂等检查和 Data Studio 人工回归通过后，再列入认证矩阵 |
+| 优先 | 补全 Directus 12.x 认证 | 12.5.1 的独立集成生命周期与幂等检查已通过；继续验证有许可的自定义权限和 Data Studio 编辑体验 |
 | 后续 | 团队级规则、可复用定义包和 drift 审查 | 明确规则入口、组合与冲突行为，并保持确定性输出和现有安全边界 |
 | 待独立设计 | Flow、Operation、Dashboard、Panel 和受控 migration | 先明确资源生命周期、危险确认与失败恢复策略，经设计和安全评审后再实现 |
 

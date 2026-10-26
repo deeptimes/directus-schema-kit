@@ -2,7 +2,7 @@
 
 Directus Schema Kit 是面向 Directus 本地开发项目的声明式 Schema Provisioning 工具。TypeScript DSL 负责人工编写，版本化 JSON Manifest 负责校验、规划和执行边界。
 
-CLI 接受 Directus 11.x 与 12.x。当前认证环境为 Node.js 22+、Directus 11.17.4 和 SQLite；Directus 12.2.0 尚待独立集成测试认证。
+CLI 接受 Directus 11.x 与 12.x。Node.js 22+ 下已验证 Directus 11.17.4、12.5.1 + SQLite 的自动集成生命周期；v12 自定义权限依赖相应 license 能力，完整 Studio 编辑回归仍待验证，详见 [兼容性](docs/compatibility.md)。
 
 ## 当前实现
 

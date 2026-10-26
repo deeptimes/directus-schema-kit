@@ -19,7 +19,7 @@ Apply 的创建顺序为 group → collection（主键随集合 POST）→ 非 a
 
 Reader 并发读取 collections / fields / relations。Writer 对 429、502、503、504、超时及网络错误采用有限重试，默认最多请求三次；确定性 4xx 和 DELETE 的 HTTP 失败响应不重试，网络异常仍走有限重试。
 
-Seed 按文件名、批次和 item 确定性执行，自然键索引分页加载；引用优先命中本次缓存，再查询实例，无法解析即停止。系统资源通过业务字段匹配、拓扑排序解析引用。Clear 先处理关系字段（包括其他自定义集合指向目标集合的关系字段），再按子到父顺序删除集合，最后删除 group；单项失败会记录并继续清理，其结果通过 failures 汇总。
+Seed 按文件名、批次和 item 确定性执行，自然键索引分页加载；引用优先命中本次缓存，再查询实例，无法解析即停止。系统资源在同步前检查 v12 自定义权限规则许可，再通过业务字段匹配、拓扑排序解析引用。Clear 先处理关系字段（包括其他自定义集合指向目标集合的关系字段），再按子到父顺序删除集合，最后删除 group；单项失败会记录并继续清理，其结果通过 failures 汇总。
 
 ## 结果契约
 
@@ -57,7 +57,7 @@ DSK_INTEGRATION_PASSWORD='<本地测试密码>' \
 pnpm test:integration
 ```
 
-也可通过 `DSK_INTEGRATION_TOKEN` 提供认证。缺少连接／认证配置时，集成测试会 skip，不能当作通过。CI 的 Directus 11.17.4 + SQLite 服务配置见 [ci.yml](../.github/workflows/ci.yml)。
+也可通过 `DSK_INTEGRATION_TOKEN` 提供认证；`DSK_INTEGRATION_VERSION` 可校验连接的实际服务版本。缺少连接／认证配置时，集成测试会 skip，不能当作通过。CI 的 Directus 11.17.4 / 12.5.1 + SQLite 服务矩阵配置见 [ci.yml](../.github/workflows/ci.yml)。
 
 发布前执行 `pnpm check:release`。纯文档修改检查相对链接、旧路径和代码契约一致性即可，不要求启动实例或执行完整测试。
 

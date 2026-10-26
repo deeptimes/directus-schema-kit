@@ -73,14 +73,15 @@ export async function runSeeds(options: {
   if (options.mode === 'apply' && !options.writer) throw new DskError('Seed apply 缺少 writer', 'CONFIG_ERROR')
 
   const cache = new Map<string, Record<string, unknown> | null>()
+  const plannedItems = new Map<string, Array<Record<string, unknown>>>()
   for (const batch of options.batches) {
-    const existing = await loadAll(options.reader, batch.collection)
+    const existing: Array<Record<string, unknown>> = [...await loadAll(options.reader, batch.collection), ...(plannedItems.get(batch.collection) ?? [])]
     const index = new Map(existing.map((item) => [itemKey(batch.upsertBy, item), item]))
     for (const source of batch.items) {
       const initial = { ...(batch.defaults ?? {}), ...source }
       const key = itemKey(batch.upsertBy, initial)
       try {
-        const data = await resolveReferences(batch, initial, options.reader, cache)
+        const data = await resolveReferences(batch, initial, options.reader, cache, plannedItems)
         const current = index.get(key)
         const action = !current ? 'create' : hasChanges(current, data) ? 'update' : 'unchanged'
         const operation: SeedOperation = { collection: batch.collection, key, action, data, ...(current?.id !== undefined ? { id: current.id as string | number } : {}) }
@@ -93,6 +94,12 @@ export async function runSeeds(options: {
           const registered = { ...data, id: saved.id ?? operation.id }
           index.set(key, registered)
           registerCache(batch.collection, registered, cache)
+        } else if (options.mode === 'plan') {
+          // 计划内 ID 仅用于解析后续引用，不作为真实实例 ID 执行。
+          const projected = { ...current, ...data, id: current?.id ?? `__dsk_seed_plan__:${operations.length}` }
+          const rows = plannedItems.get(batch.collection) ?? []
+          plannedItems.set(batch.collection, [...rows.filter((item) => itemKey(batch.upsertBy, item) !== key), projected])
+          index.set(key, projected)
         } else if (current) registerCache(batch.collection, current, cache)
       } catch (error) {
         return {
@@ -105,7 +112,7 @@ export async function runSeeds(options: {
   return { seedVersion: 1, mode: options.mode, status: 'success', batches: options.batches.length, items: total, summary, operations }
 }
 
-async function resolveReferences(batch: SeedBatch, source: Record<string, unknown>, reader: SeedReader, cache: Map<string, Record<string, unknown> | null>): Promise<Record<string, unknown>> {
+async function resolveReferences(batch: SeedBatch, source: Record<string, unknown>, reader: SeedReader, cache: Map<string, Record<string, unknown> | null>, plannedItems: Map<string, Array<Record<string, unknown>>>): Promise<Record<string, unknown>> {
   const result = { ...source }
   for (const [target, reference] of Object.entries(batch.refs ?? {})) {
     const from = reference.from ?? target
@@ -120,7 +127,8 @@ async function resolveReferences(batch: SeedBatch, source: Record<string, unknow
     const filter: Record<string, unknown> = { [reference.field ?? 'slug']: value }
     for (const scope of reference.scope ?? []) filter[scope] = result[scope]
     const cacheKey = lookupKey(reference.collection, filter)
-    let found = cache.get(cacheKey)
+    let found = plannedItems.get(reference.collection)?.find((item) => Object.entries(filter).every(([field, expected]) => item[field] === expected))
+      ?? cache.get(cacheKey)
     if (found === undefined) {
       found = (await reader.listItems(reference.collection, { fields: ['id'], limit: 1, filter }))[0] ?? null
       cache.set(cacheKey, found)

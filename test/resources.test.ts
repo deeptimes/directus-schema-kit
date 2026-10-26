@@ -128,3 +128,68 @@ test('关联资源删除按依赖逆序且不会重复执行', async () => {
   assert.equal(result.status, 'success')
   assert.deepEqual(store.writes, ['delete:permissions.permission-1', 'delete:roles.role-1'])
 })
+
+test('未启用 Directus 自定义权限规则时，在任何资源写入前拒绝同步', async () => {
+  for (const data of [
+    { fields: ['*'], permissions: { status: { _eq: 'published' } } },
+    { fields: ['id', 'title'] },
+    { fields: ['*'], validation: { user_created: { _eq: '$CURRENT_USER' } } },
+    { fields: ['*'], presets: { user_created: '$CURRENT_USER' } },
+    {},
+  ]) {
+    const store = Object.assign(new MemoryResources(), { getCustomPermissionRulesEnabled: async () => false })
+    await assert.rejects(
+      () => syncResources({
+        definitions: definitions({
+          folders: [{ type: 'folders', key: 'media', data: { name: 'Media', parent: null } }],
+          permissions: [{ type: 'permissions', key: 'read', data: { policy: 'policy-1', collection: 'articles', action: 'read', ...data } }],
+        }),
+        reader: store, writer: store,
+      }),
+      /custom_permission_rules_enabled/,
+    )
+    assert.deepEqual(store.writes, [])
+  }
+})
+
+test('已启用自定义规则时保留原始权限过滤条件', async () => {
+  const store = Object.assign(new MemoryResources(), { getCustomPermissionRulesEnabled: async () => true })
+  const result = await syncResources({
+    definitions: definitions({ permissions: [{
+      type: 'permissions', key: 'read',
+      data: { policy: 'policy-1', collection: 'articles', action: 'read', fields: ['*'], permissions: { status: { _eq: 'published' } } },
+    }] }),
+    reader: store, writer: store,
+  })
+  assert.equal(result.status, 'success')
+  assert.deepEqual(store.data.get('permissions')?.[0]?.permissions, { status: { _eq: 'published' } })
+})
+
+test('无自定义规则的权限和删除操作无需许可预检', async () => {
+  const store = Object.assign(new MemoryResources(), {
+    getCustomPermissionRulesEnabled: async (): Promise<boolean> => { throw new Error('不应请求许可') },
+  })
+  store.data.set('permissions', [{ id: 'permission-1', policy: 'policy-1', collection: 'legacy', action: 'read' }])
+  const result = await syncResources({
+    definitions: definitions({ permissions: [
+      { type: 'permissions', key: 'read', data: { policy: 'policy-1', collection: 'articles', action: 'read', fields: ['*'], permissions: {} } },
+      { type: 'permissions', key: 'legacy', delete: true, data: { policy: 'policy-1', collection: 'legacy', action: 'read' } },
+    ] }),
+    reader: store, writer: store, confirmDestructive: true,
+  })
+  assert.equal(result.status, 'success')
+  assert.deepEqual(store.writes, ['create:permissions', 'delete:permissions.permission-1'])
+})
+
+test('权限能力查询失败时 dry-run 也不报告可同步', async () => {
+  const store = Object.assign(new MemoryResources(), {
+    getCustomPermissionRulesEnabled: async (): Promise<boolean> => { throw new Error('许可查询失败') },
+  })
+  await assert.rejects(() => syncResources({
+    definitions: definitions({ permissions: [{
+      type: 'permissions', key: 'read', data: { policy: 'policy-1', collection: 'articles', action: 'read', fields: ['title'] },
+    }] }),
+    reader: store, writer: store, dryRun: true,
+  }), /许可查询失败/)
+  assert.deepEqual(store.writes, [])
+})

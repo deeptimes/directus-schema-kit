@@ -84,3 +84,40 @@ test('静态校验组合自然键和引用 scope', () => {
   assert.equal(errors.some((item) => item.includes('缺少自然键 book')), true)
   assert.equal(errors.some((item) => item.includes('缺少 scope book')), true)
 })
+
+test('首次 seed plan 解析同次计划的跨批次和带 scope 自引用，且不写入实例', async () => {
+  const store = new MemoryItems()
+  const result = await runSeeds({
+    batches: [
+      batch({ collection: 'categories', upsertBy: ['slug'], items: [{ slug: 'new' }] }),
+      batch({ collection: 'articles', upsertBy: ['slug'], refs: { category_id: { collection: 'categories', from: 'category' } }, items: [{ slug: 'hello', category: 'new' }] }),
+      batch({
+        collection: 'chapters', upsertBy: ['book', 'slug'],
+        refs: { parent_id: { collection: 'chapters', from: 'parent', scope: ['book'] } },
+        items: [{ book: 'guide', slug: 'intro' }, { book: 'guide', slug: 'child', parent: 'intro' }],
+      }),
+    ],
+    mode: 'plan', reader: store,
+  })
+  assert.equal(result.status, 'success', result.failure?.message)
+  assert.deepEqual(result.summary, { create: 4, update: 0, unchanged: 0 })
+  assert.equal(typeof result.operations[1]?.data.category_id, 'string')
+  assert.equal(typeof result.operations[3]?.data.parent_id, 'string')
+  assert.deepEqual(store.writes, [])
+  assert.equal(store.data.size, 0)
+})
+
+test('seed plan 不把其他 scope 的计划项当成有效引用', async () => {
+  const store = new MemoryItems()
+  const result = await runSeeds({
+    batches: [batch({
+      collection: 'chapters', upsertBy: ['book', 'slug'],
+      refs: { parent_id: { collection: 'chapters', from: 'parent', scope: ['book'] } },
+      items: [{ book: 'other', slug: 'intro' }, { book: 'guide', slug: 'child', parent: 'intro' }],
+    })],
+    mode: 'plan', reader: store,
+  })
+  assert.equal(result.status, 'failed')
+  assert.match(result.failure?.message ?? '', /引用不存在/)
+  assert.deepEqual(store.writes, [])
+})

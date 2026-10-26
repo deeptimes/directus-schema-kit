@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npx directus start",
+    "dev": "directus start",
+    "bootstrap": "directus bootstrap",
     "dsk": "dsk",
     "schema:build": "dsk build",
     "schema:validate": "dsk validate",
@@ -14,7 +15,7 @@
     "schema:seed": "dsk seed"
   },
   "dependencies": {
-    "directus": "11.17.4"
+    "directus": "12.5.1"
   },
   "devDependencies": {
     "@deeptimes/directus-schema-kit": "link:..",

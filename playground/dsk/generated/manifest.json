@@ -1246,6 +1246,9 @@
         },
         "readonly": false,
         "required": false,
+        "special": [
+          "cast-boolean"
+        ],
         "translations": [
           {
             "language": "zh-CN",
@@ -2985,6 +2988,9 @@
         },
         "readonly": false,
         "required": false,
+        "special": [
+          "cast-boolean"
+        ],
         "translations": [
           {
             "language": "zh-CN",
@@ -3240,9 +3246,9 @@
   ],
   "generator": {
     "name": "@deeptimes/directus-schema-kit",
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
-  "manifestVersion": 3,
+  "manifestVersion": 1,
   "relations": [
     {
       "collection": "blog_categories",

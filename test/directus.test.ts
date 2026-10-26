@@ -55,3 +55,37 @@ test('DirectusWriter 从错误详情中脱敏 token', async () => {
     },
   )
 })
+
+test('DirectusReader 根据实际服务版本与许可判断自定义权限规则能力', async () => {
+  for (const fixture of [
+    { version: '11.17.4', entitlement: { default: false }, enabled: true },
+    { version: '12.5.1', entitlement: { default: false }, enabled: false },
+    { version: '12.5.1', entitlement: { default: true }, enabled: true },
+    { version: '12.5.1', entitlement: { default: false, override: true }, enabled: true },
+    { version: '12.5.1', entitlement: { default: true, override: false }, enabled: false },
+  ]) {
+    const fetcher: typeof fetch = async (input, init) => {
+      assert.equal(init?.method, 'GET')
+      const pathname = new URL(String(input)).pathname
+      if (pathname === '/server/info') return Response.json({ data: { version: fixture.version } })
+      assert.equal(pathname, '/license')
+      assert.notEqual(fixture.version, '11.17.4')
+      return Response.json({ data: { status: 'active', entitlements: { custom_permission_rules_enabled: fixture.entitlement } } })
+    }
+    const reader = new DirectusReader('http://localhost:8055', 'secret', 1000, fetcher)
+    assert.equal(await reader.getCustomPermissionRulesEnabled(), fixture.enabled)
+  }
+})
+
+test('DirectusReader 不将缺失许可信息或查询失败当作支持自定义规则', async () => {
+  for (const response of [
+    Response.json({ data: { status: 'active', entitlements: {} } }),
+    Response.json({ errors: [{ message: 'forbidden' }] }, { status: 403 }),
+  ]) {
+    const fetcher: typeof fetch = async (input) => new URL(String(input)).pathname === '/server/info'
+      ? Response.json({ data: { version: '12.5.1' } })
+      : response
+    const reader = new DirectusReader('http://localhost:8055', 'secret', 1000, fetcher)
+    await assert.rejects(() => reader.getCustomPermissionRulesEnabled())
+  }
+})

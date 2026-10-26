@@ -81,7 +81,7 @@ export const field = {
     return scalar('decimal', name, options, { numeric_precision: options.precision ?? 10, numeric_scale: options.scale ?? 2 })
   },
   boolean(name: string, options: CommonFieldOptions = {}): FieldDefinition {
-    return { field: name, type: 'boolean', meta: meta(name, options, { interface: 'boolean', width: 'half' }), schema: schema(options) }
+    return { field: name, type: 'boolean', meta: meta(name, options, { interface: 'boolean', width: 'half', special: ['cast-boolean'] }), schema: schema(options) }
   },
   dateTime(name: string, options: CommonFieldOptions = {}): FieldDefinition {
     return {
@@ -141,7 +141,7 @@ export const field = {
     return {
       field: name,
       type: 'boolean',
-      meta: meta(name, { ...common, options: Object.keys(toggleOptions).length ? toggleOptions : null }, { interface: 'boolean', width: 'half' }),
+      meta: meta(name, { ...common, options: Object.keys(toggleOptions).length ? toggleOptions : null }, { interface: 'boolean', width: 'half', special: ['cast-boolean'] }),
       schema: schema(common),
     }
   },

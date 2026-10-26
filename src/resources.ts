@@ -6,7 +6,10 @@ const endpoints: Record<ResourceType, string> = {
   folders: 'folders', roles: 'roles', policies: 'policies', access: 'access', permissions: 'permissions', presets: 'presets',
 }
 
-export interface ResourceReader { listSystemResource(endpoint: string): Promise<Array<Record<string, unknown>>> }
+export interface ResourceReader {
+  listSystemResource(endpoint: string): Promise<Array<Record<string, unknown>>>
+  getCustomPermissionRulesEnabled?(): Promise<boolean>
+}
 export interface ResourceWriter {
   createSystemResource(endpoint: string, data: Record<string, unknown>): Promise<Record<string, unknown>>
   updateSystemResource(endpoint: string, id: string | number, data: Record<string, unknown>): Promise<Record<string, unknown>>
@@ -22,6 +25,17 @@ export async function syncResources(options: {
   confirmDestructive?: boolean
 }): Promise<ResourceSyncResult> {
   const dryRun = options.dryRun ?? false
+  const customRules = options.definitions.permissions.some((definition) => {
+    if (definition.delete) return false
+    const { fields, permissions, validation, presets } = definition.data
+    return !Array.isArray(fields) || !fields.includes('*')
+      || [permissions, validation, presets].some((value) => value !== null && typeof value === 'object' && Object.keys(value).length > 0)
+  })
+  if (customRules && options.reader.getCustomPermissionRulesEnabled && !await options.reader.getCustomPermissionRulesEnabled()) {
+    throw new DskError('Directus 未启用 custom_permission_rules_enabled，无法同步自定义权限规则', 'CONFIG_ERROR', [
+      '请配置包含该能力的有效 Directus license；DSK 不会移除过滤条件、字段限制、validation 或 presets 来绕过限制',
+    ])
+  }
   const current = Object.fromEntries(await Promise.all(order.map(async (type) => [type, await options.reader.listSystemResource(endpoints[type])]))) as Record<ResourceType, Array<Record<string, unknown>>>
   const idByRef = new Map<string, string | number>()
   const systemIds = resolveSystemReferences(options.definitions, current)

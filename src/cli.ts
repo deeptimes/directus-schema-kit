@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { createInterface } from 'node:readline/promises'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import process from 'node:process'
 import { Command } from 'commander'
 import { applyCommand, buildCommand, clearCommand, doctorCommand, initCommand, planCommand, resourcesApplyCommand, seedCommand, validateCommand, type CommandContext } from './commands.js'
 import { DskError } from './errors.js'
@@ -108,7 +109,7 @@ program.command('seed [path]')
 
 const resources = program.command('resources').description('同步 Directus 系统资源')
 resources.command('apply')
-  .description('规划并同步 Directus 11 系统资源和访问关系')
+  .description('规划并同步 Directus 系统资源和访问关系')
   .option('--dry-run', '只输出计划，不写入')
   .option('--confirm-destructive', '允许定义中显式声明的删除')
   .action(async (options: { dryRun?: boolean; confirmDestructive?: boolean }) => {

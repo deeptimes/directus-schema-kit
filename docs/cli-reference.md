@@ -71,4 +71,6 @@ pnpm dsk --format json validate
 | `4` | 连接或执行失败 |
 | `5` | 配置或项目识别错误 |
 
+Directus v12 的受限权限声明在 `resources apply`（含 dry-run）前检查许可；缺少能力或认证配置时不写入。`seed --plan` 中的 `__dsk_seed_plan__:` ID 是计划占位，不能作为实例 ID 使用。
+
 JSON 输出只在 stdout 产生一个机器可读结果，不包含装饰性文本或凭证。

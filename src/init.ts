@@ -27,7 +27,7 @@ const aiGuide = `# Directus Schema Kit AI 规则
 
 ## 开始前必须阅读
 
-1. 当前项目已有的 \`.ai/\` 规则文档。
+1. 当前项目的 \`AGENTS.md\` 与 \`docs/\` 规则文档。
 2. 当前项目的 \`dsk/README.md\`。
 3. 当前项目已有的 \`dsk/schemas/\`、\`dsk/resources/\` 和 \`dsk/seeds/\`。
 4. DSK 公开文档中的 Schema DSL、Manifest 和 CLI 说明。
@@ -67,6 +67,22 @@ const aiGuide = `# Directus Schema Kit AI 规则
 - 硬编码 Directus role、policy、user 等系统资源 UUID。
 - 声明 Flow、Operation、Dashboard、Panel，当前版本不支持。
 
+## Directus 11 / 12 兼容与开发边界
+
+- 使用 Node.js 22+；自动集成基线为 Directus 11.17.4 / 12.5.1 + SQLite，不能把版本准入等同于所有数据库和 Studio 行为已认证。
+- DSK 通过 Directus API 工作；连接配置使用项目环境中的 \`PUBLIC_URL\`、\`ADMIN_TOKEN\`，仅用于本地或私网开发实例。
+- v12 自定义权限过滤、字段限制、validation 和 presets 依赖 \`custom_permission_rules_enabled\`。资源同步（包括 dry-run）会检查实际服务许可；未启用或查询失败时停止，不得删除规则绕过限制。
+- 无自定义规则的全字段 permission 应明确声明 \`fields: ['*']\`；不要把缺省 fields 当作不受许可限制。
+- 自定义系统资源使用稳定 key 与 \`ref()\`；Public permission 使用 \`systemRef('policies.public')\`，不重复创建内置 Public policy。
+- \`field.boolean()\` / \`field.toggle()\` 默认生成 \`special: ['cast-boolean']\`，保证 SQLite API 返回布尔值。已有字段若因此出现 dangerous，需审查并独立变更，不能自动绕过 Plan。
+- \`dateTime\` 表示不带时区的日期时间，Seed 使用 \`YYYY-MM-DDTHH:mm:ss\`；跨时区绝对时间使用 timestamp。
+- v12 Studio 新集合默认 Archived 不影响显式声明的字符串 \`status\`；不要自动将已有状态字段改为布尔类型。
+- Markdown helper 不依赖 TinyMCE；自定义 WYSIWYG interface/options 时，需单独核对 v12 Tiptap 配置与内容兼容性。
+- Seed 使用自然键和稳定业务键引用；计划可引用更早出现的新增项。\`__dsk_seed_plan__:\` 只是计划内占位 ID，不写入源码或当作真实 ID。
+- 升级 Directus 时先备份，再由 Directus bootstrap 执行系统迁移；不使用 DSK clear 代替版本迁移。
+- 系统资源删除必须显式声明 \`delete: true\` 并提供 \`--confirm-destructive\`；clear 先审查完整范围，再交互确认或显式 \`--confirm\`，永远保护 \`directus_*\`。
+- 凭证、secret 和真实隐私数据不进入源码、Manifest、Seed 或报告；敏感定义使用 \`env()\` 引用。
+
 ## 修改后检查
 
 \`\`\`bash
@@ -74,6 +90,8 @@ pnpm dsk build
 pnpm dsk validate
 pnpm dsk plan
 \`\`\`
+
+涉及系统资源时先运行 \`pnpm dsk resources apply --dry-run\`；涉及 Seed 时先运行 \`pnpm dsk seed --plan\`。只有任务明确授权目标实例写入，并完成计划审查后，才执行真实 apply、resources apply、seed 或 clear。Schema apply 失败后先核对部分结果并重新 plan，不假设有事务回滚。
 `
 
 const dskReadme = `# DSK 工作区
@@ -97,7 +115,7 @@ export default collection({
 - \`config.json\`：项目路径、安全和校验配置。
 - \`seeds/\`：严格 JSON seed，每个文件必须包含 \`schemaVersion\`。
 - \`generated/manifest.json\`：由 \`dsk build\` 生成，禁止手工修改。
-- \`../.ai/directus-schema-kit.md\`：给 Codex/AI 的 schema 编写规则。
+- \`../docs/directus-schema-kit.md\`：给 Codex/AI 的 schema 编写规则。
 
 \`plan/apply\` 仅消费 JSON Manifest，不执行 TypeScript DSL。
 `
@@ -114,9 +132,9 @@ export function initializeWorkspace(projectRoot: string, dryRun = false): InitRe
     ['dsk/resources/permissions.ts', resourceExample],
     ['dsk/resources/presets.ts', resourceExample],
     ['dsk/seeds/example/10-example.json', seedExample],
-    ['.ai/directus-schema-kit.md', aiGuide],
+    ['docs/directus-schema-kit.md', aiGuide],
   ])
-  const directories = ['.ai', 'dsk/schemas', 'dsk/resources', 'dsk/seeds/example', 'dsk/generated']
+  const directories = ['docs', 'dsk/schemas', 'dsk/resources', 'dsk/seeds/example', 'dsk/generated']
   const result: InitResult = { created: [], preserved: [], dryRun }
 
   for (const directory of directories) {

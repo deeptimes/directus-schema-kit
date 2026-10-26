@@ -27,7 +27,7 @@
         "title": "用 Schema as Code 管理 Directus",
         "description": "Directus 数据模型工程化实践。"
       },
-      "date_published": "2026-01-10T08:00:00.000Z",
+      "date_published": "2026-01-10T08:00:00",
       "category_slug": "backend",
       "sort": 10
     },
@@ -43,7 +43,7 @@
         "title": "Directus 生产部署检查清单",
         "description": "面向会员的 Directus 上线实践。"
       },
-      "date_published": "2026-01-15T08:00:00.000Z",
+      "date_published": "2026-01-15T08:00:00",
       "category_slug": "devops",
       "sort": 20
     },
@@ -55,7 +55,7 @@
       "access_level": "public",
       "reading_minutes": 5,
       "keywords": ["TypeScript", "API"],
-      "date_published": "2026-01-20T08:00:00.000Z",
+      "date_published": "2026-01-20T08:00:00",
       "category_slug": "backend",
       "sort": 30
     }

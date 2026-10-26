@@ -172,3 +172,9 @@ test('File、Image、Files 与 Translations 使用固定目标和完整关系展
   assert.equal(translations.collections[0]?.meta.group, 'articles')
   assert.equal(translations.relations[1]?.related_collection, 'languages')
 })
+
+test('boolean 与 toggle 声明 Directus 布尔转换，保证 SQLite API 返回布尔值', () => {
+  assert.deepEqual(field.boolean('is_active').meta.special, ['cast-boolean'])
+  assert.deepEqual(field.toggle('is_featured').meta.special, ['cast-boolean'])
+  assert.deepEqual(field.boolean('is_active', { special: [] }).meta.special, [])
+})

@@ -13,10 +13,10 @@ dsk/
   resources/*.ts           # 权限、目录、Preset 等系统资源
   seeds/**/*.json          # 本地基础数据
   generated/manifest.json  # build 产物，禁止手改
-.ai/directus-schema-kit.md # init 为业务项目生成的 AI 规则
+docs/directus-schema-kit.md # init 为业务项目生成的 AI 规则
 ```
 
-本仓库的知识库已统一到 `docs/`；业务项目中由 init 生成的 `.ai/directus-schema-kit.md` 仍按现有行为保留。
+初始化规则统一生成到 `docs/directus-schema-kit.md`，包含 Directus 11 / 12 的兼容与安全约束。`init` 不覆盖已有文档；旧项目重新执行时会补建新路径，但保留原 `.ai/directus-schema-kit.md`，请审阅并合并项目定制内容后再自行清理旧文件。
 
 | 内容 | 维护位置与方式 |
 | --- | --- |
@@ -57,7 +57,8 @@ pnpm dsk apply --dry-run
 
 - 系统资源：`pnpm dsk resources apply --dry-run` 查看计划，再执行 `pnpm dsk resources apply`。
 - 基础数据：`pnpm dsk seed --dry-run` 只做离线结构校验；`pnpm dsk seed --plan` 查看实例差异，再执行 `pnpm dsk seed`。
-- 自定义资源之间使用稳定 `key` 和 `ref()` 关联；Directus 11.17.4 权限链为 roles → policies → access → permissions。
+- 自定义资源之间使用稳定 `key` 和 `ref()` 关联；Directus 11 / 12 权限链为 roles → policies → access → permissions。
+- v12 自定义过滤、字段限制、validation 和 presets 需要启用 `custom_permission_rules_enabled`；未启用时连 dry-run 也会在写入前报配置错误，详见 [兼容性](./compatibility.md)。
 - Public permission 使用 `systemRef('policies.public')` 关联内置 policy，不创建副本、不硬编码 UUID。
 - Seed 使用自然键 upsert 和稳定业务键引用；重复执行应收敛为 unchanged，不保存凭证或真实隐私数据。
 
