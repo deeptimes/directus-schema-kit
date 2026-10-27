@@ -101,13 +101,13 @@ async function login(baseUrl: string, userEmail: string, userPassword: string): 
 }
 
 function integrationManifest(): Manifest {
-  const categories = collection({ name: 'dsk_ci_categories', label: 'DSK CI Categories', fields: [field.string('slug', { unique: true, required: true })] })
+  const categories = collection({ name: 'dsk_ci_categories', label: 'DSK CI Categories', group: 'dsk_ci_articles', fields: [field.string('slug', { unique: true, required: true })] })
   const articles = collection({ name: 'dsk_ci_articles', label: 'DSK CI Articles', fields: [
     field.string('slug', { unique: true, required: true }), field.status(), field.toggle('is_featured'),
     field.dateTime('date_published'), field.markdown('content'), field.tags('keywords'), field.code('seo', { type: 'json' }),
   ] })
   const tags = collection({ name: 'dsk_ci_tags', label: 'DSK CI Tags' })
-  const comments = collection({ name: 'dsk_ci_comments', label: 'DSK CI Comments' })
+  const comments = collection({ name: 'dsk_ci_comments', label: 'DSK CI Comments', group: 'dsk_ci_categories' })
   const textBlocks = collection({ name: 'dsk_ci_text_blocks', label: 'DSK CI Text Blocks' })
   const imageBlocks = collection({ name: 'dsk_ci_image_blocks', label: 'DSK CI Image Blocks' })
   const languages = collection({ name: 'dsk_ci_languages', label: 'DSK CI Languages' })
@@ -122,7 +122,7 @@ function integrationManifest(): Manifest {
     relation.m2a({ collection: 'dsk_ci_articles', field: 'blocks', allowedCollections: ['dsk_ci_text_blocks', 'dsk_ci_image_blocks'] }),
   ]
   const expanded = blueprints.map(expandRelationBlueprint)
-  const baseCollections = [categories, articles, tags, comments, textBlocks, imageBlocks, languages]
+  const baseCollections = [comments, categories, articles, tags, textBlocks, imageBlocks, languages]
   const collections = [...baseCollections, ...expanded.flatMap((item) => item.collections)]
   return {
     manifestVersion: 1, generator: { name: 'integration', version: '1' },

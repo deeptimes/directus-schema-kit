@@ -33,6 +33,32 @@ Core 的 collection 等限额仍由 Directus 执行，DSK 不预留配额或绕�
 - playground 的 `dateTime` Seed 改为不带时区的 `YYYY-MM-DDTHH:mm:ss`。跨时区的绝对时间应使用 timestamp，不能让无时区 dateTime 隐式转换 UTC 输入。
 - 更新依赖不会迁移数据库；先备份，再运行 `pnpm --dir playground bootstrap`，由 Directus 执行自身系统迁移。不要用 DSK clear 代替版本迁移，也不要将迁移后的数据库直接交给 v11。
 
+## SQLite 条件唯一索引兼容补丁
+
+Directus 12.5.1 使用的 `@directus/schema@14.0.2` 在识别 SQLite 单列唯一索引时未排除 `partial = 1`，会将条件唯一误报为字段全局唯一。REST `/fields` 不提供索引条件，DSK 无法仅凭该响应安全区分两者，因此继续严格比较 `schema.is_unique`，不忽略差异、不删除索引，也不把字段声明为全局唯一。
+
+兼容方案是在**运行 Directus 的项目**中安装 [14.0.2 补丁](./patches/@directus__schema@14.0.2.patch)，在上游 inspector 中跳过 partial index。补丁只修正索引识别，不修改数据库；普通单列唯一仍返回 true，复合唯一与条件唯一不会作为字段全局唯一。同字段同时存在条件唯一与全局唯一索引时，仍识别为全局唯一。
+
+使用 pnpm 的项目，将补丁复制到项目的 `patches/@directus__schema@14.0.2.patch`，合并以下配置到项目根目录的 `pnpm-workspace.yaml`（保留原有配置）：
+
+```yaml
+patchedDependencies:
+  '@directus/schema@14.0.2': patches/@directus__schema@14.0.2.patch
+```
+
+执行 `pnpm install` 并提交补丁、配置和更新后的 lockfile，然后重启 Directus 以重建 schema 缓存，重新运行 `dsk plan`。发布包中的补丁位于 `node_modules/@deeptimes/directus-schema-kit/docs/patches/`。本仓库 playground 已配置同一补丁；仅升级 DSK 不会自动修补其他项目或 Docker 镜像中的 Directus 依赖。其他安装方式应在 Directus 的依赖构建阶段应用同一版本补丁。
+
+补丁锁定 14.0.2，升级 Directus 或 inspector 时必须重新核对，不能强行应用到其他版本。条件索引的创建、迁移与删除仍由业务项目独立管理，DSK 不据此管理索引生命周期。
+
+回归验证使用临时数据库和独立 Directus 实例，不修改 playground 数据：
+
+```bash
+pnpm --dir playground install --frozen-lockfile
+DSK_SQLITE_PROJECT=playground node --import tsx --test test/integration/sqlite-indexes.integration.test.ts
+```
+
+已在本地 Directus 12.5.1 + SQLite 验证普通唯一、条件唯一、复合唯一、同字段混合索引、真实唯一性差异阻断，以及空库按多层导航依赖完整 apply；添加索引后连续两次重启 Directus，plan 均收敛，重复本人档案仍被数据库拒绝。
+
 ## 工具链
 
 | 项目 | 支持范围 |

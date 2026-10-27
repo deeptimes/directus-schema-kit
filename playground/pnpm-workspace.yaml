@@ -15,3 +15,6 @@ onlyBuiltDependencies:
   - sharp
   - sqlite3
   - vue-demi
+
+patchedDependencies:
+  '@directus/schema@14.0.2': ../docs/patches/@directus__schema@14.0.2.patch

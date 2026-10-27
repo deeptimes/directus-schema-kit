@@ -1,0 +1,12 @@
+diff --git a/dist/index.js b/dist/index.js
+index d47bb18b929d0ca548c4f4cbda5da7cc21b01f50..6445846ba2210b926d967db4ce26fef9c5bcbab5 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -1707,6 +1707,7 @@ var SQLite = class {
+ 				for (let i = 0; i < indexInfoList.length; i++) {
+ 					if (!indexInfoList[i]?.find((fk) => fk.name === raw.name)) continue;
+ 					if (indexInfoList[i]?.length !== 1 || !indexList[i]) continue;
++					if (indexList[i].partial === 1) continue;
+ 					if (indexList[i].unique === 1) isUniqueColumn = true;
+ 					else if (indexList[i].name.length > 0) isIndexedColumn = true;
+ 					if (isUniqueColumn && isIndexedColumn) break;

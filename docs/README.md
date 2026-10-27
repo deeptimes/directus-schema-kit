@@ -11,6 +11,7 @@
 
 ## 技术参考
 
+- [更新记录](./changelog.md)：版本变更与待发布内容。
 - [Schema DSL](./schema-dsl.md)：collection、field、relation 和系统资源的公开 API。
 - [CLI 参考](./cli-reference.md)：参数、Plan 分类、退出码和 JSON 输出。
 - [Manifest V1](./manifest.md)：生成格式、源码摘要和关系展开约束。

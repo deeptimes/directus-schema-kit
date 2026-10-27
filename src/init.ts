@@ -57,6 +57,36 @@ const aiGuide = `# Directus Schema Kit AI 规则
 - 用户关系字段使用 \`user_\` 前缀。
 - 布尔字段使用 \`is_\` 前缀。
 
+## 集合可见性与呈现层级
+
+创建或修改 collection 时，必须根据实际维护方式、集合名称和业务归属，显式检查可见性与层级，不留到创建后在 Data Studio 中手动拖拽整理。
+
+### 后端维护的集合隐藏
+
+- 已知由后端服务负责 CRUD，且无需人工在 Data Studio 中填写、查看或管理的 collection，必须设置集合级 \`meta.hidden: true\`，例如内部认证挑战、任务执行记录或技术关联数据。
+- 不能仅因集合由后端写入就隐藏；仍需人工查看、审核或管理的集合应保持可见。用途不明确时，先结合业务需求和已有实现判断，不凭名称直接隐藏。
+- 隐藏只控制 Data Studio 的呈现，不代替 API 权限控制，也不改变集合的数据关系。
+- 当前 \`collection()\` 没有 \`hidden\` 参数；应在源码中对其返回的定义设置 \`meta.hidden\`，不得发明参数或手改 Manifest。例如：
+
+\`\`\`ts
+const authChallenges = collection({ name: 'auth_challenges', label: '认证挑战' })
+authChallenges.meta.hidden = true
+\`\`\`
+
+### 按业务归属设置层级
+
+- 根据集合名识别主集合与附属集合，兼顾单复数形式和业务含义。明确属于同一业务且已有主集合时，附属集合必须通过 \`collection({ group: '主集合名', ... })\` 归入其下一层，对应 Directus 的 \`meta.group\`。
+- 例如 \`blog_tags\` 归入 \`blogs\`；\`article_categories\`、\`article_contexts\` 归入 \`articles\`；\`chart_houses\`、\`chart_positions\` 归入 \`charts\`；\`profile_tags\`、\`profile_tag_links\` 归入 \`profiles\`。
+- 名称是判断线索，业务归属优先；独立业务集合或跨模块共享集合不应仅因前缀相似而强行嵌套。多个候选父集合时，结合用途确定直接归属，不能确定时再确认。
+- 父集合必须存在于完整 Schema 中；不得引用自身或形成循环，也不要仅为匹配名称创建无业务需要的集合或额外的 \`collectionGroup()\`。
+- 层级只组织 Data Studio 的集合导航，不表示数据库外键、数据从属关系或 namespace，也不改变 collection 的全局名称。
+- 可见性与层级分别判断：人工维护的附属集合仍可见；隐藏的附属集合仍应设置正确归属。自动 junction 沿用 blueprint 默认的隐藏和来源集合分组，不覆盖为按名称猜测的分组。
+
+\`\`\`ts
+const blogs = collection({ name: 'blogs', label: '博客' })
+const blogTags = collection({ name: 'blog_tags', label: '博客标签', group: 'blogs' })
+\`\`\`
+
 ## 禁止
 
 - 发明 DSK 未公开的 helper、字段类型或导入路径。

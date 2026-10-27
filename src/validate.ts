@@ -4,6 +4,7 @@ import { Ajv } from 'ajv'
 import { glob } from 'tinyglobby'
 import { formatAjvErrors } from './config.js'
 import { DskError } from './errors.js'
+import { orderedCollections } from './collections.js'
 import { calculateSourceDigest, sourceFiles } from './manifest.js'
 import { manifestJsonSchema, seedJsonSchema } from './schemas.js'
 import type { DskConfig, Manifest } from './types.js'
@@ -21,6 +22,12 @@ export function validateManifest(manifest: Manifest, config: DskConfig): string[
     collectDefinitionDuplicates(definitions, (item) => item.key, `${type} 资源`, errors)
   }
   validateResourceReferences(manifest, config, errors)
+  try {
+    orderedCollections(manifest.collections)
+  } catch (error) {
+    if (!(error instanceof DskError)) throw error
+    errors.push(error.message)
+  }
 
   const collections = new Set(manifest.collections.map((item) => item.collection))
   for (const collection of manifest.collections.filter((item) => item.schema !== null)) {

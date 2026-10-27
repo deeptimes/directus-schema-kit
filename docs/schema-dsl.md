@@ -38,7 +38,7 @@ export default defineSchema({
 })
 ```
 
-`collectionGroup()` 只负责 Directus Data Studio 的 UI 分组，与 TypeScript 文件名无关。
+`collectionGroup()` 只负责 Directus Data Studio 的 UI 分组，与 TypeScript 文件名无关。普通业务 collection 也可以作为 `group` 的父集合，例如 `blog_tags` 设置 `group: 'blogs'`。apply 按所有集合的 `meta.group` 依赖先创建父级，再创建子级，不依赖文件或声明顺序；父集合必须在完整 Manifest 中声明。缺失父级、自引用和循环依赖在 build / validate 及 apply 写入前阻断。
 
 ## 字段
 

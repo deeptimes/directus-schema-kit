@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { defaultConfig } from '../src/config.js'
+import { createPlan } from '../src/plan.js'
+import { validateManifest } from '../src/validate.js'
 import { executeApply, type SchemaWriter } from '../src/apply.js'
 import { collection, collectionGroup, field } from '../src/index.js'
 import type { Manifest, Plan, PlanOperation } from '../src/types.js'
@@ -111,3 +114,45 @@ test('拒绝执行摘要不匹配的 Plan', async () => {
   plan.manifestDigest = 'b'.repeat(64)
   await assert.rejects(() => executeApply({ manifest, plan, writer: fakeWriter([]) }), /Plan 与 Manifest 摘要不一致/)
 })
+
+function nestedFixture(): Manifest {
+  const { manifest } = fixture()
+  const definitions = [
+    collection({ name: 'article_contexts', label: '上下文', group: 'article_categories' }),
+    collection({ name: 'article_categories', label: '分类', group: 'articles' }),
+    collection({ name: 'articles', label: '文章' }),
+  ]
+  manifest.collections = definitions.map((item) => ({ ...item, fields: [] }))
+  manifest.fields = definitions.flatMap((item) => item.fields.map((definition) => ({ ...definition, collection: item.collection, source: 'test.ts' })))
+  return manifest
+}
+
+test('普通集合与分组混合时按多层 group 依赖创建，子集合可以先声明', async () => {
+  const manifest = nestedFixture()
+  manifest.collections.push(collectionGroup({ name: 'content', label: '内容' }))
+  manifest.collections.find((item) => item.collection === 'articles')!.meta.group = 'content'
+  const plan = createPlan(manifest, { collections: [], fields: [], relations: [] }, 'http://localhost:8055')
+  const log: string[] = []
+  const result = await executeApply({ manifest, plan, writer: fakeWriter(log) })
+  assert.equal(result.status, 'success')
+  assert.deepEqual(log, [
+    'collection:content:-', 'collection:articles:id',
+    'collection:article_categories:id', 'collection:article_contexts:id',
+  ])
+})
+
+for (const [name, parent, pattern] of [
+  ['父集合缺失', 'missing', /父集合.*missing.*不存在/],
+  ['自引用', 'articles', /循环依赖/],
+  ['多层循环', 'article_contexts', /循环依赖/],
+] as const) {
+  test(`group ${name} 在校验和 apply 中阻断，任何写入之前报错`, async () => {
+    const manifest = nestedFixture()
+    manifest.collections.find((item) => item.collection === 'articles')!.meta.group = parent
+    assert.ok(validateManifest(manifest, defaultConfig).some((message) => pattern.test(message)))
+    const plan = createPlan(manifest, { collections: [], fields: [], relations: [] }, 'http://localhost:8055')
+    const log: string[] = []
+    await assert.rejects(() => executeApply({ manifest, plan, writer: fakeWriter(log) }), pattern)
+    assert.deepEqual(log, [])
+  })
+}

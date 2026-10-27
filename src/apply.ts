@@ -1,4 +1,5 @@
 import { DskError } from './errors.js'
+import { orderedCollections } from './collections.js'
 import type { ApplyItem, ApplyResult, FieldDefinition, Manifest, Plan, PlanOperation } from './types.js'
 
 export interface SchemaWriter {
@@ -62,33 +63,11 @@ export async function executeApply(options: {
 function orderedOperations(manifest: Manifest, plan: Plan): PlanOperation[] {
   const executable = plan.operations.filter((item) => item.executable)
   const order = new Map<string, number>()
-  orderedCollections(manifest).forEach((item, index) => order.set(`collection:${item.collection}`, index))
+  orderedCollections(manifest.collections).forEach((item, index) => order.set(`collection:${item.collection}`, index))
   manifest.fields.filter((item) => item.type !== 'alias').forEach((item, index) => order.set(`field:${item.collection}.${item.field}`, 20_000 + index))
   manifest.relations.forEach((item, index) => order.set(`relation:${item.collection}.${item.field}`, 30_000 + index))
   manifest.fields.filter((item) => item.type === 'alias').forEach((item, index) => order.set(`field:${item.collection}.${item.field}`, 40_000 + index))
   return [...executable].sort((left, right) => (order.get(`${left.resourceType}:${left.resource}`) ?? 99_999) - (order.get(`${right.resourceType}:${right.resource}`) ?? 99_999))
-}
-
-function orderedCollections(manifest: Manifest): Manifest['collections'] {
-  const groups = new Map(manifest.collections.filter((item) => item.schema === null).map((item) => [item.collection, item]))
-  const ordered: Manifest['collections'] = []
-  const visited = new Set<string>()
-  const visiting = new Set<string>()
-  const visit = (name: string): void => {
-    if (visited.has(name)) return
-    if (visiting.has(name)) throw new Error(`集合分组存在循环依赖: ${name}`)
-    const group = groups.get(name)
-    if (!group) return
-    visiting.add(name)
-    const parent = typeof group.meta.group === 'string' ? group.meta.group : null
-    if (parent && groups.has(parent)) visit(parent)
-    visiting.delete(name)
-    visited.add(name)
-    ordered.push(group)
-  }
-  for (const name of groups.keys()) visit(name)
-  ordered.push(...manifest.collections.filter((item) => item.schema !== null))
-  return ordered
 }
 
 async function executeOperation(manifest: Manifest, operation: PlanOperation, writer: SchemaWriter, createdCollections: Set<string>): Promise<string | undefined> {
