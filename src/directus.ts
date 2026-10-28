@@ -1,7 +1,7 @@
 import { DskError } from './errors.js'
 import type { CollectionDefinition, DirectusState, FieldDefinition, RelationDefinition } from './types.js'
 
-interface DirectusResponse<T> { data: T }
+interface DirectusResponse<T> { data: T; meta?: { filter_count?: number } }
 
 export class DirectusReader {
   constructor(
@@ -36,6 +36,50 @@ export class DirectusReader {
     return this.get<Array<Record<string, unknown>>>(`/${endpoint}?limit=-1`)
   }
 
+  async readObject(endpoint: string, fields = '*'): Promise<Record<string, unknown>> {
+    const data = await this.getData<unknown>(`/${endpoint}?${new URLSearchParams({ fields })}`)
+    if (!data || typeof data !== 'object' || Array.isArray(data)) throw new DskError(`Directus ${endpoint} 返回了无效对象`, 'CONNECTION_ERROR')
+    return data as Record<string, unknown>
+  }
+
+  async listAll(endpoint: string, primaryKey = 'id', fields = '*'): Promise<Array<Record<string, unknown>>> {
+    const rows: Array<Record<string, unknown>> = []
+    const seen = new Set<string | number>()
+    for (;;) {
+      const query = new URLSearchParams({ limit: '100', offset: String(rows.length), sort: primaryKey, fields })
+      const page = await this.get<Array<Record<string, unknown>>>(`/${endpoint}?${query}`)
+      if (!page.length) return rows
+      for (const row of page) {
+        const id = row[primaryKey]
+        if ((typeof id !== 'string' && typeof id !== 'number') || seen.has(id)) throw new DskError(`Directus ${endpoint} 分页不完整或主键重复，拒绝清理`, 'CONNECTION_ERROR')
+        seen.add(id)
+        rows.push(row)
+      }
+    }
+  }
+
+  async readSingletonItems(collection: string, primaryKey: string, fields: string): Promise<Array<Record<string, unknown>>> {
+    const query = new URLSearchParams({ fields, meta: 'filter_count' })
+    const payload = await this.getPayload<Record<string, unknown>>(`/items/${encodeURIComponent(collection)}?${query}`)
+    if (payload.meta?.filter_count === 0) return []
+    const row = payload.data
+    if (payload.meta?.filter_count !== 1 || !row || Array.isArray(row) || (typeof row[primaryKey] !== 'string' && typeof row[primaryKey] !== 'number')) {
+      throw new DskError(`singleton ${collection} 记录未完整返回，拒绝清理`, 'CONNECTION_ERROR')
+    }
+    return [row]
+  }
+
+  async listStoredPermissions(): Promise<Array<Record<string, unknown>>> {
+    // Directus 会附加 system:true 且无主键的虚拟 App 权限；过滤后核对数据库总数，防止许可过滤静默遗漏。
+    const params = new URLSearchParams({ limit: '-1', sort: 'id', 'filter[id][_nnull]': 'true', meta: 'filter_count' })
+    const payload = await this.getPayload<Array<Record<string, unknown>>>(`/permissions?${params}`)
+    const rows = Array.isArray(payload.data) ? payload.data.filter((row) => !(row.system === true && row.id === undefined)) : null
+    if (!rows || payload.meta?.filter_count !== rows.length || rows.some((row) => !Number.isInteger(row.id)) || new Set(rows.map((row) => row.id)).size !== rows.length) {
+      throw new DskError('权限记录未完整返回，无法安全清理；请检查 Directus 许可或 API 查询限制', 'CONNECTION_ERROR')
+    }
+    return rows
+  }
+
   async getCustomPermissionRulesEnabled(): Promise<boolean> {
     const info = await this.getData<{ version?: string }>('/server/info')
     if (info.version?.startsWith('11.')) return true
@@ -56,6 +100,10 @@ export class DirectusReader {
   }
 
   private async getData<T>(pathname: string): Promise<T> {
+    return (await this.getPayload<T>(pathname)).data
+  }
+
+  private async getPayload<T>(pathname: string): Promise<DirectusResponse<T>> {
     let response: Response
     try {
       response = await this.fetcher(`${this.url}${pathname}`, {
@@ -72,7 +120,7 @@ export class DirectusReader {
     }
     const payload = await response.json() as DirectusResponse<T>
     if (!payload || payload.data === undefined || payload.data === null) throw new DskError(`Directus ${pathname} 返回了无效数据`, 'CONNECTION_ERROR')
-    return payload.data
+    return payload
   }
 }
 
@@ -134,6 +182,10 @@ export class DirectusWriter {
 
   deleteSystemResource(endpoint: string, id: string | number): Promise<void> {
     return this.request<void>(`/${endpoint}/${encodeURIComponent(String(id))}`, 'DELETE')
+  }
+
+  deleteItem(collection: string, id: string | number): Promise<void> {
+    return this.request<void>(`/items/${encodeURIComponent(collection)}/${encodeURIComponent(String(id))}`, 'DELETE')
   }
 
   deleteField(collection: string, field: string): Promise<void> {

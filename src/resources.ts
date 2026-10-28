@@ -94,6 +94,27 @@ export async function syncResources(options: {
   return { resourceSyncVersion: 1, dryRun: false, status: 'success', operations, completed }
 }
 
+export function matchResourceDefinitions(
+  definitions: Record<ResourceType, ResourceDefinition[]>,
+  current: Record<ResourceType, Array<Record<string, unknown>>>,
+  environment: Record<string, string>,
+): Map<string, Set<string | number>> {
+  const ids = new Map<string, string | number>()
+  const systems = resolveSystemReferences(definitions, current)
+  const matched = new Map<string, Set<string | number>>()
+  for (const definition of orderedDefinitions(definitions)) {
+    const target = resolveValue(definition.data, ids, systems, environment, true) as Record<string, unknown>
+    const rows = current[definition.type].filter((row) => matchesDefinition(definition.type, row, target))
+    if (rows.length > 1) throw new DskError(`资源业务键匹配不唯一: ${definition.type}.${definition.key}`, 'VALIDATION_ERROR')
+    const id = rows[0]?.id
+    if (typeof id !== 'string' && typeof id !== 'number') continue
+    ids.set(`${definition.type}.${definition.key}`, id)
+    if (!matched.has(definition.type)) matched.set(definition.type, new Set())
+    matched.get(definition.type)!.add(id)
+  }
+  return matched
+}
+
 function orderedDefinitions(definitions: Record<ResourceType, ResourceDefinition[]>): ResourceDefinition[] {
   const all = order.flatMap((type) => definitions[type])
   const byKey = new Map(all.map((item) => [`${item.type}.${item.key}`, item]))

@@ -14,7 +14,7 @@ DSK 面向本地 Directus 项目，让数据模型和基础资源可以通过代
 | 变更 | 离线 validate；只读 plan；全量预检后执行安全 create/update |
 | 基础数据 | 版本化 JSON seed，自然键 upsert 和跨集合／同集合引用 |
 | 系统资源 | folders、roles、policies、access、permissions、presets |
-| 清理 | 仅清理完整 Manifest 声明的自定义 Schema，必须明确确认 |
+| 清理 | `clean` 清空全部自定义集合记录；`reset` 完整清理业务环境并保留管理员和基础配置；`clear` 保持仅清理声明 Schema 的兼容行为，真实删除必须确认 |
 | 工程化 | 文本／版本化 JSON 输出、稳定退出码、凭证脱敏 |
 
 CLI 接受 Directus 11.x 和 12.x；当前自动集成基线为 Node.js 22+，Directus 11.17.4 / 12.5.1 + SQLite。详细状态统一见 [兼容性](./compatibility.md)。
@@ -45,6 +45,7 @@ CLI 接受 Directus 11.x 和 12.x；当前自动集成基线为 Node.js 22+，Di
 - 首次 apply 建立完整 Schema，二次 plan 无可执行差异；seed 和六类系统资源重复执行收敛。
 - 八类关系通过认证环境的构建、校验、应用和幂等检查，并在 Data Studio 正常编辑。
 - conflict/dangerous 在任何 Schema 写入前阻断全部操作；危险操作有独立确认且始终保护系统集合。
+- clean/reset 覆盖未声明的自定义集合，清理前全量检查引用；保留 settings、初始管理员及授权链、系统 Public policy 和运行／License 配置；reset 删除普通用户、业务授权配置和上传文件，重复执行安全。
 - 版本化 JSON 输出、退出码和敏感值脱敏保持兼容。
 
 具体开发规则见 [开发规则](./development-rules.md)，验证方法见 [DSK 实现与验收](./development.md)。若产品需求与建模规范冲突，以本文为准，并在变更说明中明确冲突。

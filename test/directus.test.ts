@@ -89,3 +89,47 @@ test('DirectusReader 不将缺失许可信息或查询失败当作支持自定�
     await assert.rejects(() => reader.getCustomPermissionRulesEnabled())
   }
 })
+
+test('清理读取按实际页长翻页，不受服务端 limit 上限截断', async () => {
+  const offsets: number[] = []
+  const fetcher: typeof fetch = async (input) => {
+    const url = new URL(String(input))
+    offsets.push(Number(url.searchParams.get('offset')))
+    assert.equal(url.searchParams.get('sort'), 'id')
+    return Response.json({ data: Number(url.searchParams.get('offset')) === 0 ? [{ id: 'a' }] : Number(url.searchParams.get('offset')) === 1 ? [{ id: 'b' }] : [] })
+  }
+  const reader = new DirectusReader('http://localhost:8055', 'secret', 1000, fetcher)
+  assert.deepEqual(await reader.listAll('users'), [{ id: 'a' }, { id: 'b' }])
+  assert.deepEqual(offsets, [0, 1, 2])
+})
+
+test('清理读取发现分页重复记录即拒绝，不生成不完整范围', async () => {
+  const reader = new DirectusReader('http://localhost:8055', 'secret', 1000, async () => Response.json({ data: [{ id: 'a' }] }))
+  await assert.rejects(() => reader.listAll('users'), /分页/)
+})
+
+test('清空记录使用逐个主键 DELETE，不发送无范围删除请求', async () => {
+  const requests: Array<{ url: string; method: string | undefined }> = []
+  const writer = new DirectusWriter('http://localhost:8055', 'secret', 1000, 1, async (input, init) => {
+    requests.push({ url: String(input), method: init?.method })
+    return new Response(null, { status: 204 })
+  })
+  await writer.deleteItem('articles', 'one/two')
+  assert.deepEqual(requests, [{ url: 'http://localhost:8055/items/articles/one%2Ftwo', method: 'DELETE' }])
+})
+
+test('清理权限只读取有主键的持久记录并核对总数，不纳入内置虚拟权限', async () => {
+  const fetcher: typeof fetch = async (input) => {
+    const url = new URL(String(input))
+    assert.equal(url.searchParams.get('filter[id][_nnull]'), 'true')
+    assert.equal(url.searchParams.get('meta'), 'filter_count')
+    return Response.json({ data: [{ id: 7, policy: 'editor' }, { system: true, collection: 'directus_users', policy: null }], meta: { filter_count: 1 } })
+  }
+  const reader = new DirectusReader('http://localhost', 'secret', 1000, fetcher)
+  assert.deepEqual(await reader.listStoredPermissions(), [{ id: 7, policy: 'editor' }])
+})
+
+test('许可或接口过滤导致权限未完整返回时阻断，不能静默遗漏', async () => {
+  const reader = new DirectusReader('http://localhost', 'secret', 1000, async () => Response.json({ data: [], meta: { filter_count: 1 } }))
+  await assert.rejects(() => reader.listStoredPermissions(), /权限.*完整/)
+})

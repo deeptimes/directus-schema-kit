@@ -63,9 +63,11 @@ DBML 是建模说明，不是 DSK 执行输入；建模要求需通过当前 DSL
 - 只允许连接 localhost、RFC1918 私网和 `.local`；DSK 不承担生产发布或实例间同步。
 - token、secret、密码、数据库凭证和真实隐私数据不得写入 Manifest、seed、日志或报告；敏感定义使用 `env()` 引用。
 - Schema apply 遇到任一 conflict/dangerous 全量阻断；实例额外资源不会被推断为删除。
-- 系统资源删除必须声明 `delete: true`，并额外提供 `--confirm-destructive`。
+- `resources apply` 删除系统资源必须声明 `delete: true`，并额外提供 `--confirm-destructive`；独立 `reset` 按已确认的完整清理计划删除目标资源。
 - clear 仅针对完整 Manifest 的自定义 Schema；交互先展示范围并以 `y/N` 确认，非交互真实删除必须 `--confirm`；永远保护 `directus_*`。
-- Apply、Seed 和资源同步串行执行，首项失败即停止；Clear 则记录单项失败并继续，最后汇总结果。均不承诺事务回滚。网络重试有上限，确定性 4xx 和 DELETE 的 HTTP 失败响应不重试。
+- `clean` 清空实例全部自定义集合记录并保留结构与资源；`reset` 删除全部自定义 Schema、普通用户、业务授权资源、预设、上传文件和文件夹。两者展示代码声明项与未声明项，保护 settings、保留管理员记录及授权链、系统 Public policy；不写 License 配置、不调用 bootstrap、不删除数据库文件。settings／保留管理员或其他保留资源引用待删对象时，在任何写入前阻断，不置空引用绕过。
+- `clean`／`reset` 受 `safety.clearEnabled` 控制，支持 `--dry-run`、默认拒绝的交互确认和非交互 `--confirm`；执行前重读检查计划，执行后验证保留配置、管理员授权及剩余目标。
+- Apply、Seed、资源同步及 clean/reset 串行执行，首项失败即停止；Clear 则记录单项失败并继续，最后汇总结果。均不承诺事务回滚。网络重试有上限，确定性 4xx 和 DELETE 的 HTTP 失败响应不重试。
 - AI 修改完成后运行 build、validate，涉及实例差异再 plan；只有任务明确授权写入对应本地实例，并完成计划审查后，才执行真实 apply、resources apply、seed 或 clear。
 
 ## 给 AI 的提示词

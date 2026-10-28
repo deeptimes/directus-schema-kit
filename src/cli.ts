@@ -5,8 +5,9 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import process from 'node:process'
 import { Command } from 'commander'
-import { applyCommand, buildCommand, clearCommand, doctorCommand, initCommand, planCommand, resourcesApplyCommand, seedCommand, validateCommand, type CommandContext } from './commands.js'
+import { applyCommand, buildCommand, clearCommand, cleanupCommand, doctorCommand, initCommand, planCommand, resourcesApplyCommand, seedCommand, validateCommand, type CommandContext } from './commands.js'
 import { DskError } from './errors.js'
+import type { CleanupPlan } from './cleanup.js'
 
 const packageJsonPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../package.json')
 const packageVersion = (JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { version: string }).version
@@ -153,6 +154,42 @@ program.command('clear')
     else if (result.status === 'failed') process.exitCode = 4
   })
 
+for (const [name, mode, description] of [
+  ['clean', 'data', '清空全部自定义集合的记录，保留结构与权限配置'],
+  ['reset', 'full', '完整清理开发业务环境，保留管理员、settings 和运行配置'],
+] as const) {
+  program.command(name)
+    .description(description)
+    .option('--dry-run', '只输出完整清理计划，不进行交互')
+    .option('--confirm', '非交互执行真实删除')
+    .option('--admin-user <id>', '额外保留的初始管理员 ID，默认使用 ADMIN_EMAIL 或当前认证管理员')
+    .action(async (options: { dryRun?: boolean; confirm?: boolean; adminUser?: string }) => {
+      const interactive = !options.dryRun && !options.confirm && textFormat() && process.stdin.isTTY === true && process.stdout.isTTY === true
+      let displayed = false
+      const result = await cleanupCommand(commandContext(), {
+        mode, ...options,
+        ...(interactive ? { authorize: async (plan: CleanupPlan) => {
+          printCleanupPlan(plan)
+          displayed = true
+          const prompt = createInterface({ input: process.stdin, output: process.stdout })
+          try {
+            const answer = await prompt.question(`${description}；删除无法自动恢复。是否继续？(y/N) `)
+            return /^(y|yes)$/i.test(answer.trim())
+          } finally { prompt.close() }
+        } } : {}),
+      })
+      output({ command: name, ok: result.status === 'planned' || result.status === 'success', ...result }, () => {
+        if (!displayed) printCleanupPlan(result)
+        console.log(`${name}: ${result.status}${result.dryRun ? ' (dry-run)' : ''}，已完成 ${result.completed.length}/${result.operations.length}，验证 ${result.verified ? '通过' : '未完成'}`)
+        for (const reason of result.blockers) console.error(`阻断：${reason}`)
+        if (result.reason) console.log(result.reason)
+        if (result.failure) console.error(`失败：${result.failure.message}`)
+      })
+      if (result.status === 'blocked') process.exitCode = 3
+      else if (result.status === 'failed') process.exitCode = 4
+    })
+}
+
 program.showHelpAfterError()
 
 try {
@@ -184,6 +221,18 @@ function output(value: object, textOutput: () => void): void {
 
 function textFormat(): boolean {
   return program.opts<{ format: string }>().format === 'text'
+}
+
+function printCleanupPlan(plan: CleanupPlan): void {
+  console.log(plan.mode === 'full' ? '完整清理开发业务环境计划（包括上传文件的实际存储）：' : '清空全部自定义集合记录计划：')
+  for (const item of plan.operations) {
+    console.log(`  ${item.kind === 'detach' ? 'set null' : 'delete'} ${item.kind} ${item.resource}${item.id !== undefined ? `/${item.id}` : ''}${item.field ? `.${item.field}` : ''} [${item.origin === 'declared' ? '代码声明项' : '实例未声明项'}]${item.count !== undefined ? `，含 ${item.count} 条记录` : ''}`)
+    if (item.fields?.length) console.log(`    字段：${item.fields.join(', ')}`)
+    if (item.relations?.length) console.log(`    关系：${item.relations.join(', ')}`)
+  }
+  console.log('保留的账号与配置：')
+  for (const item of plan.protected) console.log(`  keep ${item.resource}/${item.id}`)
+  console.log('License、环境配置和 Directus 系统表保留；不执行 bootstrap。')
 }
 
 function printClearPlan(operations: readonly { resourceType: 'field' | 'collection'; resource: string }[]): void {

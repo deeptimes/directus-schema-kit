@@ -82,3 +82,7 @@ jobs:
         run: node --import tsx --test test/integration/sqlite-indexes.integration.test.ts
         env:
           DSK_SQLITE_PROJECT: playground
+      - name: Isolated development cleanup lifecycle
+        run: node --import tsx --test test/integration/cleanup.integration.test.ts
+        env:
+          DSK_CLEANUP_PROJECT: playground

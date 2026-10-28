@@ -15,7 +15,9 @@ CLI 接受 Directus 11.x 与 12.x。Node.js 22+ 下已验证 Directus 11.17.4、
 - `dsk apply`：全量预检后按依赖顺序执行安全 create/update，默认阻断 conflict/dangerous。
 - `dsk seed`：严格 JSON Seed，自然键 upsert、跨集合/同集合引用以及 plan/apply。
 - `dsk resources apply`：folders、roles、policies、access、permissions、presets 同步。
-- `dsk clear`：全量自定义 Schema 清理计划、交互确认、系统集合硬保护及非交互 `--confirm`。
+- `dsk clean`：清空全部自定义集合记录，保留结构和权限配置。
+- `dsk reset`：完整清理开发业务环境，包括旧集合、业务权限、普通用户和上传文件；保留管理员、settings、License 配置。
+- `dsk clear`：兼容旧版，仅清理代码声明的自定义 Schema。
 - `--cwd`、`--config`、`--format json` 与稳定错误退出码。
 
 ## 开发
@@ -44,12 +46,11 @@ pnpm dsk seed --dry-run
 pnpm dsk seed --plan
 pnpm dsk seed
 pnpm dsk resources apply --dry-run
-pnpm dsk clear
-pnpm dsk clear --dry-run
-pnpm dsk clear --confirm
+pnpm dsk clean --dry-run
+pnpm dsk reset --dry-run
 ```
 
-Directus 项目的 `.env` 或 shell 需提供 `PUBLIC_URL` 和具备管理权限的 `ADMIN_TOKEN`。DSK 仅连接本地／私网开发实例，不用于生产发布。`clear` 会删除完整 Manifest 声明的自定义 Schema 及相关数据，真实执行需交互确认或显式 `--confirm`。
+Directus 项目的 `.env` 或 shell 需提供 `PUBLIC_URL` 和具备管理权限的 `ADMIN_TOKEN`。DSK 仅连接本地／私网开发实例，不用于生产发布。`clean`／`reset` 先展示完整计划，真实执行需交互确认或显式 `--confirm`。初始管理员的识别和文件引用保护规则见 [清理命令](docs/cli-reference.md#开发环境清理)。
 
 `build` 会执行可信的项目 TypeScript 源码；后续 `plan/apply` 执行层只允许消费 `dsk/generated/manifest.json`。
 

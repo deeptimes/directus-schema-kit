@@ -69,3 +69,6 @@ pnpm dsk apply --dry-run
 Apply 串行写入，失败后停止，不提供事务回滚。根据 completed、failed、notExecuted 核对实例后重新 plan，不能假设失败意味着全部未写入。
 
 提交审查时检查 DSL、seed、资源和生成的 Manifest 是否一致；CI 可运行 `pnpm dsk build --check` 和 `pnpm dsk --format json validate`。连接凭证只放本地环境配置，不进入版本控制。
+
+
+开发过程中，`pnpm dsk clean --dry-run` 预览清空业务记录，`pnpm dsk reset --dry-run` 预览完整清理。两者覆盖实例全部自定义集合，包括代码中已移除的旧集合；reset 还清理普通用户、业务权限、上传文件和文件夹，保留管理员、settings 和 License 配置。执行确认、初始管理员识别和保留资源引用冲突见 [CLI 清理命令](./cli-reference.md#开发环境清理)。

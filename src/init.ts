@@ -21,9 +21,49 @@ export default []
 
 const seedExample = JSON.stringify({ schemaVersion: 1, collection: 'example', upsertBy: ['slug'], items: [] }, null, 2) + '\n'
 
-const aiGuide = `# Directus Schema Kit AI 规则
+const aiGuide = `# Directus Schema Kit 项目开发指南与 AI 规则
 
-本文件由 \`dsk init\` 生成，用于约束 Codex/AI 在当前 Directus 项目中编写 DSK schema。
+本文件由 \`dsk init\` 生成，供项目开发者与 Codex/AI 查阅常用命令、执行边界和 Schema 编写规则。已有文件不会被 init 覆盖，升级后需手动合并新增说明。
+
+## CLI 快速参考
+
+在 Directus 项目根目录执行；连接实例需配置 \`PUBLIC_URL\` 和管理员的 \`ADMIN_TOKEN\`。
+
+| 命令 | 用途与写入行为 |
+| --- | --- |
+| \`pnpm dsk init [--dry-run]\` | 创建缺失的工作区文件；保留已有文件；dry-run 不写入 |
+| \`pnpm dsk doctor\` | 检查项目识别、配置和环境变量 |
+| \`pnpm dsk build [--check]\` | 根据源码生成 Manifest；check 仅检查是否最新 |
+| \`pnpm dsk validate\` | 离线检查定义、Manifest 新鲜度和 Seed |
+| \`pnpm dsk plan\` | 只读比较代码声明与实例，查看待创建、更新和冲突项 |
+| \`pnpm dsk apply [--dry-run]\` | 应用安全的结构创建／更新；dry-run 只预览；conflict/dangerous 全量阻断 |
+| \`pnpm dsk seed [path] [--dry-run] [--plan]\` | 默认写入基础数据；dry-run 仅离线校验，plan 连接实例预览；两者互斥 |
+| \`pnpm dsk resources apply [--dry-run] [--confirm-destructive]\` | 同步角色、策略、授权、权限、目录和预设；显式 delete 定义还需 confirm-destructive |
+| \`pnpm dsk clean [--dry-run] [--confirm] [--admin-user <id>]\` | 清空全部自定义集合记录，保留结构、用户、权限和文件 |
+| \`pnpm dsk reset [--dry-run] [--confirm] [--admin-user <id>]\` | 完整清理业务环境，包括旧集合、普通用户、业务权限和上传文件 |
+| \`pnpm dsk clear [--dry-run] [--confirm]\` | 兼容旧行为：只删除代码声明的自定义集合结构和数据 |
+
+Manifest 是 \`build\` 根据代码生成的执行清单，不需要手工维护。\`clean\`／\`reset\` 会检查实例中的全部自定义集合，包括已经从代码中移除的旧集合。
+
+日常修改后先运行 \`build\` → \`validate\` → \`plan\`，审查后再 \`apply\`。基础数据与系统资源分别通过 seed 和 resources 命令处理，不会随 Schema apply 自动执行。
+
+全局参数放在子命令前，例如 \`pnpm dsk --cwd /path/to/project --format json plan\`；可用 \`--config <path>\` 指定项目配置文件。任意命令可加 \`--help\` 查看参数。
+
+### 清理前须知
+
+\`\`\`bash
+pnpm dsk clean --dry-run   # 预览清空业务记录
+pnpm dsk reset --dry-run   # 预览完整清理，包含实际上传文件
+pnpm dsk reset             # 展示计划后确认，默认拒绝
+\`\`\`
+
+- 真实清理必须确认：交互输入 y，脚本添加 \`--confirm\`；\`--dry-run\` 与 \`--confirm\` 互斥。JSON／非交互模式未确认时仅返回计划。
+- 保留 settings、初始管理员账号密码及其授权链、系统 Public policy，以及 License 和运行配置。初始管理员通过 \`ADMIN_EMAIL\` 或 \`--admin-user <id>\` 识别；当前认证管理员始终保留。未指定初始管理员时，应使用该账号的 ADMIN_TOKEN。
+- settings、保留管理员或其他保留资源引用待删对象时，执行前阻断并说明；不会置空这些引用来绕过保护。reset 通过 Files API 删除已登记上传文件及实际存储，无法检查未登记的孤立存储对象。
+- 确认后重读检查计划变化；执行首项失败即停止并报告已完成项，不承诺事务回滚；完成后验证保留配置和管理员授权，重复执行安全。\`safety.clearEnabled: false\` 禁用清理。
+- 新清理路径已在 Directus 12.5.1 + SQLite 验收；11.x 尚待真实实例验收。无法完整预检的引用、权限或 deployment 子项会阻断，不能把部分清理当成成功。
+
+完整参数、退出码、JSON 契约和限制见安装包内的 [CLI 参考](../node_modules/@deeptimes/directus-schema-kit/docs/cli-reference.md)；包文档位于 \`node_modules/@deeptimes/directus-schema-kit/docs/\`。本文件提供项目内常用说明，完整 CLI 参考随安装版本维护。
 
 ## 开始前必须阅读
 
@@ -110,7 +150,8 @@ const blogTags = collection({ name: 'blog_tags', label: '博客标签', group: '
 - Markdown helper 不依赖 TinyMCE；自定义 WYSIWYG interface/options 时，需单独核对 v12 Tiptap 配置与内容兼容性。
 - Seed 使用自然键和稳定业务键引用；计划可引用更早出现的新增项。\`__dsk_seed_plan__:\` 只是计划内占位 ID，不写入源码或当作真实 ID。
 - 升级 Directus 时先备份，再由 Directus bootstrap 执行系统迁移；不使用 DSK clear 代替版本迁移。
-- 系统资源删除必须显式声明 \`delete: true\` 并提供 \`--confirm-destructive\`；clear 先审查完整范围，再交互确认或显式 \`--confirm\`，永远保护 \`directus_*\`。
+- resources apply 删除必须显式声明 \`delete: true\` 并提供 \`--confirm-destructive\`；clear 先审查完整范围，再交互确认或显式 \`--confirm\`，永远保护系统集合结构。
+- \`clean --dry-run\` 预览清空全部自定义集合记录；\`reset --dry-run\` 预览完整清理，包含旧集合、普通用户、业务权限和实际上传文件。真实执行先审查完整计划，再交互确认或显式 \`--confirm\`。保留 settings、初始管理员及其授权链和 License 配置，不调用 bootstrap；初始管理员通过 ADMIN_EMAIL 或 \`--admin-user <id>\` 指定，当前认证管理员始终保留。保留资源引用待删对象时阻断，不置空引用绕过。
 - 凭证、secret 和真实隐私数据不进入源码、Manifest、Seed 或报告；敏感定义使用 \`env()\` 引用。
 
 ## 修改后检查
@@ -121,7 +162,7 @@ pnpm dsk validate
 pnpm dsk plan
 \`\`\`
 
-涉及系统资源时先运行 \`pnpm dsk resources apply --dry-run\`；涉及 Seed 时先运行 \`pnpm dsk seed --plan\`。只有任务明确授权目标实例写入，并完成计划审查后，才执行真实 apply、resources apply、seed 或 clear。Schema apply 失败后先核对部分结果并重新 plan，不假设有事务回滚。
+涉及系统资源时先运行 \`pnpm dsk resources apply --dry-run\`；涉及 Seed 时先运行 \`pnpm dsk seed --plan\`。只有任务明确授权目标实例写入，并完成计划审查后，才执行真实 apply、resources apply、seed、clear、clean 或 reset。Schema apply 失败后先核对部分结果并重新 plan，不假设有事务回滚。
 `
 
 const dskReadme = `# DSK 工作区
@@ -145,7 +186,7 @@ export default collection({
 - \`config.json\`：项目路径、安全和校验配置。
 - \`seeds/\`：严格 JSON seed，每个文件必须包含 \`schemaVersion\`。
 - \`generated/manifest.json\`：由 \`dsk build\` 生成，禁止手工修改。
-- \`../docs/directus-schema-kit.md\`：给 Codex/AI 的 schema 编写规则。
+- \`../docs/directus-schema-kit.md\`：项目开发指南、CLI 快速参考与 AI Schema 编写规则。
 
 \`plan/apply\` 仅消费 JSON Manifest，不执行 TypeScript DSL。
 `

@@ -1,9 +1,12 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
+import process from 'node:process'
 import { loadConfig } from './config.js'
 import { DskError } from './errors.js'
 import { executeApply } from './apply.js'
 import { executeClear } from './clear.js'
+import { executeCleanup, type CleanupMode, type CleanupPlan, type CleanupResult } from './cleanup.js'
+import { readCleanupSnapshot } from './cleanup-reader.js'
 import { DirectusReader, DirectusWriter } from './directus.js'
 import { diagnoseProject } from './doctor.js'
 import { directusConnection, loadProjectEnvironment } from './env.js'
@@ -121,6 +124,45 @@ export async function clearCommand(context: CommandContext, options: {
     confirm: options.confirm ?? false,
     ...(options.authorize ? { authorize: options.authorize } : {}),
     enabled: loaded.config.safety?.clearEnabled ?? true,
+  })
+}
+
+export async function cleanupCommand(context: CommandContext, options: {
+  mode: CleanupMode
+  dryRun?: boolean
+  confirm?: boolean
+  adminUser?: string
+  authorize?: (plan: CleanupPlan) => Promise<boolean>
+}): Promise<CleanupResult> {
+  if (options.dryRun && options.confirm) throw new DskError('--dry-run 不能与 --confirm 同时使用', 'CONFIG_ERROR')
+  const project = discoverDirectusProject(context.cwd)
+  const loaded = loadConfig(project.root, context.configPath)
+  const validated = await validateWorkspace({ config: loaded.config, configDirectory: loaded.directory, projectRoot: project.root })
+  const connection = directusConnection(loaded.config, loaded.directory)
+  const environment = loadProjectEnvironment(loaded.config, loaded.directory)
+  const reader = new DirectusReader(connection.url, connection.token)
+  const first = await readCleanupSnapshot(reader, options.mode)
+  const preserveUserIds: string[] = []
+  if (options.adminUser) preserveUserIds.push(options.adminUser)
+  else if (environment.ADMIN_EMAIL) {
+    const matches = first.resources.users.filter((row) => typeof row.email === 'string' && row.email.toLowerCase() === environment.ADMIN_EMAIL!.toLowerCase())
+    if (matches.length !== 1 || typeof matches[0]?.id !== 'string') throw new DskError('无法唯一定位 ADMIN_EMAIL 指定的初始管理员；请使用 --admin-user <id> 明确保留账号', 'CONFIG_ERROR')
+    preserveUserIds.push(matches[0].id)
+  }
+  let initial = true
+  return executeCleanup({
+    mode: options.mode, manifest: validated.manifest, environment, preserveUserIds,
+    writer: new DirectusWriter(connection.url, connection.token),
+    readSnapshot: async () => {
+      if (initial) {
+        initial = false
+        return first
+      }
+      return readCleanupSnapshot(reader, options.mode)
+    },
+    dryRun: options.dryRun ?? false, confirm: options.confirm ?? false,
+    enabled: loaded.config.safety?.clearEnabled ?? true,
+    ...(options.authorize ? { authorize: options.authorize } : {}),
   })
 }
 
