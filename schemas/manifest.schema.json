@@ -35,11 +35,120 @@
         "policies": { "type": "array" },
         "access": { "type": "array" },
         "permissions": { "type": "array" },
-        "presets": { "type": "array" }
+        "presets": { "type": "array" },
+        "translations": { "type": "array", "items": { "$ref": "#/$defs/translationResource" } }
       }
     }
   },
   "$defs": {
+    "conditions": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "rule"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rule": {
+            "type": "object"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "readonly": {
+            "type": "boolean"
+          },
+          "clear_hidden_value_on_save": {
+            "type": "boolean"
+          },
+          "options": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "translationResource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "key",
+        "data"
+      ],
+      "properties": {
+        "type": {
+          "const": "translations"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "source": {
+          "type": "string"
+        },
+        "delete": {
+          "type": "boolean"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "key",
+            "language"
+          ],
+          "properties": {
+            "key": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "\\S"
+            },
+            "language": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "\\S"
+            },
+            "value": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "delete": {
+            "const": true
+          }
+        },
+        "required": [
+          "delete"
+        ]
+      },
+      "then": {},
+      "else": {
+        "properties": {
+          "data": {
+            "required": [
+              "value"
+            ]
+          }
+        }
+      }
+    },
     "collection": {
       "type": "object", "additionalProperties": false,
       "required": ["collection", "meta", "schema", "fields", "source"],
@@ -55,7 +164,7 @@
       "properties": {
         "collection": { "type": "string", "minLength": 1 }, "field": { "type": "string", "minLength": 1 },
         "type": { "enum": ["alias", "bigInteger", "binary", "boolean", "csv", "date", "dateTime", "decimal", "float", "geometry", "geometry.Point", "geometry.LineString", "geometry.Polygon", "geometry.MultiPoint", "geometry.MultiLineString", "geometry.MultiPolygon", "hash", "integer", "json", "string", "text", "time", "timestamp", "uuid"] },
-        "meta": { "type": "object" }, "schema": { "type": ["object", "null"] }, "source": { "type": "string", "minLength": 1 }
+        "meta": { "type": "object", "properties": { "conditions": { "$ref": "#/$defs/conditions" } } }, "schema": { "type": ["object", "null"] }, "source": { "type": "string", "minLength": 1 }
       }
     },
     "relation": {

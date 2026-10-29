@@ -3,6 +3,7 @@ import type { DeclarativeValue, FieldDefinition, FieldMeta, FieldSchema, FieldTy
 export interface CommonFieldOptions {
   label?: string
   translations?: Translation[]
+  conditions?: FieldMeta['conditions']
   order?: number
   width?: FieldWidth
   required?: boolean
@@ -50,6 +51,7 @@ function meta(fieldName: string, options: CommonFieldOptions, defaults: Partial<
     required: options.required ?? false,
     sort: options.order,
     width: options.width ?? defaults.width ?? 'full',
+    conditions: options.conditions,
     translations: translations ?? [{ language: 'en-US', translation: fieldName }],
   }) as FieldMeta
 }

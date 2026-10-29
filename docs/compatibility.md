@@ -13,6 +13,14 @@ CLI 接受 11.x 和 12.x，不表示所有小版本、数据库或许可能力�
 
 新增 `clean`／`reset` 已在独立 Directus 12.5.1 + SQLite 临时实例验证 singleton、循环业务记录、普通用户的必填外键、文件实际存储删除、原管理员密码登录和重复执行；11.x 的新清理路径尚待独立真实实例验收。安全阻断范围见 [CLI 清理命令](./cli-reference.md#开发环境清理)。
 
+## Translation Strings 与字段条件
+
+2026-10-29 在 **Directus 12.5.1 + SQLite** 的独立临时实例验证了五字段 `meta.conditions` 最小 PATCH、条件重排、`null` / `[]` 清空收敛、数据库结构和现有业务记录保持不变；Translation Strings 的 100 条以上分页、已有记录认领、原位更新、空文字和 Unicode 回读、幂等、重复自然键 API 拒绝、显式删除，以及 clear / clean / reset 保留共享翻译均通过。
+
+同一临时实例的 Studio 已人工验收：英文显示 `Object`，切换 `zh-CN` 后显示中文；类型从相位切换为星座后，仅显示且要求填写星座，保存前仍保留的对象、第二对象及相位值在保存后回读为 null；整数下拉的翻译显示不改变保存值，回读为数值 `1`。普通 API 不执行 Studio 隐藏清空逻辑。空文字按原样保存，界面可能显示空选项，应由声明方决定是否使用。
+
+本地核对的 11.17.4 / 12.5.1 上游 `Condition` 属性一致；本次新增功能的真实实例与 Studio 交互证据只覆盖 12.5.1，11.x 尚待独立验收，不能据此扩大认证范围。条件仅接受明确支持的属性，未知属性在离线校验中拒绝。接口依据以版本源码和真实回读为准：[Condition 类型](https://github.com/directus/directus/blob/v12.5.1/packages/types/src/fields.ts)、[Translation Strings 存储定义](https://github.com/directus/directus/blob/v12.5.1/api/src/database/migrations/20230526A-migrate-translation-strings.ts)。
+
 ## v12 对 DSK 的影响
 
 | 上游变化 | 对本项目的影响与处理 |

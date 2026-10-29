@@ -81,3 +81,12 @@ DSK_CLEANUP_PROJECT=playground node --import tsx --test test/integration/cleanup
 ```
 
 需目标项目已安装 Directus。测试夹具在临时目录初始化 SQLite、独立端口和上传目录，验证 clean、reset、文件真实删除及原管理员密码重新登录；夹具初始化不属于产品清理路径。缺少 `DSK_CLEANUP_PROJECT` 时跳过。
+
+
+翻译资源与字段条件使用独立隔离实例验收，覆盖五字段元数据更新、顺序、空条件收敛、数据库和业务数据边界、超过 100 条翻译分页、已有记录认领、空文字、幂等与显式删除：
+
+```bash
+DSK_METADATA_PROJECT=playground node --import tsx --test test/integration/metadata.integration.test.ts
+```
+
+Data Studio 另需验收语言切换、动态必填以及隐藏字段保存清空；API 测试不能代替这些交互检查。

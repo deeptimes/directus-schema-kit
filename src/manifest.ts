@@ -7,7 +7,7 @@ import { DskError } from './errors.js'
 import { expandRelationBlueprint } from './dsl/expand.js'
 import type { CollectionDefinition, DskConfig, Manifest, ResourceDefinition, ResourceType, SchemaDefinition } from './types.js'
 
-const resourceTypes: ResourceType[] = ['folders', 'roles', 'policies', 'access', 'permissions', 'presets']
+const resourceTypes: ResourceType[] = ['folders', 'roles', 'policies', 'access', 'permissions', 'presets', 'translations']
 
 export async function sourceFiles(config: DskConfig, configDirectory: string): Promise<string[]> {
   const patterns = [config.paths.schemaSource, config.paths.resourceSource]
@@ -56,7 +56,7 @@ export async function compileManifest(options: {
   const fields: Manifest['fields'] = []
   const relations: Manifest['relations'] = []
   const resources: Manifest['resources'] = {
-    folders: [], roles: [], policies: [], access: [], permissions: [], presets: [],
+    folders: [], roles: [], policies: [], access: [], permissions: [], presets: [], translations: [],
   }
 
   for (const unit of definitions.sort((a, b) => a.source.localeCompare(b.source, 'en'))) {
@@ -81,7 +81,7 @@ export async function compileManifest(options: {
       relations.push(...expanded.relations.map((item) => ({ ...item, source: unit.source })))
     }
     for (const definition of unit.resources ?? []) {
-      resources[definition.type].push({ ...definition, source: unit.source })
+      resources[definition.type]!.push({ ...definition, source: unit.source })
     }
   }
 

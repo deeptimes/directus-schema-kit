@@ -1,8 +1,35 @@
-import type { JSONSchemaType } from 'ajv'
-import type { Manifest } from './types.js'
+export const translationResourceSchema = {
+  type: 'object', additionalProperties: false, required: ['type', 'key', 'data'],
+  properties: {
+    type: { const: 'translations' }, key: { type: 'string', minLength: 1, pattern: '\\S' },
+    source: { type: 'string' }, delete: { type: 'boolean' },
+    data: {
+      type: 'object', additionalProperties: false, required: ['key', 'language'],
+      properties: {
+        key: { type: 'string', minLength: 1, maxLength: 255, pattern: '\\S' },
+        language: { type: 'string', minLength: 1, maxLength: 255, pattern: '\\S' },
+        value: { type: 'string' },
+      },
+    },
+  },
+  if: { properties: { delete: { const: true } }, required: ['delete'] },
+  then: {}, else: { properties: { data: { required: ['value'] } } },
+} as const
+
+export const fieldConditionsSchema = {
+  type: ['array', 'null'],
+  items: {
+    type: 'object', additionalProperties: false, required: ['name', 'rule'],
+    properties: {
+      name: { type: 'string', minLength: 1 }, rule: { type: 'object' },
+      hidden: { type: 'boolean' }, required: { type: 'boolean' }, readonly: { type: 'boolean' },
+      clear_hidden_value_on_save: { type: 'boolean' }, options: { type: 'object' },
+    },
+  },
+} as const
 
 // Manifest 的深层 Directus meta/data 保持开放，结构约束由语义校验补充。
-export const manifestJsonSchema: JSONSchemaType<Manifest> = {
+export const manifestJsonSchema = {
   type: 'object', additionalProperties: false,
   required: ['manifestVersion', 'generator', 'source', 'collections', 'fields', 'relations', 'resources'],
   properties: {
@@ -31,6 +58,7 @@ export const manifestJsonSchema: JSONSchemaType<Manifest> = {
         policies: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
         access: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
         permissions: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
+        translations: { type: 'array', items: translationResourceSchema },
         presets: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
       },
     },

@@ -23,16 +23,21 @@ class MemoryResources implements ResourceReader, ResourceWriter {
 
   async updateSystemResource(endpoint: string, id: string | number, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     this.writes.push(`update:${endpoint}.${id}`)
-    return { ...data, id }
+    const saved = { ...data, id }
+    const rows = this.data.get(endpoint) ?? []
+    const index = rows.findIndex((row) => row.id === id)
+    if (index >= 0) rows[index] = { ...rows[index], ...saved }
+    return saved
   }
 
   async deleteSystemResource(endpoint: string, id: string | number): Promise<void> {
     this.writes.push(`delete:${endpoint}.${id}`)
+    this.data.set(endpoint, (this.data.get(endpoint) ?? []).filter((row) => row.id !== id))
   }
 }
 
 function definitions(overrides: Partial<Record<ResourceType, ResourceDefinition[]>> = {}): Record<ResourceType, ResourceDefinition[]> {
-  return { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [], ...overrides }
+  return { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [], translations: [], ...overrides }
 }
 
 test('系统资源按依赖顺序创建并解析稳定引用', async () => {
@@ -191,5 +196,83 @@ test('权限能力查询失败时 dry-run 也不报告可同步', async () => {
     }] }),
     reader: store, writer: store, dryRun: true,
   }), /许可查询失败/)
+  assert.deepEqual(store.writes, [])
+})
+
+test('translations 按 key + language 认领、预览差异、原位更新及幂等', async () => {
+  const store = new MemoryResources()
+  store.data.set('translations', [
+    { id: 'existing-zh', key: 'context.sun', language: 'zh-CN', value: '旧值' },
+    { id: 'foreign', key: 'other.project', language: 'zh-CN', value: '保留' },
+  ])
+  const target = definitions({ translations: [
+    { type: 'translations', key: 'sun-zh', data: { key: 'context.sun', language: 'zh-CN', value: '太阳\n☀️' } },
+    { type: 'translations', key: 'sun-en', data: { key: 'context.sun', language: 'en-US', value: 'Sun' } },
+  ] })
+  const preview = await syncResources({ definitions: target, reader: store, writer: store, dryRun: true })
+  assert.deepEqual(preview.operations.map((item) => item.action), ['update', 'create'])
+  assert.deepEqual(preview.operations[0]?.changes, [{ path: 'value', current: '旧值', target: '太阳\n☀️' }])
+  assert.deepEqual(store.writes, [])
+  const applied = await syncResources({ definitions: target, reader: store, writer: store })
+  assert.equal(applied.status, 'success')
+  assert.equal(applied.operations[0]?.id, 'existing-zh')
+  assert.equal(store.data.get('translations')?.find((row) => row.id === 'existing-zh')?.value, '太阳\n☀️')
+  const repeated = await syncResources({ definitions: target, reader: store, writer: store })
+  assert.equal(repeated.operations.every((item) => item.action === 'unchanged'), true)
+  assert.deepEqual(store.writes, ['update:translations.existing-zh', 'create:translations'])
+  assert.equal(store.data.get('translations')?.find((row) => row.id === 'foreign')?.value, '保留')
+})
+
+test('translations 重复实例自然键全量阻断，移除声明无隐式删除，显式删除需确认', async () => {
+  const store = new MemoryResources()
+  const data = { key: 'context.sun', language: 'zh-CN', value: '太阳' }
+  const target = definitions({ translations: [{ type: 'translations', key: 'sun', data }] })
+  store.data.set('translations', [{ ...data, id: 'one' }, { ...data, id: 'two' }])
+  assert.equal((await syncResources({ definitions: target, reader: store, writer: store })).status, 'blocked')
+  assert.deepEqual(store.writes, [])
+  store.data.set('translations', [{ ...data, id: 'one' }])
+  assert.equal((await syncResources({ definitions: definitions(), reader: store, writer: store })).completed.length, 0)
+  target.translations[0]!.delete = true
+  delete target.translations[0]!.data.value
+  assert.equal((await syncResources({ definitions: target, reader: store, writer: store })).status, 'blocked')
+  assert.deepEqual(store.writes, [])
+  assert.equal((await syncResources({ definitions: target, reader: store, writer: store, confirmDestructive: true })).status, 'success')
+  assert.deepEqual(store.writes, ['delete:translations.one'])
+  const repeated = await syncResources({ definitions: target, reader: store, writer: store })
+  assert.equal(repeated.operations[0]?.action, 'unchanged')
+})
+
+test('translations 部分失败保留完成项，停止后续写入，可重新同步恢复', async () => {
+  const store = new MemoryResources()
+  const target = definitions({ translations: ['one', 'two', 'three'].map((key) => ({
+    type: 'translations', key, data: { key, language: 'en-US', value: key },
+  })) })
+  const create = store.createSystemResource.bind(store)
+  store.createSystemResource = async (endpoint, data) => {
+    if (data.key === 'two') throw new Error('permission denied')
+    return create(endpoint, data)
+  }
+  const result = await syncResources({ definitions: target, reader: store, writer: store })
+  assert.equal(result.status, 'failed')
+  assert.deepEqual(result.completed.map((item) => item.key), ['one'])
+  assert.equal(result.failure?.key, 'two')
+  assert.equal(result.failure?.message, 'permission denied')
+  assert.deepEqual(result.notExecuted?.map((item) => item.key), ['three'])
+  assert.deepEqual(store.writes, ['create:translations'])
+  store.createSystemResource = create
+  const recovered = await syncResources({ definitions: target, reader: store, writer: store })
+  assert.equal(recovered.status, 'success')
+  assert.deepEqual(recovered.operations.map((item) => item.action), ['unchanged', 'create', 'create'])
+})
+
+test('translations 无效声明在读取及任何写入前拒绝', async () => {
+  const store = new MemoryResources()
+  store.listSystemResource = async () => { throw new Error('不应读取') }
+  for (const translations of [
+    [{ type: 'translations', key: 'invalid', data: { key: 'x', value: 'x' } }],
+    ['a', 'b'].map((key) => ({ type: 'translations', key, data: { key: 'x', language: 'en-US', value: 'x' } })),
+  ] as ResourceDefinition[][]) {
+    await assert.rejects(() => syncResources({ definitions: definitions({ translations }), reader: store, writer: store }), /Translation Strings 校验失败/)
+  }
   assert.deepEqual(store.writes, [])
 })

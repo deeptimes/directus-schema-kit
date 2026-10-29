@@ -1,5 +1,11 @@
 # 更新记录
 
+## 2.3.0（2026-10-29）
+
+- Translation Strings 纳入现有 resources：DSL / Manifest 校验、`key + language` 自然键认领、分页读取、只读预览、原位更新、显式删除确认及失败后未执行项报告；旧 Manifest V1 兼容，clear / clean / reset 不扩大删除范围。
+- 字段 `meta.conditions` 支持结构和 Filter 校验、安全更新、顺序比对、`null` / `[]` 显式清空；helper 支持 `conditions`，涉及隐藏时保存清空时 Plan 提示后续 Studio 数据影响。
+- 补充中英文下拉示例、自动化回归与 Directus 12.5.1 + SQLite 隔离生命周期测试；实际验证范围见 [兼容性](./compatibility.md)。
+
 ## 2.2.0（2026-10-28）
 
 ### 开发环境清理

@@ -136,3 +136,45 @@ test('旧项目重新 init 时创建 docs 规则并保留旧 .ai 内容', async 
   assert.equal(existsSync(path.join(cwd, 'docs/directus-schema-kit.md')), true)
   assert.equal(readFileSync(legacy, 'utf8'), '# 旧规则与项目备注\n')
 })
+
+test('translations 与 conditions 的 DSL 构建和 JSON 校验一致，旧 Manifest V1 仍有效', async () => {
+  const cwd = project()
+  const context = { cwd, packageVersion: '1.0.0' }
+  await initCommand(context, false)
+  const api = path.resolve('src/index.ts')
+  writeFileSync(path.join(cwd, 'dsk/resources/translations.ts'), `
+    import { resource } from ${JSON.stringify(api)}
+    export default [
+      resource('translations', { key: 'sun-zh', data: { key: 'context.sun', language: 'zh-CN', value: '太阳' } }),
+      resource('translations', { key: 'sun-en', data: { key: 'context.sun', language: 'en-US', value: 'Sun' } }),
+    ]
+  `)
+  writeFileSync(path.join(cwd, 'dsk/schemas/example.ts'), `
+    import { collection, field } from ${JSON.stringify(api)}
+    export default collection({ name: 'articles', label: '文章', fields: [
+      field.string('title', { conditions: [
+        { name: '条件一', rule: { id: { _nnull: true } }, hidden: false, options: { choices: [{ text: '$t:context.sun', value: 1 }] } },
+        { name: '条件二', rule: { id: { _null: true } }, clear_hidden_value_on_save: true },
+      ] }),
+    ] })
+  `)
+  await buildCommand(context, false)
+  assert.equal((await buildCommand(context, true)).changed, false)
+  assert.equal((await validateCommand(context)).fields, 2)
+  const { validateManifest } = await import('../src/validate.js')
+  const { defaultConfig } = await import('../src/config.js')
+  const { Ajv2020 } = await import('ajv/dist/2020.js')
+  const manifest = JSON.parse(readFileSync(path.join(cwd, 'dsk/generated/manifest.json'), 'utf8'))
+  const schema = JSON.parse(readFileSync(path.resolve('schemas/manifest.schema.json'), 'utf8'))
+  const validate = new Ajv2020({ strict: false }).compile(schema)
+  assert.equal(validate(manifest), true, JSON.stringify(validate.errors))
+  assert.deepEqual(validateManifest(manifest, defaultConfig), [])
+  assert.equal(manifest.resources.translations.length, 2)
+  assert.deepEqual(manifest.fields[1].meta.conditions.map((item: { name: string }) => item.name), ['条件一', '条件二'])
+  delete manifest.resources.translations
+  assert.equal(validate(manifest), true)
+  assert.deepEqual(validateManifest(manifest, defaultConfig), [])
+  manifest.fields[1].meta.conditions[0].hidden = 'false'
+  assert.equal(validate(manifest), false)
+  assert.ok(validateManifest(manifest, defaultConfig).some((message) => message.includes('conditions')))
+})

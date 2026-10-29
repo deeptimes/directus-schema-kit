@@ -33,6 +33,7 @@ export class DirectusReader {
   }
 
   async listSystemResource(endpoint: string): Promise<Array<Record<string, unknown>>> {
+    if (endpoint === 'translations') return this.listAll(endpoint)
     return this.get<Array<Record<string, unknown>>>(`/${endpoint}?limit=-1`)
   }
 
@@ -51,7 +52,7 @@ export class DirectusReader {
       if (!page.length) return rows
       for (const row of page) {
         const id = row[primaryKey]
-        if ((typeof id !== 'string' && typeof id !== 'number') || seen.has(id)) throw new DskError(`Directus ${endpoint} 分页不完整或主键重复，拒绝清理`, 'CONNECTION_ERROR')
+        if ((typeof id !== 'string' && typeof id !== 'number') || seen.has(id)) throw new DskError(`Directus ${endpoint} 分页不完整或主键重复`, 'CONNECTION_ERROR')
         seen.add(id)
         rows.push(row)
       }

@@ -116,7 +116,10 @@ resources.command('apply')
   .action(async (options: { dryRun?: boolean; confirmDestructive?: boolean }) => {
     const result = await resourcesApplyCommand(commandContext(), options)
     output({ command: 'resources apply', ok: result.status === 'success', ...result }, () => {
-      for (const item of result.operations) console.log(`${item.action.padEnd(9)} ${item.type}.${item.key}`)
+      for (const item of result.operations) {
+        console.log(`${item.action.padEnd(9)} ${item.type}.${item.key}${item.reason ? `：${item.reason}` : ''}`)
+        for (const change of item.changes ?? []) console.log(`  ${change.path}: ${JSON.stringify(change.current)} → ${JSON.stringify(change.target)}`)
+      }
       console.log(`状态：${result.status}，完成 ${result.completed.length}/${result.operations.filter((item) => item.action !== 'unchanged').length}`)
       if (result.failure) console.error(`失败 ${result.failure.type}.${result.failure.key}: ${result.failure.message}`)
     })

@@ -32,6 +32,16 @@ export interface Translation {
   translation: string
 }
 
+export interface FieldCondition {
+  name: string
+  rule: Record<string, DeclarativeValue>
+  hidden?: boolean
+  required?: boolean
+  readonly?: boolean
+  options?: Record<string, DeclarativeValue>
+  clear_hidden_value_on_save?: boolean
+}
+
 export interface FieldMeta {
   group?: string | null
   interface?: string | null
@@ -46,7 +56,7 @@ export interface FieldMeta {
   sort?: number | null
   width?: FieldWidth
   translations?: Translation[]
-  conditions?: Array<Record<string, DeclarativeValue>> | null
+  conditions?: FieldCondition[] | null
   validation?: Record<string, DeclarativeValue> | null
   validation_message?: string | null
   searchable?: boolean
@@ -226,7 +236,11 @@ export interface CollectionGroupDefinition extends CollectionDefinition {
   schema: null
 }
 
-export type ResourceType = 'folders' | 'roles' | 'policies' | 'access' | 'permissions' | 'presets'
+export type ResourceType = 'folders' | 'roles' | 'policies' | 'access' | 'permissions' | 'presets' | 'translations'
+
+// translations 可省略，兼容已有 Manifest V1。
+export type ResourceDefinitions = Record<Exclude<ResourceType, 'translations'>, ResourceDefinition[]>
+  & { translations?: ResourceDefinition[] }
 
 export interface ResourceDefinition {
   type: ResourceType
@@ -264,7 +278,7 @@ export interface Manifest {
   collections: CollectionDefinition[]
   fields: Array<FieldDefinition & { collection: string; source: string }>
   relations: RelationDefinition[]
-  resources: Record<ResourceType, ResourceDefinition[]>
+  resources: ResourceDefinitions
 }
 
 export interface DskConfig {
@@ -390,6 +404,7 @@ export interface ResourceSyncOperation {
   dangerous: boolean
   id?: string | number
   reason?: string
+  changes?: PlanChange[]
 }
 
 export interface ResourceSyncResult {
@@ -399,6 +414,7 @@ export interface ResourceSyncResult {
   operations: ResourceSyncOperation[]
   completed: ResourceSyncOperation[]
   failure?: { type: ResourceType; key: string; message: string }
+  notExecuted?: ResourceSyncOperation[]
 }
 
 export interface ClearOperation {

@@ -86,6 +86,10 @@ pnpm dsk --format json validate
 | `conflict` | 存在非白名单差异 | 阻断全部写入 |
 | `dangerous` | 类型、约束、关系目标或删除策略等高风险差异 | 阻断全部写入 |
 
+`meta.conditions` 属于字段安全更新白名单，Plan 展示条件数组差异；涉及隐藏时保存清空时附带后续数据影响提示。未声明时保留，`null` / `[]` 表示清空。
+
+`resources apply` 支持 Translation Strings，按翻译键和语言认领、更新或显式删除。翻译操作的 `changes` 在文本和 JSON 报告中展示；失败结果包含 `completed`、`failure` 和后续 `notExecuted`，首项失败即停止，无整体事务回滚。`--dry-run` 只读，显式删除沿用 `--confirm-destructive`。用法见 [Translation Strings](./schema-dsl.md#translation-strings)。
+
 ## 退出码
 
 | 退出码 | 含义 |

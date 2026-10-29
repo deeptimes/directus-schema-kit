@@ -14,7 +14,7 @@ CLI 接受 Directus 11.x 与 12.x。Node.js 22+ 下已验证 Directus 11.17.4、
 - `dsk plan`：只读获取本地 Directus 状态，分类 create、update、unchanged、conflict 和 dangerous。
 - `dsk apply`：全量预检后按依赖顺序执行安全 create/update，默认阻断 conflict/dangerous。
 - `dsk seed`：严格 JSON Seed，自然键 upsert、跨集合/同集合引用以及 plan/apply。
-- `dsk resources apply`：folders、roles、policies、access、permissions、presets 同步。
+- `dsk resources apply`：folders、roles、policies、access、permissions、presets、translations 同步。
 - `dsk clean`：清空全部自定义集合记录，保留结构和权限配置。
 - `dsk reset`：完整清理开发业务环境，包括旧集合、业务权限、普通用户和上传文件；保留管理员、settings、License 配置。
 - `dsk clear`：兼容旧版，仅清理代码声明的自定义 Schema。

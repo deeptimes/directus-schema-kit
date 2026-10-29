@@ -159,10 +159,11 @@ function integrationResources(remove: boolean): Record<ResourceType, ResourceDef
       mark({ type: 'permissions', key: 'ci-read', data: { policy: ref('policies.ci'), collection: 'dsk_ci_articles', action: 'read', permissions: {}, fields: ['*'] } }),
       mark({ type: 'permissions', key: 'ci-public-read', data: { policy: systemRef('policies.public'), collection: 'dsk_ci_articles', action: 'read', permissions: {}, fields: ['*'] } }),
     ],
+    translations: [],
     presets: [mark({ type: 'presets', key: 'ci', data: { bookmark: 'DSK CI Preset', collection: 'dsk_ci_articles', role: ref('roles.ci'), user: null, layout: 'tabular' } })],
   }
 }
 
 function emptyResources(): Record<ResourceType, ResourceDefinition[]> {
-  return { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [] }
+  return { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [], translations: [] }
 }

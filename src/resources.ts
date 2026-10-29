@@ -1,9 +1,10 @@
+import { validateTranslations } from './resource-validation.js'
 import { DskError } from './errors.js'
-import type { DeclarativeValue, ResourceDefinition, ResourceSyncOperation, ResourceSyncResult, ResourceType, SystemResourceKey } from './types.js'
+import type { DeclarativeValue, ResourceDefinition, ResourceDefinitions, ResourceSyncOperation, ResourceSyncResult, ResourceType, SystemResourceKey } from './types.js'
 
-const order: ResourceType[] = ['folders', 'roles', 'policies', 'access', 'permissions', 'presets']
+const order: ResourceType[] = ['folders', 'roles', 'policies', 'access', 'permissions', 'presets', 'translations']
 const endpoints: Record<ResourceType, string> = {
-  folders: 'folders', roles: 'roles', policies: 'policies', access: 'access', permissions: 'permissions', presets: 'presets',
+  folders: 'folders', roles: 'roles', policies: 'policies', access: 'access', permissions: 'permissions', presets: 'presets', translations: 'translations',
 }
 
 export interface ResourceReader {
@@ -17,13 +18,15 @@ export interface ResourceWriter {
 }
 
 export async function syncResources(options: {
-  definitions: Record<ResourceType, ResourceDefinition[]>
+  definitions: ResourceDefinitions
   reader: ResourceReader
   writer?: ResourceWriter
   environment?: Record<string, string>
   dryRun?: boolean
   confirmDestructive?: boolean
 }): Promise<ResourceSyncResult> {
+  const errors = validateTranslations(options.definitions.translations === undefined ? [] : options.definitions.translations)
+  if (errors.length) throw new DskError('Translation Strings 校验失败', 'VALIDATION_ERROR', errors)
   const dryRun = options.dryRun ?? false
   const customRules = options.definitions.permissions.some((definition) => {
     if (definition.delete) return false
@@ -36,7 +39,12 @@ export async function syncResources(options: {
       '请配置包含该能力的有效 Directus license；DSK 不会移除过滤条件、字段限制、validation 或 presets 来绕过限制',
     ])
   }
-  const current = Object.fromEntries(await Promise.all(order.map(async (type) => [type, await options.reader.listSystemResource(endpoints[type])]))) as Record<ResourceType, Array<Record<string, unknown>>>
+  const current = Object.fromEntries(await Promise.all(order.map(async (type) => {
+    // 未声明翻译时不新增端点权限要求，兼容已有资源工作流。
+    const rows = type === 'translations' && !options.definitions.translations?.length
+      ? [] : await options.reader.listSystemResource(endpoints[type])
+    return [type, rows]
+  }))) as Record<ResourceType, Array<Record<string, unknown>>>
   const idByRef = new Map<string, string | number>()
   const systemIds = resolveSystemReferences(options.definitions, current)
   const operations: ResourceSyncOperation[] = []
@@ -55,9 +63,12 @@ export async function syncResources(options: {
       if (definition.delete) {
         operations.push({ type, key: definition.key, action: found ? 'delete' : 'unchanged', dangerous: Boolean(found), ...(id !== undefined ? { id } : {}) })
       } else if (!found) {
-        operations.push({ type, key: definition.key, action: 'create', dangerous: false })
+        operations.push({ type, key: definition.key, action: 'create', dangerous: false, ...(type === 'translations' ? { changes: Object.entries(resolved).map(([path, target]) => ({ path, current: undefined, target })) } : {}) })
       } else {
-        operations.push({ type, key: definition.key, action: differs(found, resolved) ? 'update' : 'unchanged', dangerous: false, id: id! })
+        const changes = type === 'translations'
+          ? Object.entries(resolved).filter(([key, value]) => !same(found[key], value)).map(([path, target]) => ({ path, current: found[path], target }))
+          : undefined
+        operations.push({ type, key: definition.key, action: differs(found, resolved) ? 'update' : 'unchanged', dangerous: false, id: id!, ...(changes ? { changes } : {}) })
       }
   }
   const deletes = operations.filter((item) => item.action === 'delete').reverse()
@@ -72,14 +83,16 @@ export async function syncResources(options: {
   const completed: ResourceSyncOperation[] = []
   for (const operation of operations) {
     if (operation.action === 'unchanged') continue
-    const definition = options.definitions[operation.type].find((item) => item.key === operation.key)!
+    const definition = options.definitions[operation.type]!.find((item) => item.key === operation.key)!
     try {
       const data = resolveValue(definition.data, idByRef, systemIds, options.environment ?? {}) as Record<string, unknown>
       if (operation.action === 'create') {
         const saved = await options.writer.createSystemResource(endpoints[operation.type], data)
         if (saved.id !== undefined) idByRef.set(`${operation.type}.${operation.key}`, saved.id as string | number)
       } else if (operation.action === 'update') {
-        await options.writer.updateSystemResource(endpoints[operation.type], operation.id!, data)
+        await options.writer.updateSystemResource(endpoints[operation.type], operation.id!, operation.type === 'translations'
+          ? Object.fromEntries((operation.changes ?? []).map((change) => [change.path, data[change.path]]))
+          : data)
       } else if (operation.action === 'delete') {
         await options.writer.deleteSystemResource(endpoints[operation.type], operation.id!)
       }
@@ -88,6 +101,7 @@ export async function syncResources(options: {
       return {
         resourceSyncVersion: 1, dryRun: false, status: 'failed', operations, completed,
         failure: { type: operation.type, key: operation.key, message: formatError(error) },
+        notExecuted: operations.slice(operations.indexOf(operation) + 1).filter((item) => item.action !== 'unchanged'),
       }
     }
   }
@@ -95,8 +109,8 @@ export async function syncResources(options: {
 }
 
 export function matchResourceDefinitions(
-  definitions: Record<ResourceType, ResourceDefinition[]>,
-  current: Record<ResourceType, Array<Record<string, unknown>>>,
+  definitions: ResourceDefinitions,
+  current: Partial<Record<ResourceType, Array<Record<string, unknown>>>>,
   environment: Record<string, string>,
 ): Map<string, Set<string | number>> {
   const ids = new Map<string, string | number>()
@@ -104,7 +118,7 @@ export function matchResourceDefinitions(
   const matched = new Map<string, Set<string | number>>()
   for (const definition of orderedDefinitions(definitions)) {
     const target = resolveValue(definition.data, ids, systems, environment, true) as Record<string, unknown>
-    const rows = current[definition.type].filter((row) => matchesDefinition(definition.type, row, target))
+    const rows = (current[definition.type] ?? []).filter((row) => matchesDefinition(definition.type, row, target))
     if (rows.length > 1) throw new DskError(`资源业务键匹配不唯一: ${definition.type}.${definition.key}`, 'VALIDATION_ERROR')
     const id = rows[0]?.id
     if (typeof id !== 'string' && typeof id !== 'number') continue
@@ -115,8 +129,8 @@ export function matchResourceDefinitions(
   return matched
 }
 
-function orderedDefinitions(definitions: Record<ResourceType, ResourceDefinition[]>): ResourceDefinition[] {
-  const all = order.flatMap((type) => definitions[type])
+function orderedDefinitions(definitions: ResourceDefinitions): ResourceDefinition[] {
+  const all = order.flatMap((type) => definitions[type] ?? [])
   const byKey = new Map(all.map((item) => [`${item.type}.${item.key}`, item]))
   const result: ResourceDefinition[] = []
   const visited = new Set<string>()
@@ -141,6 +155,7 @@ function orderedDefinitions(definitions: Record<ResourceType, ResourceDefinition
 function matchesDefinition(type: ResourceType, item: Record<string, unknown>, target: Record<string, unknown>): boolean {
   const keys: Record<ResourceType, string[]> = {
     folders: ['name', 'parent'], roles: ['name'], policies: ['name'], access: ['role', 'policy', 'user'], permissions: ['policy', 'collection', 'action'],
+    translations: ['key', 'language'],
     presets: ['bookmark', 'collection', 'role', 'user'],
   }
   const selected = keys[type].filter((key) => Object.hasOwn(target, key))
@@ -182,12 +197,12 @@ function resolveValue(value: DeclarativeValue | Record<string, DeclarativeValue>
   return value
 }
 
-function resolveSystemReferences(definitions: Record<ResourceType, ResourceDefinition[]>, current: Record<ResourceType, Array<Record<string, unknown>>>): Map<SystemResourceKey, string | number> {
+function resolveSystemReferences(definitions: ResourceDefinitions, current: Partial<Record<ResourceType, Array<Record<string, unknown>>>>): Map<SystemResourceKey, string | number> {
   const requested = new Set(Object.values(definitions).flatMap((items) => items.flatMap((item) => collectSystemReferences(item.data))))
   const result = new Map<SystemResourceKey, string | number>()
   for (const key of requested) {
     if (key !== 'policies.public') throw new DskError(`不支持的系统资源引用: ${key}`, 'VALIDATION_ERROR')
-    const matches = current.policies.filter((item) => item.name === '$t:public_label' && item.id !== undefined)
+    const matches = (current.policies ?? []).filter((item) => item.name === '$t:public_label' && item.id !== undefined)
     if (matches.length !== 1) {
       throw new DskError(`无法唯一解析系统资源 ${key}`, 'VALIDATION_ERROR', [`匹配到 ${matches.length} 个 Directus Public policy`])
     }

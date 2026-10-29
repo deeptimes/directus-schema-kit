@@ -6,7 +6,7 @@ import type { DirectusState, Manifest, ResourceType } from './types.js'
 type Row = Record<string, unknown>
 type Id = string | number
 export type CleanupMode = 'data' | 'full'
-export type CleanupEndpoint = ResourceType | 'users' | 'files'
+export type CleanupEndpoint = Exclude<ResourceType, 'translations'> | 'users' | 'files'
 export interface CleanupSnapshot {
   currentUser: string
   settings: Row

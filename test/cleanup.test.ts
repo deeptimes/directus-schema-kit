@@ -268,3 +268,14 @@ test('reset 先解除业务集合对普通用户的必填外键，再删除用�
   assert.ok(fieldIndex < userIndex)
   assert.ok(plan.operations.findIndex((op) => op.kind === 'collection' && op.resource === 'articles') < userIndex)
 })
+
+
+test('translations 声明不扩大 clean/reset 范围，也不要求清理快照读取翻译', () => {
+  const { manifest, snapshot } = fixture()
+  manifest.resources.translations = [{ type: 'translations', key: 'shared', data: { key: 'shared.label', language: 'zh-CN', value: '共享' } }]
+  for (const mode of ['data', 'full'] as const) {
+    const plan = createCleanupPlan({ mode, manifest, snapshot })
+    assert.deepEqual(plan.blockers, [])
+    assert.equal(plan.operations.some((item) => item.resource === 'translations' || item.resource === 'directus_translations'), false)
+  }
+})

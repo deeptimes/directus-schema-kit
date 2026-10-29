@@ -146,3 +146,84 @@ dsk clear --confirm
 ```
 
 交互式终端会先展示完整计划并要求 `y/N` 确认。
+
+## 字段条件
+
+字段 helper 的 `conditions` 与原始 `FieldMeta.conditions` 均保存 Directus 原生规则：
+
+```ts
+field.string('object', {
+  label: '对象', hidden: true,
+  conditions: [
+    {
+      name: '对象类型显示并必填', rule: { type: { _in: ['object', 'aspect'] } },
+      hidden: false, required: true, options: {},
+    },
+    {
+      name: '其他类型隐藏并清空', rule: { type: { _nin: ['object', 'aspect'] } },
+      hidden: true, required: false, clear_hidden_value_on_save: true, options: {},
+    },
+  ],
+})
+```
+
+每条条件必须有 `name` 和对象形式的 `rule`；支持 `hidden`、`required`、`readonly`、`options`、`clear_hidden_value_on_save`，未知条件属性和无效 Filter 结构会报来源文件、集合、字段及条件位置。规则不执行 JavaScript。`options` 保留嵌套内容；条件数组按声明顺序保存、比较，不排序。对象键顺序不影响比对。
+
+已有字段的条件新增、修改、删除和重排归为安全 `update`，只 PATCH 变化的元数据。未声明 `conditions` 保留实例配置；显式 `null` 或 `[]` 都表示清空，两种空表示比对等价。条件中的 `required` 仅影响表单，不修改 `schema.is_nullable`。
+
+Plan 展示完整条件差异；涉及 `clear_hidden_value_on_save: true` 时额外提示后续保存的数据影响。清空由 Studio 在保存条目时执行，不会在应用元数据时批量改写业务数据，也不适用于普通 API 客户端；后端仍需独立校验。字段类型、数据库约束、`meta.special` 和其他未支持属性继续受原有阻断机制保护。
+
+## Translation Strings
+
+后台界面翻译使用 `resource('translations', ...)`，与业务内容的 `relation.translations()` 分开。将以下定义放入 `dsk/resources/translations.ts`：
+
+```ts
+import { resource } from '@deeptimes/directus-schema-kit'
+
+export default [
+  resource('translations', {
+    key: 'context-sun-zh',
+    data: { key: 'context.object.sun', language: 'zh-CN', value: '太阳' },
+  }),
+  resource('translations', {
+    key: 'context-sun-en',
+    data: { key: 'context.object.sun', language: 'en-US', value: 'Sun' },
+  }),
+  resource('translations', {
+    key: 'context-house-one-zh',
+    data: { key: 'context.house.one', language: 'zh-CN', value: '第 1 宫' },
+  }),
+  resource('translations', {
+    key: 'context-house-one-en',
+    data: { key: 'context.house.one', language: 'en-US', value: 'House 1' },
+  }),
+]
+```
+
+在 Schema 文件中引用，选项保存值不会随语言变化：
+
+```ts
+field.string('object', {
+  label: '对象', interface: 'select-dropdown',
+  options: { choices: [{ value: 'sun', text: '$t:context.object.sun' }] },
+})
+field.integer('house', {
+  label: '宫位', interface: 'select-dropdown',
+  options: { choices: [{ value: 1, text: '$t:context.house.one' }] },
+})
+```
+
+外层 `key` 是 DSK 资源标识；实例按 `data.key + data.language` 自然键匹配，首次接入可认领手工创建的记录，更新保留原 ID。新增与修改进入现有 `resources apply --dry-run` / `resources apply`，只调用官方 `/translations` API。预览展示新增内容和文字前后差异。重复声明、实例中的重复自然键均阻断；一个语言的修改不会覆盖另一语言。
+
+`data.key`、`data.language` 必须是含非空白字符、最多 255 个字符的字符串；不改写语言大小写或分隔符。`value` 必须是字符串，允许空字符串、Unicode 和换行，不转义或插值。声明字段限定为这三项，禁止硬编码实例 `id` 或使用引用替代自然键。显式删除只需 `key` 和 `language`，可省略 `value`：
+
+```ts
+resource('translations', {
+  key: 'context-sun-zh', delete: true,
+  data: { key: 'context.object.sun', language: 'zh-CN' },
+})
+```
+
+删除仍需 `--confirm-destructive`；目标不存在时为 `unchanged`。移除声明、改变翻译键或语言不会删除旧记录。`clear`、`clean`、`reset` 都不自动删除共享 Translation Strings，删除须走资源显式机制。旧 Manifest V1 可以没有 `resources.translations`；重新 build 后会生成该数组。
+
+推荐先 `build`、`validate`，再审查并应用 Schema，随后同步 resources，最后开放 Studio 编辑；Schema 与资源分别验收。若项目需要提前准备翻译，可预先部署只含翻译的声明阶段；不要将依赖集合的 permissions 一并强制提前。第一版不检查 `$t:` 引用完整性，因为引用也可能来自内置词条或其他维护方。

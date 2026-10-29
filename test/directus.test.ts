@@ -133,3 +133,23 @@ test('许可或接口过滤导致权限未完整返回时阻断，不能静默�
   const reader = new DirectusReader('http://localhost', 'secret', 1000, async () => Response.json({ data: [], meta: { filter_count: 1 } }))
   await assert.rejects(() => reader.listStoredPermissions(), /权限.*完整/)
 })
+
+test('translations 使用分页官方 GET，更新与删除按实例 ID 路由', async () => {
+  const requests: Array<{ url: URL; method: string | undefined; body?: unknown }> = []
+  const fetcher: typeof fetch = async (input, init) => {
+    const url = new URL(String(input))
+    requests.push({ url, method: init?.method, ...(init?.body ? { body: JSON.parse(String(init.body)) } : {}) })
+    if (init?.method === 'GET') return Response.json({ data: url.searchParams.get('offset') === '0' ? [{ id: 'one', key: 'x', language: 'en-US', value: 'X' }] : [] })
+    return new Response(null, { status: 204 })
+  }
+  const reader = new DirectusReader('http://localhost:8055', 'secret', 1000, fetcher)
+  assert.equal((await reader.listSystemResource('translations')).length, 1)
+  assert.deepEqual(requests.map((item) => item.url.searchParams.get('offset')), ['0', '1'])
+  assert.equal(requests.every((item) => item.method === 'GET' && item.url.pathname === '/translations' && item.url.searchParams.get('sort') === 'id'), true)
+  const writer = new DirectusWriter('http://localhost:8055', 'secret', 1000, 1, fetcher)
+  await writer.updateSystemResource('translations', 'one/two', { value: '太阳\n☀️' })
+  await writer.deleteSystemResource('translations', 'one/two')
+  assert.equal(requests[2]?.url.pathname, '/translations/one%2Ftwo')
+  assert.deepEqual(requests[2]?.body, { value: '太阳\n☀️' })
+  assert.equal(requests[3]?.method, 'DELETE')
+})

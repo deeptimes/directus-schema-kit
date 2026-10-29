@@ -2,6 +2,8 @@ import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { Ajv } from 'ajv'
 import { glob } from 'tinyglobby'
+import { validateConditions } from './conditions.js'
+import { validateTranslations } from './resource-validation.js'
 import { formatAjvErrors } from './config.js'
 import { DskError } from './errors.js'
 import { orderedCollections } from './collections.js'
@@ -13,13 +15,23 @@ export function validateManifest(manifest: Manifest, config: DskConfig): string[
   const errors: string[] = []
   const ajv = new Ajv({ allErrors: true, strict: false })
   const validate = ajv.compile(manifestJsonSchema)
-  if (!validate(manifest)) errors.push(...formatAjvErrors(validate.errors).map((item) => `manifest${item}`))
+  if (!validate(manifest)) {
+    errors.push(...formatAjvErrors(validate.errors).map((item) => `manifest${item}`))
+    if (Array.isArray(manifest.resources?.translations)) errors.push(...validateTranslations(manifest.resources.translations))
+    return errors
+  }
 
   collectDefinitionDuplicates(manifest.collections, (item) => item.collection, '集合', errors)
   collectDefinitionDuplicates(manifest.fields, (item) => `${item.collection}.${item.field}`, '字段', errors)
   collectDefinitionDuplicates(manifest.relations, (item) => `${item.collection}.${item.field}`, '关系', errors)
   for (const [type, definitions] of Object.entries(manifest.resources)) {
     collectDefinitionDuplicates(definitions, (item) => item.key, `${type} 资源`, errors)
+  }
+  errors.push(...validateTranslations(manifest.resources.translations ?? []))
+  for (const field of manifest.fields) {
+    if (field.meta && Object.hasOwn(field.meta, 'conditions')) {
+      errors.push(...validateConditions(field.meta.conditions, `${field.source}: ${field.collection}.${field.field}.meta.conditions`))
+    }
   }
   validateResourceReferences(manifest, config, errors)
   try {

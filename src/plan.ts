@@ -5,7 +5,7 @@ const safeCollectionMeta = [
   'archive_app_filter', 'archive_value', 'unarchive_value', 'sort_field', 'group', 'sort', 'collapse',
   'color', 'translations',
 ] as const
-const safeFieldMeta = ['interface', 'options', 'display', 'display_options', 'note', 'hidden', 'readonly', 'required', 'sort', 'width', 'translations'] as const
+const safeFieldMeta = ['interface', 'options', 'display', 'display_options', 'note', 'hidden', 'readonly', 'required', 'sort', 'width', 'translations', 'conditions'] as const
 const dangerousFieldSchema = ['is_nullable', 'is_unique', 'is_primary_key', 'has_auto_increment', 'max_length', 'numeric_precision', 'numeric_scale'] as const
 const structuralRelationMeta = [
   'many_collection', 'many_field', 'one_collection', 'one_field', 'one_collection_field',
@@ -59,8 +59,12 @@ export function createPlan(manifest: Manifest, state: DirectusState, targetUrl: 
     const conflicts = [...metaConflicts, ...schemaConflicts]
     const all = [...dangerous, ...safe, ...defaultChanges, ...conflicts]
     const action = dangerous.length ? 'dangerous' : conflicts.length ? 'conflict' : all.length ? 'update' : 'unchanged'
-    operations.push(operation(target.source, 'field', resource, action, all,
-      dangerous.length ? '字段类型或数据库约束变化需要显式迁移' : conflicts.length ? '字段包含未列入安全更新白名单的差异' : undefined))
+    const clearOnSaveChanged = safe.some((change) => change.path === 'meta.conditions'
+      && (hasClearOnSave(change.current) || hasClearOnSave(change.target)))
+    const reason = dangerous.length ? '字段类型或数据库约束变化需要显式迁移'
+      : conflicts.length ? '字段包含未列入安全更新白名单的差异'
+      : clearOnSaveChanged ? '条件包含隐藏时保存清空：会影响后续 Studio 保存的字段值' : undefined
+    operations.push(operation(target.source, 'field', resource, action, all, reason))
   }
 
   for (const target of manifest.relations) {
@@ -98,7 +102,9 @@ function operation(source: string, resourceType: PlanOperation['resourceType'], 
 function compareProperties<const T extends readonly string[]>(current: Record<string, unknown>, target: Record<string, unknown>, keys: T, prefix: string): PlanChange[] {
   const changes: PlanChange[] = []
   for (const key of keys) {
-    if (Object.hasOwn(target, key) && !equal(current[key], target[key])) changes.push({ path: `${prefix}.${key}`, current: current[key], target: target[key] })
+    if (Object.hasOwn(target, key) && !(prefix === 'meta' && key === 'conditions'
+      ? equal(current[key] ?? [], target[key] ?? [])
+      : equal(current[key], target[key]))) changes.push({ path: `${prefix}.${key}`, current: current[key], target: target[key] })
   }
   return changes
 }
@@ -139,4 +145,8 @@ function isSqliteDecimalNormalization(
   if (databaseClient?.toLowerCase() !== 'sqlite3' || current.type !== 'float' || target.type !== 'decimal') return false
   const currentSchema = asRecord(current.schema)
   return currentSchema.numeric_precision == null && currentSchema.numeric_scale == null
+}
+
+function hasClearOnSave(value: unknown): boolean {
+  return Array.isArray(value) && value.some((condition) => asRecord(condition).clear_hidden_value_on_save === true)
 }

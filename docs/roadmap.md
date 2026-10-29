@@ -13,7 +13,7 @@ DSK 面向本地 Directus 项目，让数据模型和基础资源可以通过代
 | Manifest | 扁平、确定性 JSON，带源码 SHA-256 摘要；`build --check` 检查新鲜度 |
 | 变更 | 离线 validate；只读 plan；全量预检后执行安全 create/update |
 | 基础数据 | 版本化 JSON seed，自然键 upsert 和跨集合／同集合引用 |
-| 系统资源 | folders、roles、policies、access、permissions、presets |
+| 系统资源 | folders、roles、policies、access、permissions、presets、translations |
 | 清理 | `clean` 清空全部自定义集合记录；`reset` 完整清理业务环境并保留管理员和基础配置；`clear` 保持仅清理声明 Schema 的兼容行为，真实删除必须确认 |
 | 工程化 | 文本／版本化 JSON 输出、稳定退出码、凭证脱敏 |
 
@@ -42,7 +42,7 @@ CLI 接受 Directus 11.x 和 12.x；当前自动集成基线为 Node.js 22+，Di
 - init 不覆盖已有文件，dry-run 不写入，非 Directus 项目不生成工作区。
 - 相同源码生成字节级稳定、无解析后 secret、通过 JSON Schema 校验的 Manifest。
 - validate 发现重复定义、无效关系、缺失引用和过期 Manifest。
-- 首次 apply 建立完整 Schema，二次 plan 无可执行差异；seed 和六类系统资源重复执行收敛。
+- 首次 apply 建立完整 Schema，二次 plan 无可执行差异；seed 和七类系统资源重复执行收敛。
 - 八类关系通过认证环境的构建、校验、应用和幂等检查，并在 Data Studio 正常编辑。
 - conflict/dangerous 在任何 Schema 写入前阻断全部操作；危险操作有独立确认且始终保护系统集合。
 - clean/reset 覆盖未声明的自定义集合，清理前全量检查引用；保留 settings、初始管理员及授权链、系统 Public policy 和运行／License 配置；reset 删除普通用户、业务授权配置和上传文件，重复执行安全。
