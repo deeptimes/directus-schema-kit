@@ -32,12 +32,12 @@ v3 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地�
 | V3-1 | 生产写入硬保护 | P0 | 代码与单元测试已实现，待 v3 命令级矩阵 | `safety.environment` 只接受 `development`；`allowedHosts` 默认 loopback、`10.0.0.0/8`、`192.168.0.0/16`、`.local`，默认阻止 `172.16.0.0/12` 和公网；`doctor` 与所有写命令统一校验；覆盖测试 |
 | V3-2 | Settings 系统配置 | P0 | 已实现，单元测试与 Directus 12.7.0 API 验证通过 | 受控 scalar settings 声明（如 project name、default language、color）；只更新声明字段；环境本地 / 敏感字段排除；`reset` 继续保留；本地 + d6s 测试 |
 | V3-3 | Folders / 文件管理目录 | P0 | 已实现，单元测试与 12.7.0 API 验证通过 | 稳定键加入 `type`（files / flows）；`name + parent + type`；重命名、移动、删除、文件引用阻断；测试 |
-| V3-4 | Presets / 书签 | P0 | 已实现，单元测试通过 | global / role / personal preset、tabular、bookmark、collection、role；personal preset 不跨环境；重复执行收敛；测试 |
+| V3-4 | Presets / 书签 | P0 | 已实现，单元测试与 12.7.0 API 验证通过 | global / role / personal preset、tabular、bookmark、collection、role；personal preset 不跨环境；重复执行收敛；测试 |
 | V3-5 | Translations | P0 | 已实现，单元测试与 12.7.0 API 验证通过 | 多语言、`key + language`、>100 分页、更新 / 删除 / 空文字 / Unicode；测试 |
 | V3-6 | 权限链 roles / policies / access / permissions | P0 | 已实现，单元测试与 12.7.0 简单权限链验证通过 | 名称契约、id_map、admin_access 审查、user-scoped 排除、Public policy；跨环境无重复；测试 |
 | V3-7 | d6s 发布契约 | P0 | release checklist 已定；scope / pull / diff / push / id_map / mirror / rename 跨环境矩阵通过 | CLI 版本 pin、project `resources` / `excludeResources`、`--roles` / `--no-*`、`id_map`、release checklist |
 | V3-8 | v3 测试矩阵 | P0 | 大部分完成：本地 12.7.0 API smoke 和 d6s 跨环境基础矩阵通过；license 自定义权限、>100 翻译、Studio 交互仍待执行 | playground 本地矩阵 + 双实例 d6s 矩阵；每类资源 create / update / unchanged / delete / conflict / drift |
-| V3-9 | Manifest / 兼容性 | P1 | settings 已纳入 Manifest V1，暂不需要 V2 | 新资源类型是否需要 Manifest V2；若需要提供迁移；否则明确 V1 扩展 |
+| V3-9 | Manifest / 兼容性 | P1 | settings / folders / presets 校验已纳入 Manifest V1，暂不引入 V2 | 新资源类型是否需要 Manifest V2；若需要提供迁移；否则明确 V1 扩展 |
 | V3-10 | Flows / Operations / Dashboards / Panels | P1（v3.x） | 待独立设计 | 先明确生命周期、危险确认和失败恢复；v3.0 不纳入，v3.x 单独评审 |
 | V3-11 | Users / 内容 / 文件数据同步 | 非目标 | 明确边界 | 各环境自管；需要时独立设计，不用 DSK / d6s 做内容同步 |
 | V3-12 | 补全 Directus 12.x 认证 | P0 | 12.7.0 基础生命周期、简单权限链和 d6s 跨环境通过；license 自定义权限 / Studio 待回归 | 有许可的自定义权限规则和 Data Studio 编辑回归完成 |
