@@ -1,6 +1,6 @@
 # Directus Playground
 
-独立的 Directus 本地项目，使用 IT 博客模型验证 DSK：分类、标签、文章、文件、评论、会员资料，以及 Public / Member / Editor 权限。当前锁定 12.5.1 作为历史基线；v3 开发目标升级到 12.7.0（12.6.1 作为回退候选），兼容结论见 [兼容性](../docs/compatibility.md)。
+独立的 Directus 本地项目，使用 IT 博客模型验证 DSK：分类、标签、文章、文件、评论、会员资料，以及 Public / Member / Editor 权限。当前锁定 12.5.1 作为历史基线；v3 通过 `.v3-runtime` 一次性副本升级到 12.7.0（12.6.1 作为回退候选），兼容结论见 [兼容性](../docs/compatibility.md)。
 
 ## 安装、升级与启动
 
@@ -48,6 +48,18 @@ v3 的 d6s 跨环境矩阵不需要把 playground 拆成多个完整子项目。
 - 通过环境变量覆盖 `DB_FILENAME`、`STORAGE_LOCAL_ROOT`、`PORT` 和 `PUBLIC_URL`；
 - 使用独立的管理员 token；测试后销毁数据库和上传目录，不提交运行数据；
 - 场景隔离用 `reset` 或临时项目副本，不提交多套 Directus 运行时。
+
+仓库已提供一次性副本脚本：
+
+```bash
+pnpm v3:copy          # 在 playground/.v3-runtime 生成 Directus 12.7.0 副本
+cd .v3-runtime
+pnpm install
+pnpm bootstrap
+pnpm dev:v3           # http://127.0.0.1:8056
+```
+
+`.v3-runtime` 已被 gitignore，现有 `playground` 12.5.1 的数据库和 uploads 不会被改动。重建副本使用 `pnpm v3:copy -- --force`。
 
 如果以后需要长期并行 dev / target，优先用 `docker compose` 跑两个同版本 Directus 服务，而不是复制多个 Directus 项目目录。详细矩阵见 [v3 测试计划](../docs/v3-test-plan.md)。
 

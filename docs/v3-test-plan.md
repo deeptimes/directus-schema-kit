@@ -24,10 +24,10 @@
 
 - **不**把 `playground/` 拆成多个完整的 Directus 子项目。那会复制 package、lockfile、数据库和上传目录，维护成本高，也容易让测试和示例互相污染。
 - 保持 `playground/` 单项目作为 dev；target 用**一次性第二实例**：独立 SQLite 文件、独立 uploads、端口 8056，测试后销毁。
-- 实现上优先用一个启动脚本（例如 `playground/scripts/target.mjs` 或 shell），通过环境变量覆盖 `DB_FILENAME`、`STORAGE_LOCAL_ROOT` 和 `PORT`，复用同一个 Directus 安装。
+- 已提供 `playground/scripts/create-v3-copy.mjs`（`pnpm v3:copy`），生成 `playground/.v3-runtime`：Directus 12.7.0、端口 8056、独立 DB / uploads / admin token；现有 playground 不受影响。生成后执行 `pnpm install && pnpm bootstrap`，再用 `pnpm dev:v3` 启动。
 - 如果以后需要长期稳定地同时跑 dev / staging / target，再考虑 `docker compose` 两个同版本 Directus 服务；不要用多个提交的子项目模拟环境。
 - 场景隔离用 `dsk reset` 或临时项目副本；不要把多套 Directus 运行时提交进仓库。
-- v3 开始前把 `playground/package.json` 的 Directus 升级到 12.7.0，更新 lockfile 并重建数据库；12.6.1 只在 12.7.0 出现兼容问题时回退。
+- v3 使用一次性副本升级到 12.7.0；`playground/package.json` 的 12.5.1 保持不动，避免影响现有数据库和 uploads。12.6.1 只在 12.7.0 出现兼容问题时回退。
 
 `@directus/cli` 是独立包，当前 latest 12.5.1；d6s 的 CLI 版本和 Directus 服务器版本不是同一个版本号。
 

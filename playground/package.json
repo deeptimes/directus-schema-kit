@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "schema:plan": "dsk plan",
     "schema:apply": "dsk apply",
-    "schema:seed": "dsk seed"
+    "schema:seed": "dsk seed",
+    "v3:copy": "node scripts/create-v3-copy.mjs"
   },
   "dependencies": {
     "directus": "12.5.1"

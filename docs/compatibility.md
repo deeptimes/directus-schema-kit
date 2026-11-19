@@ -8,10 +8,12 @@
 | --- | --- | --- |
 | 11.17.4 + SQLite | provisioning 生命周期、八类关系、Seed、六类系统资源、幂等、权限过滤和 Clear 通过 | 其他数据库与版本需单独验证 |
 | 12.5.1 + SQLite | 历史基线：新实例及 11.17.4 数据库迁移副本通过同一生命周期；Core 自定义权限阻断通过 | 含有效 license 的自定义权限与完整 Data Studio 编辑回归 |
-| 12.7.0 + SQLite | v3 目标基线，待验证 | 全部系统资源、清理、d6s 跨环境与 Data Studio 回归 |
+| 12.7.0 + SQLite | 基础生命周期通过：bootstrap、doctor、schema apply 131 ops、二次 plan unchanged、seed 10 unchanged；Core 自定义权限阻断通过 | 资源同步、d6s 跨环境与 Data Studio 回归待验证 |
 | 12.6.1 + SQLite | 回退候选，待验证 | 若 12.7.0 出现兼容问题再切换 |
 
 CLI 接受 11.x 和 12.x，不表示所有小版本、数据库或许可能力都已认证。CI 同时运行上述两个固定版本；当前 v12 测试使用 Core，不能据此宣称博客会员权限已经可用。
+
+2026-11-20 在 Directus 12.7.0 + SQLite 的一次性副本验证：`directus bootstrap`、`dsk doctor`、`dsk build/validate/plan/apply`（131 项 create）、二次 `plan` 全部 `unchanged`、`dsk seed` 10 条 create / 二次 `unchanged` 通过；Core 未启用 `custom_permission_rules_enabled` 时 `resources apply` 在写入前阻断（预期）。资源同步、d6s 跨环境和 Data Studio 仍需独立验收。
 
 新增 `clean`／`reset` 已在独立 Directus 12.5.1 + SQLite 临时实例验证 singleton、循环业务记录、普通用户的必填外键、文件实际存储删除、原管理员密码登录和重复执行；11.x 的新清理路径尚待独立真实实例验收。安全阻断范围见 [CLI 清理命令](./cli-reference.md#开发环境清理)。
 

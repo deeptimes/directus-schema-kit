@@ -40,7 +40,7 @@ v3 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地�
 | V3-9 | Manifest / 兼容性 | P1 | Manifest V1 | 新资源类型是否需要 Manifest V2；若需要提供迁移；否则明确 V1 扩展 |
 | V3-10 | Flows / Operations / Dashboards / Panels | P1（v3.x） | 待独立设计 | 先明确生命周期、危险确认和失败恢复；v3.0 不纳入，v3.x 单独评审 |
 | V3-11 | Users / 内容 / 文件数据同步 | 非目标 | 明确边界 | 各环境自管；需要时独立设计，不用 DSK / d6s 做内容同步 |
-| V3-12 | 补全 Directus 12.x 认证 | P0 | 12.5.1 历史基线已过；12.7.0 待回归 | 有许可的自定义权限规则和 Data Studio 编辑回归完成 |
+| V3-12 | 补全 Directus 12.x 认证 | P0 | 12.7.0 基础生命周期通过；资源 / d6s / Studio 待回归 | 有许可的自定义权限规则和 Data Studio 编辑回归完成 |
 
 ### v3 系统模型覆盖清单
 
