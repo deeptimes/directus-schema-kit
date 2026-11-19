@@ -3,7 +3,7 @@
 
 ## Architecture
 - 项目知识库统一维护在 `docs/`，入口：`docs/README.md`。
-- 产品范围：`docs/roadmap.md`；开发规则：`docs/development-rules.md`。
+- 架构基线：`docs/architecture.md`；产品范围：`docs/roadmap.md`；开发规则：`docs/development-rules.md`。
 
 ## Environment
 

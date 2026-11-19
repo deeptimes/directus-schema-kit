@@ -4,7 +4,9 @@
 
 ## 开发必读
 
-- [Roadmap 与产品边界](./roadmap.md)：当前交付范围、后续方向和验收基线，作为本项目的产品需求依据。
+- [架构](./architecture.md)：DSK 的定位、分层、状态流、资源分类和跨环境边界。
+- [Roadmap 与产品边界](./roadmap.md)：当前交付范围、v3 目标和验收基线，作为本项目的产品需求依据。
+- [v3 测试计划](./v3-test-plan.md)：Directus 系统模型资源的本地矩阵和跨环境测试矩阵。
 - [配合 Directus 开发](./directus-development.md)：源码与 Data Studio 的分工、日常变更、系统资源和数据初始化。
 - [开发规则](./development-rules.md)：Schema / DBML 命名、AI 编写约束、安全边界和危险操作。
 - [DSK 实现与验收](./development.md)：模块职责、结果契约、测试和发布检查。

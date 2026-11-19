@@ -60,7 +60,7 @@ DBML 是建模说明，不是 DSK 执行输入；建模要求需通过当前 DSL
 
 ## 安全与写入授权
 
-- 只允许连接 localhost、RFC1918 私网和 `.local`；DSK 不承担生产发布或实例间同步。
+- 只允许连接 localhost、RFC1918 私网和 `.local`；DSK 不承担生产发布或实例间同步，跨环境发布由 Directus 官方 Environment Sync（`d6s`）承担。地址校验不区分开发与生产，禁止把 `PUBLIC_URL` 指向生产；只覆盖 schema 的 `schema snapshot` 不包含 roles、policies、access、permissions 等配置资源，详见[环境与发布](./directus-development.md#环境与发布)。
 - token、secret、密码、数据库凭证和真实隐私数据不得写入 Manifest、seed、日志或报告；敏感定义使用 `env()` 引用。
 - Schema apply 遇到任一 conflict/dangerous 全量阻断；实例额外资源不会被推断为删除。
 - `resources apply` 删除系统资源必须声明 `delete: true`，并额外提供 `--confirm-destructive`；独立 `reset` 按已确认的完整清理计划删除目标资源。
