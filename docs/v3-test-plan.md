@@ -100,7 +100,21 @@
 - 跨环境 `@directus/cli@12.5.1`：dev 8056 → target 8057，使用 `collections: v3_articles` + `roles` / `folders` / `presets` / `translations` / `settings` 完成 pull / diff / push；target schema 与配置创建成功；二次 diff 14 条 `unchanged`；`id_map.json` 生成；非交互 `mirror` 无 consent 被拒绝；target role name 直接修改后 diff 显示，push 恢复 dev 名称。
 - 尚未执行：有 license 的自定义权限、>100 条翻译的真实 12.7.0 分页、Data Studio 交互回归；Flows / Dashboards 不在 v3.0 范围。
 
-## 6. 建议的记录方式
+## 6. 待验收清单
+
+以下项目尚未完成，按用户逐个配合的节奏执行：
+
+- [ ] 有 license 的 Directus 实例：自定义权限过滤、字段限制、validation、presets 和 Studio 实际效果。
+- [ ] Directus 12.7.0 真实实例的 >100 条 Translation Strings 分页、更新和删除。
+- [ ] Data Studio 人工回归：Markdown / Tags / Code / Toggle、八类关系、文件上传、字段条件、settings、folders、书签和翻译切换。
+- [ ] d6s 扩展矩阵：多 collection、部分 Schema、mirror 实际删除、版本 / vendor 不一致、incomplete pull、多 target id_map、首次接入生产基线。
+- [ ] Personal preset 在真实 d6s pull 中不出现（只作为环境本地资源）。
+- [ ] Flows / Operations / Dashboards / Panels：v3.x 独立设计，不在 v3.0。
+- [ ] Users / 内容 / 文件数据同步：非目标；需要时独立设计。
+- [ ] 等 `@directus/schema` 14.0.3 / 15.x 或 Directus 12.8 发布后重新核对 SQLite partial index 补丁。
+- [ ] 用户全部验收后再合并 `v3` 到 `main`。
+
+## 7. 建议的记录方式
 
 - API 层优先使用自动化 integration test；Studio 的文件夹、书签、settings、翻译和管理员体验仍需人工验收。
 - 命令输出使用 `dsk --format json` / `d6s --json` 保存为证据；文件放在临时目录，不提交真实 token。

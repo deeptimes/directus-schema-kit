@@ -1,5 +1,7 @@
 # Directus Schema Kit：Translation Strings 原生同步需求
 
+> **状态（2026-11-20）**：核心能力已在 DSK 2.3.0 实现（`translations` 资源、Manifest 校验、自然键匹配、dry-run / apply / 显式删除、分页读取）。本文保留为历史需求与验收参考，不是当前能力清单。文中 DSK 2.2.0 / Directus 12.5.1 是当时环境；当前 v3 基线是 Directus 12.7.0，以 [兼容性](../compatibility.md) 为准。`$t:` 引用完整性检查仍属于后续增强。
+
 日期：2026-10-29。用途：交给负责 `@deeptimes/directus-schema-kit` 的对话评估和实现。
 
 本文区分当前项目已验证的事实与建议新增的工具能力。下文的 API 示例属于设计建议，尚不是 DSK 2.2.0 已提供的 API。本文不授权修改 schema-kit 仓库、发布 npm 包或操作其他项目实例。
@@ -58,9 +60,9 @@ Directus 原生支持 Translation Strings：在 `/translations` 维护 `key`、`
 
 从 Directus 项目根目录查看：
 
-- [`dsk/translations/article-contexts.ts`](../dsk/translations/article-contexts.ts)：中英文定义；复用占星目录的稳定 ID、中文名和英文名，同时生成下拉 choices 与翻译记录。
-- [`dsk/schemas/content.ts`](../dsk/schemas/content.ts)：字段引用生成的 choices。
-- [`tools/content-translations.mjs`](../tools/content-translations.mjs)：通过官方 `/translations` API 同步。
+- `dsk/translations/article-contexts.ts`（原项目路径）：中英文定义；复用占星目录的稳定 ID、中文名和英文名，同时生成下拉 choices 与翻译记录。
+- `dsk/schemas/content.ts`（原项目路径）：字段引用生成的 choices。
+- `tools/content-translations.mjs`（原项目路径）：通过官方 `/translations` API 同步。
 
 示例配置：
 

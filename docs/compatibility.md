@@ -51,6 +51,8 @@ Core 的 collection 等限额仍由 Directus 执行，DSK 不预留配额或绕�
 
 Directus 12.5.1 使用的 `@directus/schema@14.0.2` 在识别 SQLite 单列唯一索引时未排除 `partial = 1`，会将条件唯一误报为字段全局唯一。REST `/fields` 不提供索引条件，DSK 无法仅凭该响应安全区分两者，因此继续严格比较 `schema.is_unique`，不忽略差异、不删除索引，也不把字段声明为全局唯一。
 
+2026-11-20 核对：`@directus/schema` 的 npm `latest` 仍是 **14.0.2**（2026-08-18），Directus 12.7.0 的 `@directus/api@42.0.0` 仍依赖 14.0.2；上游 `packages/schema/src/dialects/sqlite.ts` 的 `main` 分支仍只读取 `unique`，没有检查 `partial`。因此该补丁在 12.7.0 上仍然必要，不是 DSK 的兼容代码过期。等 14.0.3 / 15.x 或 Directus 12.8 发布后重新核对上游实现。
+
 兼容方案是在**运行 Directus 的项目**中安装 [14.0.2 补丁](./patches/@directus__schema@14.0.2.patch)，在上游 inspector 中跳过 partial index。补丁只修正索引识别，不修改数据库；普通单列唯一仍返回 true，复合唯一与条件唯一不会作为字段全局唯一。同字段同时存在条件唯一与全局唯一索引时，仍识别为全局唯一。
 
 使用 pnpm 的项目，将补丁复制到项目的 `patches/@directus__schema@14.0.2.patch`，合并以下配置到项目根目录的 `pnpm-workspace.yaml`（保留原有配置）：
