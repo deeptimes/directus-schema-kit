@@ -120,6 +120,41 @@ d6s sync push --to production
 - 业务内容、seed、文件和用户账号不属于 Schema/Configuration 同步范围；业务内容各环境自管，需要跨环境一致的初始 / 参考数据从 dev 起始，由独立流程交付。
 - 资源分层、客户改角色名、用户授权等边界见 [架构](./architecture.md#6-资源分类) 和 [命名、稳定键与客户改动](./architecture.md#9-命名稳定键与客户改动)。
 
+### 发布检查清单
+
+先把 `directus.config.json` 的 project 范围固定下来。`profiles` 只保存 URL 和认证方式，token 通过 credential store 或 `DIRECTUS_<PROFILE>_TOKEN` 环境变量提供；不要把 token 提交进仓库：
+
+```json
+{
+  "profiles": {
+    "dev": { "url": "http://127.0.0.1:8055", "auth": { "type": "token" } },
+    "staging": { "url": "https://staging.example.com", "auth": { "type": "token" } },
+    "production": { "url": "https://cms.example.com", "auth": { "type": "token" } }
+  },
+  "directory": "directus",
+  "projects": {
+    "default": {
+      "resources": ["roles", "folders", "presets", "translations"],
+      "mode": "merge"
+    }
+  }
+}
+```
+
+`resources` 是正向选择：`roles` 自动带入 policies / access / permissions；`folders` 带入文件库和流程库目录；`presets` 只带 global / role preset，personal preset 不会被 pull；`translations` 是后台翻译。`settings`、`flows`、`dashboards`、`users` 默认不进入发布范围，需要逐项 review 后再加入。Schema 仍默认全量，可用 `collections` / `excludeCollections` 收窄。
+
+发布前逐项确认：
+
+1. dev 上 `dsk build`、`validate`、`plan`、`apply` 已完成，二次 plan 无可执行差异；settings / folders / presets / translations / 权限链二次 dry-run 收敛。
+2. `d6s sync pull --from dev` 只覆盖预期范围；`git diff directus/` 中没有未完成工作、环境本地配置或客户私有配置。
+3. 提交 sync files 和 `id_map.json`；不要把 `id_map.json` 当作临时文件。
+4. `d6s sync diff --to staging` 审查新增、更新和待删除项；确认 `admin_access`、settings、flow 端点、user 维度授权都已 review。
+5. 审批后 `d6s sync push --to staging`；再对 production 重复 diff / push。
+6. 验证目标环境的权限链、文件夹、书签、翻译和 settings；业务内容 / 文件 / 用户仍需单独确认。
+7. 若 Schema 已应用而 Configuration 失败，按 d6s 提示重新 `diff` 后再次 `push`，不要手工猜测状态。
+
+版本 pin：Directus 服务器按 **12.7.0** 基线，`@directus/cli` 用 **12.5.1**；两端服务器版本含 patch 和数据库 vendor 必须一致。CI 中建议使用 `--no-interactive`，`mirror` 删除必须显式 `--dangerously-allow-delete` 并单独审批。
+
 ## 日常 Schema 变更
 
 1. 阅读 [开发规则](./development-rules.md) 和现有定义，按业务域修改 `schemas/`；具体 API 见 [Schema DSL](./schema-dsl.md)。
