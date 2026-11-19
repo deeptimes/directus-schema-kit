@@ -1,4 +1,4 @@
-import { validateSettings, validateTranslations } from './resource-validation.js'
+import { validateFolders, validateSettings, validateTranslations } from './resource-validation.js'
 import { DskError } from './errors.js'
 import type { DeclarativeValue, ResourceDefinition, ResourceDefinitions, ResourceSyncOperation, ResourceSyncResult, ResourceType, SystemResourceKey } from './types.js'
 
@@ -25,6 +25,8 @@ export async function syncResources(options: {
   dryRun?: boolean
   confirmDestructive?: boolean
 }): Promise<ResourceSyncResult> {
+  const folderErrors = validateFolders(options.definitions.folders)
+  if (folderErrors.length) throw new DskError('Folders 校验失败', 'VALIDATION_ERROR', folderErrors)
   const settingsErrors = validateSettings(options.definitions.settings)
   if (settingsErrors.length) throw new DskError('Settings 校验失败', 'VALIDATION_ERROR', settingsErrors)
   const translationErrors = validateTranslations(options.definitions.translations === undefined ? [] : options.definitions.translations)
@@ -166,9 +168,15 @@ function orderedDefinitions(definitions: ResourceDefinitions): ResourceDefinitio
 function matchesDefinition(type: ResourceType, item: Record<string, unknown>, target: Record<string, unknown>): boolean {
   // settings 是 Directus singleton，没有业务键；调用方已保证当前只有一条记录。
   if (type === 'settings') return true
+  // folders 的 type 区分文件库（files）和流程库（flows）；旧数据缺省按 files 处理。
+  if (type === 'folders') {
+    const targetType = Object.hasOwn(target, 'type') ? target.type : 'files'
+    const itemType = item.type ?? 'files'
+    return same(item.name, target.name) && same(item.parent, target.parent) && same(itemType, targetType)
+  }
   const keys: Record<ResourceType, string[]> = {
     settings: [],
-    folders: ['name', 'parent'], roles: ['name'], policies: ['name'], access: ['role', 'policy', 'user'], permissions: ['policy', 'collection', 'action'],
+    folders: [], roles: ['name'], policies: ['name'], access: ['role', 'policy', 'user'], permissions: ['policy', 'collection', 'action'],
     translations: ['key', 'language'],
     presets: ['bookmark', 'collection', 'role', 'user'],
   }

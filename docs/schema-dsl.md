@@ -136,6 +136,27 @@ export default preset.tabular({
 
 默认生成全局 tabular preset（`bookmark`、`role`、`user` 均为 `null`），page 为 1，并根据常见字段名设置列宽；`widths` 可以逐字段覆盖，`defaultWidth` 控制其他字段的默认宽度。
 
+## Folder 资源
+
+文件库和流程库共用 `directus_folders`，通过 `type` 区分。`resource('folders')` 的稳定键是 `name + parent + type`；省略 `type` 时按 Directus 默认的 `files` 处理：
+
+```ts
+import { resource } from '@deeptimes/directus-schema-kit'
+
+export default [
+  resource('folders', {
+    key: 'blog-media',
+    data: { name: 'Blog Media', parent: null, type: 'files' },
+  }),
+  resource('folders', {
+    key: 'flow-archive',
+    data: { name: 'Flow Archive', parent: null, type: 'flows' },
+  }),
+]
+```
+
+`name` 必须是非空字符串；`parent` 可以是 `null`、已有 folder ID 字符串或 `ref('folders.<key>')`；`type` 只能是 `files` 或 `flows`。同名同父级但 type 不同的 folder 不会被误认领。删除仍需 `delete: true` 和 `--confirm-destructive`；删除文件库 folder 时 Directus 会把文件移动到根目录，DSK 不接管文件内容。
+
 ## Settings 系统配置
 
 使用 `settings()` 声明 Directus `directus_settings` singleton。整个 Manifest 最多只能有一条 settings 资源，不能删除、不能创建，只能更新声明字段：

@@ -165,6 +165,7 @@ const blogTags = collection({ name: 'blog_tags', label: '博客标签', group: '
 - \`clean --dry-run\` 预览清空全部自定义集合记录；\`reset --dry-run\` 预览完整清理，包含旧集合、普通用户、业务权限和实际上传文件。真实执行先审查完整计划，再交互确认或显式 \`--confirm\`。保留 settings、初始管理员及其授权链和 License 配置，不调用 bootstrap；初始管理员通过 ADMIN_EMAIL 或 \`--admin-user <id>\` 指定，当前认证管理员始终保留。保留资源引用待删对象时阻断，不置空引用绕过。
 - 凭证、secret 和真实隐私数据不进入源码、Manifest、Seed 或报告；敏感定义使用 \`env()\` 引用。
 - settings 使用 \`settings({...})\`，只允许受控 scalar 字段（project name、descriptor、url、color、default language / appearance / theme）；不要声明 License、AI、存储、邮件、品牌图片等敏感字段。
+- folders 的稳定键是 \`name + parent + type\`；文件库用 \`files\`，流程库用 \`flows\`，省略 type 时按 files 处理。
 
 ## 修改后检查
 

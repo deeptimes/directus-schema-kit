@@ -40,6 +40,44 @@ function definitions(overrides: Partial<Record<ResourceType, ResourceDefinition[
   return { settings: [], folders: [], roles: [], policies: [], access: [], permissions: [], presets: [], translations: [], ...overrides }
 }
 
+test('folders 按 name + parent + type 区分文件库与流程库', async () => {
+  const store = new MemoryResources()
+  store.data.set('folders', [
+    { id: 'files', name: 'Shared', parent: null, type: 'files' },
+    { id: 'flows', name: 'Shared', parent: null, type: 'flows' },
+  ])
+  const result = await syncResources({
+    definitions: definitions({ folders: [
+      { type: 'folders', key: 'files', data: { name: 'Shared', parent: null } },
+      { type: 'folders', key: 'flows', data: { name: 'Shared', parent: null, type: 'flows' } },
+    ] }),
+    reader: store,
+    dryRun: true,
+  })
+  assert.equal(result.operations.find((operation) => operation.key === 'files')?.action, 'unchanged')
+  assert.equal(result.operations.find((operation) => operation.key === 'files')?.id, 'files')
+  assert.equal(result.operations.find((operation) => operation.key === 'flows')?.action, 'unchanged')
+  assert.equal(result.operations.find((operation) => operation.key === 'flows')?.id, 'flows')
+})
+
+test('folders 非法字段或 type 在写入前失败', async () => {
+  const store = new MemoryResources()
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ folders: [{ type: 'folders', key: 'bad', data: { name: 'X', type: 'invalid' } }] }),
+      reader: store,
+    }),
+    /Folders 校验失败/,
+  )
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ folders: [{ type: 'folders', key: 'bad', data: { name: 'X', extra: true } }] }),
+      reader: store,
+    }),
+    /Folders 校验失败/,
+  )
+})
+
 test('settings singleton 只更新声明字段并收敛', async () => {
   const store = new MemoryResources()
   store.data.set('settings', [{ id: 1, project_name: 'Old', project_color: '#000000', default_language: 'en-US' }])
