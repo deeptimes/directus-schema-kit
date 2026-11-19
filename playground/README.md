@@ -1,6 +1,6 @@
 # Directus Playground
 
-独立的 Directus 12.5.1 本地项目，使用 IT 博客模型验证 DSK：分类、标签、文章、文件、评论、会员资料，以及 Public / Member / Editor 权限。依赖固定到 npm 最新稳定版的当前升级基线；兼容结论见 [兼容性](../docs/compatibility.md)。
+独立的 Directus 本地项目，使用 IT 博客模型验证 DSK：分类、标签、文章、文件、评论、会员资料，以及 Public / Member / Editor 权限。当前锁定 12.5.1 作为历史基线；v3 开发目标升级到 12.7.0（12.6.1 作为回退候选），兼容结论见 [兼容性](../docs/compatibility.md)。
 
 ## 安装、升级与启动
 
@@ -39,6 +39,17 @@ pnpm dsk resources apply
 二次 Schema Plan 应全部 unchanged，二次 Seed 计划应有 10 条 unchanged。示例的 `dateTime` 使用不带时区的日期字符串；真正的跨时区时间点应声明 timestamp。
 
 博客权限包含发布状态、会员访问、当前用户、字段限制和校验，要求 Directus v12 启用 `custom_permission_rules_enabled`。Core 未启用该能力时，资源同步会在任何资源写入前拒绝执行；这不是 Schema 或关系不兼容。不要删掉规则来让测试通过，也不能把 Core 的阻断测试视为会员权限验收通过。
+
+## v3 双实例测试
+
+v3 的 d6s 跨环境矩阵不需要把 playground 拆成多个完整子项目。保持本目录作为 dev（8055），另起一个一次性 target：
+
+- 独立 SQLite 文件、独立 uploads 目录、端口 8056；
+- 通过环境变量覆盖 `DB_FILENAME`、`STORAGE_LOCAL_ROOT`、`PORT` 和 `PUBLIC_URL`；
+- 使用独立的管理员 token；测试后销毁数据库和上传目录，不提交运行数据；
+- 场景隔离用 `reset` 或临时项目副本，不提交多套 Directus 运行时。
+
+如果以后需要长期并行 dev / target，优先用 `docker compose` 跑两个同版本 Directus 服务，而不是复制多个 Directus 项目目录。详细矩阵见 [v3 测试计划](../docs/v3-test-plan.md)。
 
 ## 回归范围
 

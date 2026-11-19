@@ -19,6 +19,8 @@ DSK 面向本地 Directus 项目，让数据模型和基础资源可以通过代
 
 CLI 接受 Directus 11.x 和 12.x；当前自动集成基线为 Node.js 22+，Directus 11.17.4 / 12.5.1 + SQLite。详细状态统一见 [兼容性](./compatibility.md)。
 
+v3 目标基线：Directus **12.7.0** + SQLite；12.6.1 作为回退候选。`@directus/cli` 仍是 **12.5.1**，不要把它当成 Directus 服务器版本。
+
 ## v3 目标（3.0.0）
 
 v3 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地安全硬边界**。v3 不把 DSK 变成生产部署工具；跨环境仍由官方 `d6s` 完成。
@@ -38,7 +40,7 @@ v3 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地�
 | V3-9 | Manifest / 兼容性 | P1 | Manifest V1 | 新资源类型是否需要 Manifest V2；若需要提供迁移；否则明确 V1 扩展 |
 | V3-10 | Flows / Operations / Dashboards / Panels | P1（v3.x） | 待独立设计 | 先明确生命周期、危险确认和失败恢复；v3.0 不纳入，v3.x 单独评审 |
 | V3-11 | Users / 内容 / 文件数据同步 | 非目标 | 明确边界 | 各环境自管；需要时独立设计，不用 DSK / d6s 做内容同步 |
-| V3-12 | 补全 Directus 12.x 认证 | P0 | 12.5.1 生命周期已过 | 有许可的自定义权限规则和 Data Studio 编辑回归完成 |
+| V3-12 | 补全 Directus 12.x 认证 | P0 | 12.5.1 历史基线已过；12.7.0 待回归 | 有许可的自定义权限规则和 Data Studio 编辑回归完成 |
 
 ### v3 系统模型覆盖清单
 
@@ -60,7 +62,7 @@ v3 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地�
 
 ### v3 验收方式
 
-- **本地矩阵**：`playground` + Directus 12.5.1 + SQLite，使用 `dsk` 命令逐项验证。
+- **本地矩阵**：`playground` + Directus 12.7.0 + SQLite（12.6.1 回退），使用 `dsk` 命令逐项验证。
 - **跨环境矩阵**：两个同版本、同数据库 vendor 的一次性实例（dev / target），通过 `d6s` profile 连接；不使用生产凭证。
 - 每类资源至少覆盖：create、update、重复 apply `unchanged`、显式 delete、冲突、drift。
 - d6s 至少覆盖：scope、`pull`、`diff`、`push merge`、`id_map`、重复 push `unchanged`、scope 排除、`mirror` 门禁、版本不一致阻断。
