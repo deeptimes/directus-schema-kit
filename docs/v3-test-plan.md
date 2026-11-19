@@ -94,7 +94,13 @@
 - 测试证据记录命令、实例版本、数据库 vendor、预期和实际结果；失败项单独开 issue，不静默跳过。
 - 只有本地矩阵和跨环境矩阵都通过，v3.0 的资源覆盖才算完成。
 
-## 5. 建议的记录方式
+## 5. 当前结果（2026-11-20）
+
+- 本地 Directus 12.7.0 + SQLite：schema apply 131 ops / 二次 plan unchanged；seed 10 create / 二次 unchanged；settings PATCH 收敛；folders `files` / `flows` 同名创建并收敛；translations create / update / delete 收敛；roles / policies / access / permissions 简单链创建并收敛；presets 创建并收敛。
+- 跨环境 `@directus/cli@12.5.1`：dev 8056 → target 8057，使用 `collections: v3_articles` + `roles` / `folders` / `presets` / `translations` / `settings` 完成 pull / diff / push；target schema 与配置创建成功；二次 diff 14 条 `unchanged`；`id_map.json` 生成；非交互 `mirror` 无 consent 被拒绝；target role name 直接修改后 diff 显示，push 恢复 dev 名称。
+- 尚未执行：有 license 的自定义权限、>100 条翻译的真实 12.7.0 分页、Data Studio 交互回归；Flows / Dashboards 不在 v3.0 范围。
+
+## 6. 建议的记录方式
 
 - API 层优先使用自动化 integration test；Studio 的文件夹、书签、settings、翻译和管理员体验仍需人工验收。
 - 命令输出使用 `dsk --format json` / `d6s --json` 保存为证据；文件放在临时目录，不提交真实 token。
