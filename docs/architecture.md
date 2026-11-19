@@ -160,7 +160,7 @@ dsk reset（清理本地业务环境，保留管理员 / settings / License）
 ### 8.1 边界
 
 - DSK 只写本地实例，不连接 staging / production。
-- 当前 `PUBLIC_URL` 校验只识别 localhost、RFC1918 和 `.local`，**不区分开发与生产**；一台位于私网的生产实例在技术上仍可能被连上。因此“不写生产”首先是流程约束，发布配置必须保证 `PUBLIC_URL` 永远不指向生产。
+- 连接层已强制 `safety.environment=development` 和 host allowlist：默认 loopback、`10.0.0.0/8`、`192.168.0.0/16`、`.local`；`172.16.0.0/12` 与公网默认拒绝，其他私网地址需在 `safety.allowedHosts` 显式加入。私网生产实例仍可能被显式加入，因此“不写生产”仍是流程约束加配置审查，而不是靠地址猜测。
 - 不在目标主机上执行普通的 `dsk resources apply` 作为发布手段。那会让 DSK 进入生产写路径，也会绕过发布审查。
 - 跨环境发布由官方 d6s 负责；DSK 不替代 d6s，也不替代官方备份 / 恢复能力。
 
@@ -261,17 +261,16 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 - d6s 发布前必须 `diff`；`mirror`、`admin_access`、settings、flow 端点、user 维度授权都需要单独 review。
 - 生产发布使用独立凭证和审批流程；DSK 的本地 `ADMIN_TOKEN` 不应指向生产。
 
-### 生产保护（待实现）
+### 生产保护（已实现）
 
-已确认需要代码级硬性阻止，不能只靠文档约定。设计方向：
+已确认需要代码级硬性阻止，不能只靠文档约定。当前实现：
 
-- `dsk/config.json` 增加 `safety.environment`，只接受 `development`；出现其他值时所有连接命令拒绝。
-- 增加 `safety.allowedHosts` 显式 allowlist。默认允许 loopback、`10.0.0.0/8`、`192.168.0.0/16` 和 `.local`；**不默认允许 `172.16.0.0/12` 和公网地址**。dev 地址变化时在 `allowedHosts` 中显式加入（例如 `10.x`、`192.168.x`、`dev.local`）；`172.x` 需要单独显式放开。
-- `doctor` 先展示解析出的 host、命中的 allowlist 规则和是否允许。
-- `doctor`、`plan`、`apply`、`resources apply`、`seed`、`clean`、`reset` 在连接或写入前统一校验目标。
-- 目标地址不能只靠 `.env` 静默切换；变更必须修改显式配置并经过确认。
+- `dsk/config.json` 的 `safety.environment` 只接受 `development`；缺失或出现其他值时所有在线命令拒绝。
+- `safety.allowedHosts` 是显式附加 allowlist。默认允许 loopback、`10.0.0.0/8`、`192.168.0.0/16` 和 `.local`；**不默认允许 `172.16.0.0/12` 和公网地址**。dev 地址变化时在 `allowedHosts` 中显式加入（例如 `172.20.0.0/24`）；公网地址和过宽 CIDR 在配置校验阶段拒绝。
+- `doctor` 展示解析出的 host、命中的 allowlist 规则和是否允许。
+- `doctor`、`plan`、`apply`、`resources apply`、`seed`、`clean`、`reset` 统一经过 `directusConnection` 的目标校验；目标地址不能只靠 `.env` 静默切换。
 - 生产发布只走 d6s；DSK 的本地 `ADMIN_TOKEN` 不进入生产。
-- 当前状态：需求已确认，代码尚未实现；实现前按文档和流程约束执行。
+- 当前状态：代码和单元测试已实现；v3 本地矩阵继续覆盖命令级行为。
 
 ## 11. 关键决策
 
@@ -288,7 +287,7 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 | D9 | DEV 固定为本地实例，发布从本地 dev 开始 | 已确认；避免从不同人的本地或目标环境 pull 造成源漂移 |
 | D10 | d6s 资源范围显式选择 | 已确认；用 CLI flags 或 project config，不依赖默认全量 |
 | D11 | 业务内容各环境自管，初始 / 参考数据从 dev 起始 | 已确认；d6s 不同步内容，Seed 只做本地 bootstrap |
-| D12 | 增加代码级生产保护 | 已确认必要；默认 loopback / 10.0.0.0/8 / 192.168.0.0/16 / `.local`，默认阻止 `172.16.0.0/12` 与公网，可通过 `allowedHosts` 显式扩展；待实现 |
+| D12 | 增加代码级生产保护 | 已实现；`safety.environment=development` + host allowlist，默认阻止 `172.16.0.0/12` 与公网，可通过 `allowedHosts` 显式扩展 |
 
 ## 12. 开放问题
 

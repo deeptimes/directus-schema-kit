@@ -32,7 +32,7 @@ docs/directus-schema-kit.md # init 为业务项目生成的 AI 规则
 
 Directus 项目的 `.env` 或 shell 提供 `PUBLIC_URL`、`ADMIN_TOKEN`；token 需要具备所操作资源的管理权限。使用 `pnpm dsk doctor` 检查项目、版本和配置。
 
-只连接 localhost、RFC1918 私网或 `.local` 地址；私网地址本身不代表实例可安全清空，执行前仍须核对目标 URL。SQLite 项目应正确设置 `DB_CLIENT=sqlite3`，以启用对应的 decimal 表示归一化。
+只连接 localhost、`127.0.0.0/8`、`10.0.0.0/8`、`192.168.0.0/16` 或 `.local` 地址；`172.16.0.0/12` 和公网地址默认拒绝。`dsk/config.json` 的 `safety.environment` 必须显式为 `development`，其他私网地址需在 `safety.allowedHosts` 显式加入。在线命令在连接前统一校验，`pnpm dsk doctor` 会展示解析出的 host、命中的规则和是否允许。私网地址本身不代表实例可安全清空，执行前仍须核对目标 URL。SQLite 项目应正确设置 `DB_CLIENT=sqlite3`，以启用对应的 decimal 表示归一化。
 
 ## 环境与发布
 

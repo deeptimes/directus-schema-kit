@@ -298,6 +298,8 @@ export interface DskConfig {
   }
   safety?: {
     clearEnabled?: boolean
+    environment?: 'development'
+    allowedHosts?: string[]
   }
 }
 
@@ -451,6 +453,13 @@ export interface DoctorResult {
     exists: boolean
     configuredVariables: string[]
     missingVariables: string[]
+  }
+  safety: {
+    environment: 'development' | null
+    allowedHosts: string[]
+    host: string | null
+    hostAllowed: boolean | null
+    matchedRule: string | null
   }
   workspace: {
     config: string

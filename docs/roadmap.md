@@ -29,7 +29,7 @@ v3 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地�
 
 | 编号 | 目标 | 优先级 | 当前状态 | v3 完成条件 |
 | --- | --- | --- | --- | --- |
-| V3-1 | 生产写入硬保护 | P0 | 需求已确认，代码未实现 | `safety.environment` 只接受 `development`；`allowedHosts` 默认 loopback、`10.0.0.0/8`、`192.168.0.0/16`、`.local`，默认阻止 `172.16.0.0/12` 和公网；`doctor` 与所有写命令统一校验；覆盖测试 |
+| V3-1 | 生产写入硬保护 | P0 | 代码与单元测试已实现，待 v3 命令级矩阵 | `safety.environment` 只接受 `development`；`allowedHosts` 默认 loopback、`10.0.0.0/8`、`192.168.0.0/16`、`.local`，默认阻止 `172.16.0.0/12` 和公网；`doctor` 与所有写命令统一校验；覆盖测试 |
 | V3-2 | Settings 系统配置 | P0 | 未支持 | 受控 scalar settings 声明（如 project name、default language、timezone、color）；只更新声明字段；环境本地 / 敏感字段排除；`reset` 继续保留；本地 + d6s 测试 |
 | V3-3 | Folders / 文件管理目录 | P0 | 七类资源之一 | 稳定键加入 `type`（media / flow）；`name + parent + type`；重命名、移动、删除、文件引用阻断；测试 |
 | V3-4 | Presets / 书签 | P0 | 七类资源之一 | global / role preset、tabular、bookmark、collection、role；personal preset 不跨环境；重复执行收敛；测试 |

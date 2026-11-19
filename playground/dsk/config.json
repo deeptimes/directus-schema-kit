@@ -17,6 +17,7 @@
     "requireChineseTranslations": false
   },
   "safety": {
-    "clearEnabled": true
+    "clearEnabled": true,
+    "environment": "development"
   }
 }

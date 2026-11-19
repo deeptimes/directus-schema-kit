@@ -57,6 +57,7 @@ pnpm dsk reset --dry-run   # 预览完整清理，包含实际上传文件
 pnpm dsk reset             # 展示计划后确认，默认拒绝
 \`\`\`
 
+- \`safety.environment\` 必须显式为 \`development\`；在线命令默认只允许 loopback、\`10/8\`、\`192.168/16\` 和 \`.local\`，\`172.16/12\` 与公网默认拒绝，其他私网地址需在 \`safety.allowedHosts\` 显式加入。
 - 真实清理必须确认：交互输入 y，脚本添加 \`--confirm\`；\`--dry-run\` 与 \`--confirm\` 互斥。JSON／非交互模式未确认时仅返回计划。
 - 保留 settings、初始管理员账号密码及其授权链、系统 Public policy，以及 License 和运行配置。初始管理员通过 \`ADMIN_EMAIL\` 或 \`--admin-user <id>\` 识别；当前认证管理员始终保留。未指定初始管理员时，应使用该账号的 ADMIN_TOKEN。
 - settings、保留管理员或其他保留资源引用待删对象时，执行前阻断并说明；不会置空这些引用来绕过保护。reset 通过 Files API 删除已登记上传文件及实际存储，无法检查未登记的孤立存储对象。
