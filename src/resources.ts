@@ -1,4 +1,4 @@
-import { validateFolders, validatePresets, validateSettings, validateTranslations } from './resource-validation.js'
+import { validateFolders, validatePermissionChain, validatePresets, validateSettings, validateTranslations } from './resource-validation.js'
 import { DskError } from './errors.js'
 import type { DeclarativeValue, ResourceDefinition, ResourceDefinitions, ResourceSyncOperation, ResourceSyncResult, ResourceType, SystemResourceKey } from './types.js'
 
@@ -29,6 +29,8 @@ export async function syncResources(options: {
   if (folderErrors.length) throw new DskError('Folders 校验失败', 'VALIDATION_ERROR', folderErrors)
   const presetErrors = validatePresets(options.definitions.presets)
   if (presetErrors.length) throw new DskError('Presets 校验失败', 'VALIDATION_ERROR', presetErrors)
+  const permissionErrors = validatePermissionChain(options.definitions)
+  if (permissionErrors.length) throw new DskError('权限链校验失败', 'VALIDATION_ERROR', permissionErrors)
   const settingsErrors = validateSettings(options.definitions.settings)
   if (settingsErrors.length) throw new DskError('Settings 校验失败', 'VALIDATION_ERROR', settingsErrors)
   const translationErrors = validateTranslations(options.definitions.translations === undefined ? [] : options.definitions.translations)
@@ -74,15 +76,17 @@ export async function syncResources(options: {
       const id = found?.id as string | number | undefined
       if (id !== undefined) idByRef.set(`${type}.${definition.key}`, id)
       const detailed = type === 'translations' || type === 'settings'
+      const adminPolicy = type === 'policies' && !definition.delete && resolved.admin_access === true
+      const adminReason = adminPolicy ? { reason: 'admin_access=true；发布前必须审查' } : {}
       if (definition.delete) {
         operations.push({ type, key: definition.key, action: found ? 'delete' : 'unchanged', dangerous: Boolean(found), ...(id !== undefined ? { id } : {}) })
       } else if (!found) {
-        operations.push({ type, key: definition.key, action: 'create', dangerous: false, ...(detailed ? { changes: Object.entries(resolved).map(([path, target]) => ({ path, current: undefined, target })) } : {}) })
+        operations.push({ type, key: definition.key, action: 'create', dangerous: adminPolicy, ...adminReason, ...(detailed ? { changes: Object.entries(resolved).map(([path, target]) => ({ path, current: undefined, target })) } : {}) })
       } else {
         const changes = detailed
           ? Object.entries(resolved).filter(([key, value]) => !same(found[key], value)).map(([path, target]) => ({ path, current: found[path], target }))
           : undefined
-        operations.push({ type, key: definition.key, action: differs(found, resolved) ? 'update' : 'unchanged', dangerous: false, id: id!, ...(changes ? { changes } : {}) })
+        operations.push({ type, key: definition.key, action: differs(found, resolved) ? 'update' : 'unchanged', dangerous: adminPolicy, ...adminReason, id: id!, ...(changes ? { changes } : {}) })
       }
   }
   const deletes = operations.filter((item) => item.action === 'delete').reverse()

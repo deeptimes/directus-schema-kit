@@ -163,6 +163,36 @@ test('settings 记录缺失、重复声明或非法字段在写入前失败', as
   )
 })
 
+test('权限链校验名称、引用、动作和 admin_access 审查提示', async () => {
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ policies: [
+        { type: 'policies', key: 'one', data: { name: 'Duplicate Policy' } },
+        { type: 'policies', key: 'two', data: { name: 'Duplicate Policy' } },
+      ] }),
+      reader: new MemoryResources(),
+    }),
+    /权限链校验失败/,
+  )
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ permissions: [{ type: 'permissions', key: 'bad', data: { policy: ref('policies.editor'), collection: 'articles', action: 'write' } }] }),
+      reader: new MemoryResources(),
+    }),
+    /权限链校验失败/,
+  )
+  const store = new MemoryResources()
+  const result = await syncResources({
+    definitions: definitions({ policies: [{ type: 'policies', key: 'admin', data: { name: 'Admin Policy', admin_access: true } }] }),
+    reader: store,
+    writer: store,
+  })
+  assert.equal(result.status, 'success')
+  const operation = result.operations.find((item) => item.key === 'admin')
+  assert.equal(operation?.dangerous, true)
+  assert.match(operation?.reason ?? '', /admin_access=true/)
+})
+
 test('系统资源按依赖顺序创建并解析稳定引用', async () => {
   const store = new MemoryResources()
   const result = await syncResources({
@@ -244,17 +274,17 @@ test('重复业务键产生 conflict 且不写入', async () => {
 
 test('关联资源删除按依赖逆序且不会重复执行', async () => {
   const store = new MemoryResources()
-  store.data.set('roles', [{ id: 'role-1', name: 'Legacy' }])
-  store.data.set('permissions', [{ id: 'permission-1', role: 'role-1', collection: 'articles', action: 'read' }])
+  store.data.set('policies', [{ id: 'policy-1', name: 'Legacy Policy' }])
+  store.data.set('permissions', [{ id: 'permission-1', policy: 'policy-1', collection: 'articles', action: 'read' }])
   const result = await syncResources({
     definitions: definitions({
-      roles: [{ type: 'roles', key: 'legacy', data: { name: 'Legacy' }, delete: true }],
-      permissions: [{ type: 'permissions', key: 'legacy-read', data: { role: ref('roles.legacy'), collection: 'articles', action: 'read' }, delete: true }],
+      policies: [{ type: 'policies', key: 'legacy', data: { name: 'Legacy Policy' }, delete: true }],
+      permissions: [{ type: 'permissions', key: 'legacy-read', data: { policy: ref('policies.legacy'), collection: 'articles', action: 'read' }, delete: true }],
     }),
     reader: store, writer: store, confirmDestructive: true,
   })
   assert.equal(result.status, 'success')
-  assert.deepEqual(store.writes, ['delete:permissions.permission-1', 'delete:roles.role-1'])
+  assert.deepEqual(store.writes, ['delete:permissions.permission-1', 'delete:policies.policy-1'])
 })
 
 test('未启用 Directus 自定义权限规则时，在任何资源写入前拒绝同步', async () => {

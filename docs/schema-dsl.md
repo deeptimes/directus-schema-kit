@@ -118,6 +118,14 @@ export default resource('permissions', {
 
 `systemRef()` 首版只支持 `policies.public`。`dsk resources apply` 必须在实例中唯一找到 Directus 内置 `$t:public_label` policy，否则在任何写入前失败。该引用只用于关联，DSK 不管理系统 policy 的生命周期。
 
+权限链的离线校验：
+
+- roles / policies 的 `name` 非空且同一 Manifest 内唯一。
+- access 必须声明 `policy`；`role` / `user` 可以为 null 或引用。`user` 非 null 的 access 属于环境本地，不应作为跨环境交付内容。
+- permissions 的 `action` 只能是 `read`、`create`、`update`、`delete` 或 `share`；`policy + collection + action` 自然键必须唯一。
+- `admin_access: true` 的 policy 会在 `resources apply` 计划中标记 `dangerous` 并给出审查原因，但不会自动阻断本地开发。
+- Public permission 使用 `systemRef('policies.public')`，不要创建或硬编码 Public policy 的 UUID。
+
 ## 表格 Preset
 
 使用 `preset.tabular()` 声明集合的默认表格视图，不需要重复编写 `layout_query` 和 `layout_options`：
