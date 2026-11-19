@@ -19,13 +19,11 @@ const resourceExample = `/** 安全的空 Resource 定义。 */
 export default []
 `
 
-const settingsExample = `/** Directus settings 是 singleton，只允许受控 scalar 字段。 */
+const settingsExample = `/** Directus settings 是 singleton，只允许受控 scalar 字段；按需添加 project_name 等。 */
 export default {
   type: 'settings',
   key: 'settings',
-  data: {
-    project_name: 'Example Project',
-  },
+  data: {},
 }
 `
 
