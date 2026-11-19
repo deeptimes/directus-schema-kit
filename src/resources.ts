@@ -1,10 +1,10 @@
-import { validateTranslations } from './resource-validation.js'
+import { validateSettings, validateTranslations } from './resource-validation.js'
 import { DskError } from './errors.js'
 import type { DeclarativeValue, ResourceDefinition, ResourceDefinitions, ResourceSyncOperation, ResourceSyncResult, ResourceType, SystemResourceKey } from './types.js'
 
-const order: ResourceType[] = ['folders', 'roles', 'policies', 'access', 'permissions', 'presets', 'translations']
+const order: ResourceType[] = ['settings', 'folders', 'roles', 'policies', 'access', 'permissions', 'presets', 'translations']
 const endpoints: Record<ResourceType, string> = {
-  folders: 'folders', roles: 'roles', policies: 'policies', access: 'access', permissions: 'permissions', presets: 'presets', translations: 'translations',
+  settings: 'settings', folders: 'folders', roles: 'roles', policies: 'policies', access: 'access', permissions: 'permissions', presets: 'presets', translations: 'translations',
 }
 
 export interface ResourceReader {
@@ -25,8 +25,10 @@ export async function syncResources(options: {
   dryRun?: boolean
   confirmDestructive?: boolean
 }): Promise<ResourceSyncResult> {
-  const errors = validateTranslations(options.definitions.translations === undefined ? [] : options.definitions.translations)
-  if (errors.length) throw new DskError('Translation Strings 校验失败', 'VALIDATION_ERROR', errors)
+  const settingsErrors = validateSettings(options.definitions.settings)
+  if (settingsErrors.length) throw new DskError('Settings 校验失败', 'VALIDATION_ERROR', settingsErrors)
+  const translationErrors = validateTranslations(options.definitions.translations === undefined ? [] : options.definitions.translations)
+  if (translationErrors.length) throw new DskError('Translation Strings 校验失败', 'VALIDATION_ERROR', translationErrors)
   const dryRun = options.dryRun ?? false
   const customRules = options.definitions.permissions.some((definition) => {
     if (definition.delete) return false
@@ -40,11 +42,18 @@ export async function syncResources(options: {
     ])
   }
   const current = Object.fromEntries(await Promise.all(order.map(async (type) => {
-    // 未声明翻译时不新增端点权限要求，兼容已有资源工作流。
-    const rows = type === 'translations' && !options.definitions.translations?.length
-      ? [] : await options.reader.listSystemResource(endpoints[type])
+    // 未声明翻译 / settings 时不新增端点权限要求，兼容已有资源工作流。
+    const unused = (type === 'translations' && !options.definitions.translations?.length)
+      || (type === 'settings' && !options.definitions.settings?.length)
+    const rows = unused ? [] : await options.reader.listSystemResource(endpoints[type])
     return [type, rows]
   }))) as Record<ResourceType, Array<Record<string, unknown>>>
+  if (options.definitions.settings?.length && current.settings.length !== 1) {
+    throw new DskError('Directus settings 记录缺失或不唯一，无法安全同步', 'CONNECTION_ERROR', [
+      `当前匹配到 ${current.settings.length} 条 settings 记录`,
+      'settings 是 Directus 内置 singleton，应存在且只有一条；DSK 不会尝试创建或删除它',
+    ])
+  }
   const idByRef = new Map<string, string | number>()
   const systemIds = resolveSystemReferences(options.definitions, current)
   const operations: ResourceSyncOperation[] = []
@@ -60,12 +69,13 @@ export async function syncResources(options: {
       const found = matches[0]
       const id = found?.id as string | number | undefined
       if (id !== undefined) idByRef.set(`${type}.${definition.key}`, id)
+      const detailed = type === 'translations' || type === 'settings'
       if (definition.delete) {
         operations.push({ type, key: definition.key, action: found ? 'delete' : 'unchanged', dangerous: Boolean(found), ...(id !== undefined ? { id } : {}) })
       } else if (!found) {
-        operations.push({ type, key: definition.key, action: 'create', dangerous: false, ...(type === 'translations' ? { changes: Object.entries(resolved).map(([path, target]) => ({ path, current: undefined, target })) } : {}) })
+        operations.push({ type, key: definition.key, action: 'create', dangerous: false, ...(detailed ? { changes: Object.entries(resolved).map(([path, target]) => ({ path, current: undefined, target })) } : {}) })
       } else {
-        const changes = type === 'translations'
+        const changes = detailed
           ? Object.entries(resolved).filter(([key, value]) => !same(found[key], value)).map(([path, target]) => ({ path, current: found[path], target }))
           : undefined
         operations.push({ type, key: definition.key, action: differs(found, resolved) ? 'update' : 'unchanged', dangerous: false, id: id!, ...(changes ? { changes } : {}) })
@@ -90,9 +100,10 @@ export async function syncResources(options: {
         const saved = await options.writer.createSystemResource(endpoints[operation.type], data)
         if (saved.id !== undefined) idByRef.set(`${operation.type}.${operation.key}`, saved.id as string | number)
       } else if (operation.action === 'update') {
-        await options.writer.updateSystemResource(endpoints[operation.type], operation.id!, operation.type === 'translations'
+        const patch = operation.type === 'translations' || operation.type === 'settings'
           ? Object.fromEntries((operation.changes ?? []).map((change) => [change.path, data[change.path]]))
-          : data)
+          : data
+        await options.writer.updateSystemResource(endpoints[operation.type], operation.id!, patch)
       } else if (operation.action === 'delete') {
         await options.writer.deleteSystemResource(endpoints[operation.type], operation.id!)
       }
@@ -153,7 +164,10 @@ function orderedDefinitions(definitions: ResourceDefinitions): ResourceDefinitio
 }
 
 function matchesDefinition(type: ResourceType, item: Record<string, unknown>, target: Record<string, unknown>): boolean {
+  // settings 是 Directus singleton，没有业务键；调用方已保证当前只有一条记录。
+  if (type === 'settings') return true
   const keys: Record<ResourceType, string[]> = {
+    settings: [],
     folders: ['name', 'parent'], roles: ['name'], policies: ['name'], access: ['role', 'policy', 'user'], permissions: ['policy', 'collection', 'action'],
     translations: ['key', 'language'],
     presets: ['bookmark', 'collection', 'role', 'user'],

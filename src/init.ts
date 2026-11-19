@@ -19,6 +19,16 @@ const resourceExample = `/** 安全的空 Resource 定义。 */
 export default []
 `
 
+const settingsExample = `/** Directus settings 是 singleton，只允许受控 scalar 字段。 */
+export default {
+  type: 'settings',
+  key: 'settings',
+  data: {
+    project_name: 'Example Project',
+  },
+}
+`
+
 const seedExample = JSON.stringify({ schemaVersion: 1, collection: 'example', upsertBy: ['slug'], items: [] }, null, 2) + '\n'
 
 const aiGuide = `# Directus Schema Kit 项目开发指南与 AI 规则
@@ -154,6 +164,7 @@ const blogTags = collection({ name: 'blog_tags', label: '博客标签', group: '
 - resources apply 删除必须显式声明 \`delete: true\` 并提供 \`--confirm-destructive\`；clear 先审查完整范围，再交互确认或显式 \`--confirm\`，永远保护系统集合结构。
 - \`clean --dry-run\` 预览清空全部自定义集合记录；\`reset --dry-run\` 预览完整清理，包含旧集合、普通用户、业务权限和实际上传文件。真实执行先审查完整计划，再交互确认或显式 \`--confirm\`。保留 settings、初始管理员及其授权链和 License 配置，不调用 bootstrap；初始管理员通过 ADMIN_EMAIL 或 \`--admin-user <id>\` 指定，当前认证管理员始终保留。保留资源引用待删对象时阻断，不置空引用绕过。
 - 凭证、secret 和真实隐私数据不进入源码、Manifest、Seed 或报告；敏感定义使用 \`env()\` 引用。
+- settings 使用 \`settings({...})\`，只允许受控 scalar 字段（project name、descriptor、url、color、default language / appearance / theme）；不要声明 License、AI、存储、邮件、品牌图片等敏感字段。
 
 ## 修改后检查
 
@@ -203,6 +214,7 @@ export function initializeWorkspace(projectRoot: string, dryRun = false): InitRe
     ['dsk/resources/access.ts', resourceExample],
     ['dsk/resources/permissions.ts', resourceExample],
     ['dsk/resources/presets.ts', resourceExample],
+    ['dsk/resources/settings.ts', settingsExample],
     ['dsk/seeds/example/10-example.json', seedExample],
     ['docs/directus-schema-kit.md', aiGuide],
   ])

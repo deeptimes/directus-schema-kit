@@ -13,7 +13,7 @@ DSK 面向本地 Directus 项目，让数据模型和基础资源可以通过代
 | Manifest | 扁平、确定性 JSON，带源码 SHA-256 摘要；`build --check` 检查新鲜度 |
 | 变更 | 离线 validate；只读 plan；全量预检后执行安全 create/update |
 | 基础数据 | 版本化 JSON seed，自然键 upsert 和跨集合／同集合引用 |
-| 系统资源 | folders、roles、policies、access、permissions、presets、translations |
+| 系统资源 | settings、folders、roles、policies、access、permissions、presets、translations |
 | 清理 | `clean` 清空全部自定义集合记录；`reset` 完整清理业务环境并保留管理员和基础配置；`clear` 保持仅清理声明 Schema 的兼容行为，真实删除必须确认 |
 | 工程化 | 文本／版本化 JSON 输出、稳定退出码、凭证脱敏 |
 
@@ -30,11 +30,11 @@ v3 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地�
 | 编号 | 目标 | 优先级 | 当前状态 | v3 完成条件 |
 | --- | --- | --- | --- | --- |
 | V3-1 | 生产写入硬保护 | P0 | 代码与单元测试已实现，待 v3 命令级矩阵 | `safety.environment` 只接受 `development`；`allowedHosts` 默认 loopback、`10.0.0.0/8`、`192.168.0.0/16`、`.local`，默认阻止 `172.16.0.0/12` 和公网；`doctor` 与所有写命令统一校验；覆盖测试 |
-| V3-2 | Settings 系统配置 | P0 | 未支持 | 受控 scalar settings 声明（如 project name、default language、timezone、color）；只更新声明字段；环境本地 / 敏感字段排除；`reset` 继续保留；本地 + d6s 测试 |
-| V3-3 | Folders / 文件管理目录 | P0 | 七类资源之一 | 稳定键加入 `type`（media / flow）；`name + parent + type`；重命名、移动、删除、文件引用阻断；测试 |
-| V3-4 | Presets / 书签 | P0 | 七类资源之一 | global / role preset、tabular、bookmark、collection、role；personal preset 不跨环境；重复执行收敛；测试 |
-| V3-5 | Translations | P0 | 七类资源之一 | 多语言、`key + language`、>100 分页、更新 / 删除 / 空文字 / Unicode；测试 |
-| V3-6 | 权限链 roles / policies / access / permissions | P0 | 七类资源之一 | 名称契约、id_map、admin_access 审查、user-scoped 排除、Public policy；跨环境无重复；测试 |
+| V3-2 | Settings 系统配置 | P0 | 已实现，单元测试与 Directus 12.7.0 API 验证通过 | 受控 scalar settings 声明（如 project name、default language、color）；只更新声明字段；环境本地 / 敏感字段排除；`reset` 继续保留；本地 + d6s 测试 |
+| V3-3 | Folders / 文件管理目录 | P0 | 已有资源 | 稳定键加入 `type`（media / flow）；`name + parent + type`；重命名、移动、删除、文件引用阻断；测试 |
+| V3-4 | Presets / 书签 | P0 | 已有资源 | global / role preset、tabular、bookmark、collection、role；personal preset 不跨环境；重复执行收敛；测试 |
+| V3-5 | Translations | P0 | 已有资源 | 多语言、`key + language`、>100 分页、更新 / 删除 / 空文字 / Unicode；测试 |
+| V3-6 | 权限链 roles / policies / access / permissions | P0 | 已有资源 | 名称契约、id_map、admin_access 审查、user-scoped 排除、Public policy；跨环境无重复；测试 |
 | V3-7 | d6s 发布契约 | P0 | 文档已定，流程待固定 | CLI 版本 pin、project `resources` / `excludeResources`、`--roles` / `--no-*`、`id_map`、release checklist |
 | V3-8 | v3 测试矩阵 | P0 | 待建立 | playground 本地矩阵 + 双实例 d6s 矩阵；每类资源 create / update / unchanged / delete / conflict / drift |
 | V3-9 | Manifest / 兼容性 | P1 | Manifest V1 | 新资源类型是否需要 Manifest V2；若需要提供迁移；否则明确 V1 扩展 |
@@ -89,7 +89,7 @@ v3 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地�
 - init 不覆盖已有文件，dry-run 不写入，非 Directus 项目不生成工作区。
 - 相同源码生成字节级稳定、无解析后 secret、通过 JSON Schema 校验的 Manifest。
 - validate 发现重复定义、无效关系、缺失引用和过期 Manifest。
-- 首次 apply 建立完整 Schema，二次 plan 无可执行差异；seed 和七类系统资源重复执行收敛。
+- 首次 apply 建立完整 Schema，二次 plan 无可执行差异；seed 和八类系统资源重复执行收敛。
 - 八类关系通过认证环境的构建、校验、应用和幂等检查，并在 Data Studio 正常编辑。
 - conflict/dangerous 在任何 Schema 写入前阻断全部操作；危险操作有独立确认且始终保护系统集合。
 - clean/reset 覆盖未声明的自定义集合，清理前全量检查引用；保留 settings、初始管理员及授权链、系统 Public policy 和运行／License 配置；reset 删除普通用户、业务授权配置和上传文件，重复执行安全。

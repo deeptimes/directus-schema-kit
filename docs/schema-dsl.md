@@ -136,6 +136,29 @@ export default preset.tabular({
 
 默认生成全局 tabular preset（`bookmark`、`role`、`user` 均为 `null`），page 为 1，并根据常见字段名设置列宽；`widths` 可以逐字段覆盖，`defaultWidth` 控制其他字段的默认宽度。
 
+## Settings 系统配置
+
+使用 `settings()` 声明 Directus `directus_settings` singleton。整个 Manifest 最多只能有一条 settings 资源，不能删除、不能创建，只能更新声明字段：
+
+```ts
+import { settings } from '@deeptimes/directus-schema-kit'
+
+export default settings({
+  project_name: 'Example Project',
+  project_descriptor: '内部项目',
+  project_url: null,
+  project_color: '#6644FF',
+  default_language: 'zh-CN',
+  default_appearance: 'auto',
+})
+```
+
+允许的字段是受控白名单：`project_name`、`project_descriptor`、`project_url`、`project_color`、`default_language`、`default_appearance`、`default_theme_light`、`default_theme_dark`。值可以是字符串、数字、布尔、`null` 或 `env()` 引用；未知字段、对象/数组值和 `delete: true` 会被离线校验拒绝。
+
+`resources apply` 只 PATCH 声明字段，未声明的 settings 字段保持原值；`dry-run` 展示字段级 changes。License、AI 凭证、存储配置、邮件配置、品牌图片 / 文件引用、公开注册等敏感或环境本地字段不在白名单内，DSK 不会写入它们。`reset` 继续保留 settings；settings 的删除需要 Directus 自身维护，DSK 不支持。
+
+跨环境发布时，settings 由 d6s 的 configuration 通道处理；本地 dev 的 settings 是否应该进入发布范围，需要按项目逐项确认。
+
 ## 全量 Clear
 
 `dsk clear` 仅用于数据库初期建模和 DSK 调试。它清理 Manifest 声明的全部非 `directus_*` collection，不支持按文件或 collection 局部清理：

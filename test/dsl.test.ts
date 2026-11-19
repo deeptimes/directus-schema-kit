@@ -1,7 +1,14 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { collection, env, field, preset, ref, relation } from '../src/index.js'
+import { collection, env, field, preset, ref, relation, settings } from '../src/index.js'
 import { expandRelationBlueprint } from '../src/dsl/expand.js'
+
+test('settings helper 生成固定 singleton 资源标识', () => {
+  const definition = settings({ project_name: 'Example', default_language: 'zh-CN' })
+  assert.equal(definition.type, 'settings')
+  assert.equal(definition.key, 'settings')
+  assert.deepEqual(definition.data, { project_name: 'Example', default_language: 'zh-CN' })
+})
 
 test('collection 展开主键、字段和关系声明', () => {
   const definition = collection({

@@ -37,8 +37,50 @@ class MemoryResources implements ResourceReader, ResourceWriter {
 }
 
 function definitions(overrides: Partial<Record<ResourceType, ResourceDefinition[]>> = {}): Record<ResourceType, ResourceDefinition[]> {
-  return { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [], translations: [], ...overrides }
+  return { settings: [], folders: [], roles: [], policies: [], access: [], permissions: [], presets: [], translations: [], ...overrides }
 }
+
+test('settings singleton 只更新声明字段并收敛', async () => {
+  const store = new MemoryResources()
+  store.data.set('settings', [{ id: 1, project_name: 'Old', project_color: '#000000', default_language: 'en-US' }])
+  const settingsDefinitions = definitions({
+    settings: [{ type: 'settings', key: 'settings', data: { project_name: 'New', default_language: 'zh-CN' } }],
+  })
+  const result = await syncResources({ definitions: settingsDefinitions, reader: store, writer: store })
+  assert.equal(result.status, 'success')
+  assert.deepEqual(store.writes, ['update:settings.1'])
+  assert.deepEqual(result.operations[0]?.changes?.map((change) => change.path).sort(), ['default_language', 'project_name'])
+  assert.equal(store.data.get('settings')?.[0]?.project_color, '#000000')
+
+  const converged = await syncResources({ definitions: settingsDefinitions, reader: store, dryRun: true })
+  assert.equal(converged.operations[0]?.action, 'unchanged')
+})
+
+test('settings 记录缺失、重复声明或非法字段在写入前失败', async () => {
+  const store = new MemoryResources()
+  await assert.rejects(
+    () => syncResources({ definitions: definitions({ settings: [{ type: 'settings', key: 'settings', data: { project_name: 'X' } }] }), reader: store }),
+    /settings 记录缺失/,
+  )
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ settings: [
+        { type: 'settings', key: 'settings', data: { project_name: 'A' } },
+        { type: 'settings', key: 'settings', data: { project_name: 'B' } },
+      ] }),
+      reader: store,
+    }),
+    /Settings 校验失败/,
+  )
+  await assert.rejects(
+    () => syncResources({ definitions: definitions({ settings: [{ type: 'settings', key: 'settings', data: { license: 'secret' } }] }), reader: store }),
+    /Settings 校验失败/,
+  )
+  await assert.rejects(
+    () => syncResources({ definitions: definitions({ settings: [{ type: 'settings', key: 'settings', delete: true, data: { project_name: 'X' } }] }), reader: store }),
+    /Settings 校验失败/,
+  )
+})
 
 test('系统资源按依赖顺序创建并解析稳定引用', async () => {
   const store = new MemoryResources()

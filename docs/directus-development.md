@@ -10,7 +10,7 @@ DSK 是 Directus 项目的本地开发配套 CLI。Directus 负责运行服务�
 dsk/
   config.json              # 路径与工具配置
   schemas/*.ts             # 业务 collection、field、relation
-  resources/*.ts           # 权限、目录、Preset 等系统资源
+  resources/*.ts           # settings、权限、目录、Preset 等系统资源
   seeds/**/*.json          # 本地基础数据
   generated/manifest.json  # build 产物，禁止手改
 docs/directus-schema-kit.md # init 为业务项目生成的 AI 规则
@@ -143,6 +143,7 @@ pnpm dsk apply --dry-run
 先建立 Schema，再处理依赖这些 collection 的资源和基础数据。若 seed 依赖 folder 等系统资源，应先同步对应资源。
 
 - 系统资源：`pnpm dsk resources apply --dry-run` 查看计划，再执行 `pnpm dsk resources apply`。
+- Settings 是 Directus singleton，使用 `settings()` 声明受控 scalar 字段；`resources apply` 只 PATCH 声明字段，未声明字段保持原值。License、AI、存储、邮件、品牌图片等敏感 / 环境本地字段不进入白名单。
 - 基础数据：`pnpm dsk seed --dry-run` 只做离线结构校验；`pnpm dsk seed --plan` 查看实例差异，再执行 `pnpm dsk seed`。
 - 自定义资源之间使用稳定 `key` 和 `ref()` 关联；Directus 11 / 12 权限链为 roles → policies → access → permissions。
 - v12 自定义过滤、字段限制、validation 和 presets 需要启用 `custom_permission_rules_enabled`；未启用时连 dry-run 也会在写入前报配置错误，详见 [兼容性](./compatibility.md)。

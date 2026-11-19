@@ -134,6 +134,26 @@ test('许可或接口过滤导致权限未完整返回时阻断，不能静默�
   await assert.rejects(() => reader.listStoredPermissions(), /权限.*完整/)
 })
 
+test('settings 使用 singleton GET 与 PATCH /settings', async () => {
+  const requests: Array<{ url: URL; method: string | undefined; body?: unknown }> = []
+  const fetcher: typeof fetch = async (input, init) => {
+    const url = new URL(String(input))
+    requests.push({ url, method: init?.method, ...(init?.body ? { body: JSON.parse(String(init.body)) } : {}) })
+    if (init?.method === 'GET') return Response.json({ data: { id: 1, project_name: 'Old', project_color: '#000000' } })
+    return Response.json({ data: { id: 1, project_name: 'New', project_color: '#000000' } })
+  }
+  const reader = new DirectusReader('http://127.0.0.1:8055', 'secret', 1000, fetcher)
+  assert.deepEqual(await reader.listSystemResource('settings'), [{ id: 1, project_name: 'Old', project_color: '#000000' }])
+  assert.equal(requests[0]?.url.pathname, '/settings')
+  assert.equal(requests[0]?.url.searchParams.get('fields'), '*')
+
+  const writer = new DirectusWriter('http://127.0.0.1:8055', 'secret', 1000, 1, fetcher)
+  await writer.updateSystemResource('settings', 1, { project_name: 'New' })
+  assert.equal(requests[1]?.url.pathname, '/settings')
+  assert.equal(requests[1]?.method, 'PATCH')
+  assert.deepEqual(requests[1]?.body, { project_name: 'New' })
+})
+
 test('translations 使用分页官方 GET，更新与删除按实例 ID 路由', async () => {
   const requests: Array<{ url: URL; method: string | undefined; body?: unknown }> = []
   const fetcher: typeof fetch = async (input, init) => {

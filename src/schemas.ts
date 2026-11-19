@@ -16,6 +16,38 @@ export const translationResourceSchema = {
   then: {}, else: { properties: { data: { required: ['value'] } } },
 } as const
 
+const envReferenceSchema = {
+  type: 'object', additionalProperties: false, required: ['$env'],
+  properties: { $env: { type: 'string', pattern: '^[A-Z_][A-Z0-9_]*$' } },
+} as const
+
+function settingsValue(schema: Record<string, unknown>): Record<string, unknown> {
+  return { anyOf: [schema, envReferenceSchema] }
+}
+
+export const settingsResourceSchema = {
+  type: 'object', additionalProperties: false, required: ['type', 'key', 'data'],
+  properties: {
+    type: { const: 'settings' },
+    key: { const: 'settings' },
+    source: { type: 'string' },
+    delete: { const: false },
+    data: {
+      type: 'object', additionalProperties: false,
+      properties: {
+        project_name: settingsValue({ type: 'string', minLength: 1, maxLength: 100 }),
+        project_descriptor: settingsValue({ type: ['string', 'null'], maxLength: 100 }),
+        project_url: settingsValue({ type: ['string', 'null'], maxLength: 255 }),
+        project_color: settingsValue({ type: 'string', maxLength: 255 }),
+        default_language: settingsValue({ type: 'string', minLength: 1, maxLength: 255 }),
+        default_appearance: { anyOf: [{ enum: ['auto', 'light', 'dark'] }, envReferenceSchema] },
+        default_theme_light: settingsValue({ type: ['string', 'null'], maxLength: 255 }),
+        default_theme_dark: settingsValue({ type: ['string', 'null'], maxLength: 255 }),
+      },
+    },
+  },
+} as const
+
 export const fieldConditionsSchema = {
   type: ['array', 'null'],
   items: {
@@ -53,6 +85,7 @@ export const manifestJsonSchema = {
       type: 'object', additionalProperties: false,
       required: ['folders', 'roles', 'policies', 'access', 'permissions', 'presets'],
       properties: {
+        settings: { type: 'array', items: settingsResourceSchema },
         folders: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
         roles: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },
         policies: { type: 'array', items: { type: 'object', required: [], additionalProperties: true } },

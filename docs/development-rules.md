@@ -53,7 +53,7 @@ DBML 是建模说明，不是 DSK 执行输入；建模要求需通过当前 DSL
 
 ## 系统资源与 Seed
 
-- 系统资源放在 `dsk/resources/`，除非现有项目已有明确组织方式；普通 Schema 不声明或修改 `directus_*` collection。
+- 系统资源放在 `dsk/resources/`，除非现有项目已有明确组织方式；普通 Schema 不声明或修改 `directus_*` collection。Settings 是 singleton，最多一条，只允许受控 scalar 字段；不声明 License、AI、存储、邮件、品牌图片等敏感 / 环境本地字段。
 - 不硬编码 role、policy、user 等环境 UUID。自定义资源用稳定业务键引用，内置 Public policy 用 `systemRef('policies.public')`；不重复创建系统 policy。
 - Seed 只做本地基础数据初始化，使用版本化 JSON、自然键和稳定业务键引用，重复执行不产生重复数据。
 - 不声明 Flow、Operation、Dashboard、Panel，当前版本不支持。

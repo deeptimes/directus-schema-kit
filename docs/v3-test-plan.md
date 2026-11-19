@@ -41,7 +41,7 @@
 
 | 编号 | 资源 / 主题 | 场景 | 预期 |
 | --- | --- | --- | --- |
-| L-SET-1 | settings | 声明 `project_name`、`default_language`、`default_timezone`、`project_color` | 首次 apply 写入；只更新声明字段；未声明字段保持原值 |
+| L-SET-1 | settings | 声明 `project_name`、`default_language`、`project_color` | 首次 apply 写入；只更新声明字段；未声明字段保持原值 |
 | L-SET-2 | settings | 修改单个字段后再 apply | 只更新该字段；第二次 apply `unchanged` |
 | L-SET-3 | settings | 环境本地 / 敏感字段（License、AI、存储、邮件、品牌图片） | 不进入 Manifest；不被 DSK 写入；reset 后仍保留 |
 | L-FLD-1 | folders | 创建 media folder 根目录和子目录 | `name + parent + type` 正确；第二次 apply `unchanged` |

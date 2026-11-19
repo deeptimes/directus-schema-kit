@@ -45,7 +45,7 @@ DSK 是 **local-first 的声明式 provisioning 工具**。
 | 声明 | 人 / AI 编写的 TypeScript Schema、资源定义和 JSON Seed |
 | Manifest | `build` 的确定性产物；执行层唯一的输入契约；禁止手改 |
 | 本地开发实例 | DSK 唯一连接和写入的 Directus 实例，通常是 localhost 或私网开发库 |
-| 资源 | 除 Schema 外的系统配置对象：folders、roles、policies、access、permissions、presets、translations |
+| 资源 | 除 Schema 外的系统配置对象：settings、folders、roles、policies、access、permissions、presets、translations |
 | 稳定业务键 | DSK 在实例中认领资源时使用的字段，例如 role / policy 的 `name`、permission 的 `policy + collection + action` |
 | 漂移（drift） | 实例状态与声明不一致；由 `plan` 或 `d6s diff` 暴露，不自动回写源码 |
 | 发布文件 | d6s 生成的 `schema/`、`data/` 和 `id_map.json`，提交到 git 后再 push 到目标环境 |
@@ -124,17 +124,17 @@ DSK 不能物理阻止 AI 直接操作数据库；它提供的是可审计的默
 | 分类 | 典型内容 | 期望状态来源 | DSK 当前能力 | 跨环境同步 | 允许环境差异 |
 | --- | --- | --- | --- | --- | --- |
 | **Schema** | collections、fields、relations、groups | `dsk/schemas/` | `build` / `plan` / `apply` | d6s Schema | 不允许 |
-| **系统配置资源** | folders、roles、policies、access、permissions、presets、translations | `dsk/resources/` | `resources apply` | d6s Configuration | 不允许（名称和授权链是契约） |
+| **系统配置资源** | settings、folders、roles、policies、access、permissions、presets、translations | `dsk/resources/` | `resources apply` | d6s Configuration | 不允许（名称、授权链和 settings 白名单是契约） |
 | **业务内容** | 自定义集合的 items、上传文件 | Directus / Studio；Seed 只做本地 bootstrap | `seed`（仅本地） | 当前不同步 | 允许 |
 | **用户数据** | `directus_users`、用户个人 access / preset | 各环境自行维护 | 不管理 | 默认不同步；d6s 用户为 opt-in，源端 user grant 会从同步范围中丢弃，目标端已有授权不会被 mirror 删除 | 允许 |
-| **环境本地配置** | settings、项目名、URL、License、邮件、客户展示文案 / 覆盖 | 各环境自行维护 | 当前不声明 settings | 按需排除或逐项 review | 允许 |
+| **环境本地配置** | settings 白名单外的字段、URL、License、邮件、客户展示文案 / 覆盖 | 各环境自行维护 | settings 仅声明受控 scalar 字段 | 按需排除或逐项 review | 允许 |
 
 说明：
 
 - 你说的“系统资源”对应前两层：Schema 和系统配置资源；“用户资源”更接近业务内容和用户数据。
 - “环境本地配置”不是独立对象类型，而是一种**同步属性**：同一个对象或字段允许在不同环境有差异。
-- DSK 当前只声明 7 类系统配置资源；settings、flows、operations、dashboards、panels 属于系统配置，但 DSK 尚未提供声明入口。d6s 可以同步它们，但需要先在 dev 维护并纳入 review，或等 DSK 扩展。
-- `reset` 保留 `directus_settings`、管理员和 License；因此 settings 的“初始配置”目前不在 DSK 的可复现范围内。如果这部分也要版本化，需要单独设计 settings 资源。
+- DSK 当前声明 8 类系统配置资源，其中 settings 只覆盖受控 scalar 白名单；flows、operations、dashboards、panels 属于系统配置，但 DSK 尚未提供声明入口。d6s 可以同步它们，但需要先在 dev 维护并纳入 review，或等 DSK 扩展。
+- `reset` 保留 `directus_settings`、管理员和 License；settings 的受控 scalar 字段已可通过 DSK 重建，License、AI、存储、邮件和品牌图片仍不在声明范围。
 
 ## 7. 快速重建回路
 
@@ -295,7 +295,7 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 - **初始 / 参考数据的交付机制**：方向和来源已确认（从 dev 起始），但具体用 Directus 导出 / 导入、一次性脚本还是独立工具，仍需设计。
 - **多人协作**：当前 DEV 是发布执行人的本地实例；如果未来多人开发，需要指定 release operator 或共享 dev。
 - **用户维度授权**：user-scoped access / preset 是否明确禁止跨环境声明？如果需要，如何建立稳定用户键。
-- **settings 字段集合**：v3.0 已确定只做受控 scalar settings；具体白名单、清空语义以及 License / AI / 存储 / 邮件 / 品牌图片的排除规则仍需实现时确认。
+- **settings 字段集合**：v3.0 已实现受控 scalar 白名单；License / AI / 存储 / 邮件 / 品牌图片等字段始终排除，后续是否扩展需单独评审。
 - **生产保护实现**：environment 标签和 host allowlist 的具体字段、默认值和迁移策略。
 - **11.x 回退**：如果必须支持 11.x，跨环境只能走 snapshot + 资源双通道或第三方工具；需要明确这是例外而非常规路径。
 
