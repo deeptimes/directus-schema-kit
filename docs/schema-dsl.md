@@ -136,6 +136,12 @@ export default preset.tabular({
 
 默认生成全局 tabular preset（`bookmark`、`role`、`user` 均为 `null`），page 为 1，并根据常见字段名设置列宽；`widths` 可以逐字段覆盖，`defaultWidth` 控制其他字段的默认宽度。
 
+Preset 的稳定键是 `collection + bookmark + role + user`：
+
+- 同一个 collection 需要多个 preset 时，必须使用不同的 `bookmark`；两个 `bookmark` 都为 `null` 的全局 preset 会被校验判定为重复。
+- `user` 非 null 的 preset 是个人 preset，属于环境本地配置；d6s 不会 pull 个人 preset，不要把它当作跨环境交付内容。
+- `role` 和 `user` 不能同时非 null；role preset 使用 `ref('roles.<key>')`，personal preset 的用户 ID 不进入跨环境声明。
+
 ## Folder 资源
 
 文件库和流程库共用 `directus_folders`，通过 `type` 区分。`resource('folders')` 的稳定键是 `name + parent + type`；省略 `type` 时按 Directus 默认的 `files` 处理：

@@ -3,7 +3,7 @@ import path from 'node:path'
 import { Ajv } from 'ajv'
 import { glob } from 'tinyglobby'
 import { validateConditions } from './conditions.js'
-import { validateFolders, validateSettings, validateTranslations } from './resource-validation.js'
+import { validateFolders, validatePresets, validateSettings, validateTranslations } from './resource-validation.js'
 import { formatAjvErrors } from './config.js'
 import { DskError } from './errors.js'
 import { orderedCollections } from './collections.js'
@@ -18,6 +18,7 @@ export function validateManifest(manifest: Manifest, config: DskConfig): string[
   if (!validate(manifest)) {
     errors.push(...formatAjvErrors(validate.errors).map((item) => `manifest${item}`))
     if (Array.isArray(manifest.resources?.folders)) errors.push(...validateFolders(manifest.resources.folders))
+    if (Array.isArray(manifest.resources?.presets)) errors.push(...validatePresets(manifest.resources.presets))
     if (Array.isArray(manifest.resources?.settings)) errors.push(...validateSettings(manifest.resources.settings))
     if (Array.isArray(manifest.resources?.translations)) errors.push(...validateTranslations(manifest.resources.translations))
     return errors
@@ -30,6 +31,7 @@ export function validateManifest(manifest: Manifest, config: DskConfig): string[
     collectDefinitionDuplicates(definitions, (item) => item.key, `${type} 资源`, errors)
   }
   errors.push(...validateFolders(manifest.resources.folders))
+  errors.push(...validatePresets(manifest.resources.presets))
   errors.push(...validateSettings(manifest.resources.settings))
   errors.push(...validateTranslations(manifest.resources.translations ?? []))
   for (const field of manifest.fields) {

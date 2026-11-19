@@ -1,4 +1,4 @@
-import { validateFolders, validateSettings, validateTranslations } from './resource-validation.js'
+import { validateFolders, validatePresets, validateSettings, validateTranslations } from './resource-validation.js'
 import { DskError } from './errors.js'
 import type { DeclarativeValue, ResourceDefinition, ResourceDefinitions, ResourceSyncOperation, ResourceSyncResult, ResourceType, SystemResourceKey } from './types.js'
 
@@ -27,6 +27,8 @@ export async function syncResources(options: {
 }): Promise<ResourceSyncResult> {
   const folderErrors = validateFolders(options.definitions.folders)
   if (folderErrors.length) throw new DskError('Folders 校验失败', 'VALIDATION_ERROR', folderErrors)
+  const presetErrors = validatePresets(options.definitions.presets)
+  if (presetErrors.length) throw new DskError('Presets 校验失败', 'VALIDATION_ERROR', presetErrors)
   const settingsErrors = validateSettings(options.definitions.settings)
   if (settingsErrors.length) throw new DskError('Settings 校验失败', 'VALIDATION_ERROR', settingsErrors)
   const translationErrors = validateTranslations(options.definitions.translations === undefined ? [] : options.definitions.translations)

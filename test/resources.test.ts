@@ -78,6 +78,49 @@ test('folders 非法字段或 type 在写入前失败', async () => {
   )
 })
 
+test('presets 按 collection + bookmark + role + user 匹配 global / role / personal', async () => {
+  const store = new MemoryResources()
+  store.data.set('presets', [
+    { id: 'global', collection: 'articles', bookmark: null, role: null, user: null },
+    { id: 'role', collection: 'articles', bookmark: 'Editor view', role: 'editor', user: null },
+    { id: 'personal', collection: 'articles', bookmark: 'My view', role: null, user: 'writer' },
+  ])
+  const result = await syncResources({
+    definitions: definitions({ presets: [
+      { type: 'presets', key: 'global', data: { collection: 'articles', bookmark: null, role: null, user: null } },
+      { type: 'presets', key: 'role', data: { collection: 'articles', bookmark: 'Editor view', role: 'editor', user: null } },
+    ] }),
+    reader: store,
+    dryRun: true,
+  })
+  assert.equal(result.operations.find((operation) => operation.key === 'global')?.id, 'global')
+  assert.equal(result.operations.find((operation) => operation.key === 'global')?.action, 'unchanged')
+  assert.equal(result.operations.find((operation) => operation.key === 'role')?.id, 'role')
+  assert.equal(result.operations.find((operation) => operation.key === 'role')?.action, 'unchanged')
+  assert.equal(result.operations.some((operation) => operation.id === 'personal'), false)
+})
+
+test('presets 自然键重复或 user + role 同时非 null 在写入前失败', async () => {
+  const store = new MemoryResources()
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ presets: [
+        { type: 'presets', key: 'one', data: { collection: 'articles', bookmark: 'X', role: null, user: null } },
+        { type: 'presets', key: 'two', data: { collection: 'articles', bookmark: 'X', role: null, user: null } },
+      ] }),
+      reader: store,
+    }),
+    /Presets 校验失败/,
+  )
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ presets: [{ type: 'presets', key: 'bad', data: { collection: 'articles', bookmark: 'X', role: 'editor', user: 'writer' } }] }),
+      reader: store,
+    }),
+    /Presets 校验失败/,
+  )
+})
+
 test('settings singleton 只更新声明字段并收敛', async () => {
   const store = new MemoryResources()
   store.data.set('settings', [{ id: 1, project_name: 'Old', project_color: '#000000', default_language: 'en-US' }])

@@ -166,6 +166,7 @@ const blogTags = collection({ name: 'blog_tags', label: '博客标签', group: '
 - 凭证、secret 和真实隐私数据不进入源码、Manifest、Seed 或报告；敏感定义使用 \`env()\` 引用。
 - settings 使用 \`settings({...})\`，只允许受控 scalar 字段（project name、descriptor、url、color、default language / appearance / theme）；不要声明 License、AI、存储、邮件、品牌图片等敏感字段。
 - folders 的稳定键是 \`name + parent + type\`；文件库用 \`files\`，流程库用 \`flows\`，省略 type 时按 files 处理。
+- presets 的稳定键是 \`collection + bookmark + role + user\`；同 collection 需要不同 bookmark；user 非 null 的个人 preset 只在本环境维护，不进入跨环境发布。
 
 ## 修改后检查
 

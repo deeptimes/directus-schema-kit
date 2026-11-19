@@ -145,6 +145,7 @@ pnpm dsk apply --dry-run
 - 系统资源：`pnpm dsk resources apply --dry-run` 查看计划，再执行 `pnpm dsk resources apply`。
 - Settings 是 Directus singleton，使用 `settings()` 声明受控 scalar 字段；`resources apply` 只 PATCH 声明字段，未声明字段保持原值。License、AI、存储、邮件、品牌图片等敏感 / 环境本地字段不进入白名单。
 - Folders 按 `name + parent + type` 匹配；`type` 区分文件库 `files` 和流程库 `flows`，省略时按 `files` 处理。
+- Presets 按 `collection + bookmark + role + user` 匹配；同 collection 的多个 preset 需要不同 `bookmark`。`user` 非 null 的个人 preset 属于环境本地，d6s 不会 pull。
 - 基础数据：`pnpm dsk seed --dry-run` 只做离线结构校验；`pnpm dsk seed --plan` 查看实例差异，再执行 `pnpm dsk seed`。
 - 自定义资源之间使用稳定 `key` 和 `ref()` 关联；Directus 11 / 12 权限链为 roles → policies → access → permissions。
 - v12 自定义过滤、字段限制、validation 和 presets 需要启用 `custom_permission_rules_enabled`；未启用时连 dry-run 也会在写入前报配置错误，详见 [兼容性](./compatibility.md)。

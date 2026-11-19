@@ -32,7 +32,7 @@ v3 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地�
 | V3-1 | 生产写入硬保护 | P0 | 代码与单元测试已实现，待 v3 命令级矩阵 | `safety.environment` 只接受 `development`；`allowedHosts` 默认 loopback、`10.0.0.0/8`、`192.168.0.0/16`、`.local`，默认阻止 `172.16.0.0/12` 和公网；`doctor` 与所有写命令统一校验；覆盖测试 |
 | V3-2 | Settings 系统配置 | P0 | 已实现，单元测试与 Directus 12.7.0 API 验证通过 | 受控 scalar settings 声明（如 project name、default language、color）；只更新声明字段；环境本地 / 敏感字段排除；`reset` 继续保留；本地 + d6s 测试 |
 | V3-3 | Folders / 文件管理目录 | P0 | 已实现，单元测试与 12.7.0 API 验证通过 | 稳定键加入 `type`（files / flows）；`name + parent + type`；重命名、移动、删除、文件引用阻断；测试 |
-| V3-4 | Presets / 书签 | P0 | 已有资源 | global / role preset、tabular、bookmark、collection、role；personal preset 不跨环境；重复执行收敛；测试 |
+| V3-4 | Presets / 书签 | P0 | 已实现，单元测试通过 | global / role / personal preset、tabular、bookmark、collection、role；personal preset 不跨环境；重复执行收敛；测试 |
 | V3-5 | Translations | P0 | 已有资源 | 多语言、`key + language`、>100 分页、更新 / 删除 / 空文字 / Unicode；测试 |
 | V3-6 | 权限链 roles / policies / access / permissions | P0 | 已有资源 | 名称契约、id_map、admin_access 审查、user-scoped 排除、Public policy；跨环境无重复；测试 |
 | V3-7 | d6s 发布契约 | P0 | 文档已定，流程待固定 | CLI 版本 pin、project `resources` / `excludeResources`、`--roles` / `--no-*`、`id_map`、release checklist |
