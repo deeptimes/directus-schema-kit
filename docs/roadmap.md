@@ -21,11 +21,11 @@ CLI 接受 Directus 11.x 和 12.x；当前自动集成基线为 Node.js 22+，Di
 
 v3 目标基线：Directus **12.7.0** + SQLite；12.6.1 作为回退候选。`@directus/cli` 仍是 **12.5.1**，不要把它当成 Directus 服务器版本。
 
-## v3 目标（3.0.0）
+## v3.0 已交付（3.0.0）
 
-v3 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地安全硬边界**。v3 不把 DSK 变成生产部署工具；跨环境仍由官方 `d6s` 完成。
+v3.0 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地安全硬边界**。v3.0 不把 DSK 变成生产部署工具；跨环境仍由官方 `d6s` 完成。
 
-目标版本为 `3.0.0`；`package.json` 在 v3 验收通过后更新，避免提前把未完成能力标成正式版本。
+状态：v3.0 已合并到 `main`（merge commit `7c603cf`）。`package.json` 仍是 `2.3.0`；正式发版时再统一更新版本号和 changelog，避免把“合并”与“发布”混为一谈。
 
 | 编号 | 目标 | 优先级 | 当前状态 | v3 完成条件 |
 | --- | --- | --- | --- | --- |
@@ -68,13 +68,33 @@ v3 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地�
 - d6s 至少覆盖：scope、`pull`、`diff`、`push merge`、`id_map`、重复 push `unchanged`、scope 排除、`mirror` 门禁、版本不一致阻断。
 - 详细清单见 [v3 测试计划](./v3-test-plan.md)。
 
-## v3.x / 后续方向
+## v3.1 目标（3.1.0）
+
+v3.1 的主题是 **平台默认初始化 + 受管资源状态**。目标是让新项目自动获得统一默认，并让 DSK 能识别“它管理的资源在 Studio 被改了”，而不是继续创建副本。
+
+| 编号 | 目标 | 优先级 | 完成条件 |
+| --- | --- | --- | --- |
+| V3.1-1 | Settings 扩展 | P0 | 支持受控 `custom_css`（字符串）、`module_bar`（模块数组）、`theme_light_overrides` / `theme_dark_overrides`；校验结构、合并策略和敏感字段排除；API / Studio 回归 |
+| V3.1-2 | 平台默认层与 `dsk bootstrap` | P0 | `init` 脚手架默认层；`bootstrap` 本地 dev only、幂等；默认 settings、`directus_presets` global preset、translations、folders；项目声明覆盖默认层；`reset` 后可重建 |
+| V3.1-3 | 受管资源状态与 Studio drift | P0 | 本地 `projectId -> key -> ID` 状态（不入 Manifest、不提交）；按 ID 找回受管资源；Studio 改名/删除显示 drift / missing-managed 并阻断该项；未登记资源列为 unmanaged；不自动 rename / 创建副本 |
+| V3.1-4 | `dsk status` / drift 报告 | P1 | 聚合 Schema + resources 的 drift、missing-managed、unmanaged、Manifest 新鲜度；支持 JSON 输出；不写入实例 |
+| V3.1-5 | d6s 发布矩阵补全 | P1 | incomplete pull、多 target `id_map`、不同数据库 vendor 阻断、版本不一致回归；补文档和测试证据 |
+| V3.1-6 | 兼容性维护 | P1 | 重新核对 `@directus/schema` 14.0.3 / 15.x 或 Directus 12.8 的 partial index 补丁；必要时更新 patch |
+
+### v3.1 不在范围
+
+- Flows / Operations / Dashboards / Panels：放 v3.2 或独立设计。
+- Schema collection / field 重命名、类型变更、存量数据迁移。
+- Users / 业务内容 / 文件数据同步。
+- DSK 直连生产；生产仍由 d6s 发布。
+
+v3.1 建议实现顺序：Settings 扩展 → 平台默认层 / bootstrap → 受管状态 / drift → `dsk status` → d6s 矩阵和兼容性维护。
+
+## v3.2 / 后续方向
 
 | 优先顺序 | 方向 | 完成条件 |
 | --- | --- | --- |
 | 后续 | 团队级规则、可复用定义包和 drift 审查 | 明确规则入口、组合与冲突行为，并保持确定性输出和现有安全边界 |
-| 后续 | 受管资源状态与 Studio drift 检测 | 本地 `key -> ID` 状态；Studio 改名/删除时提示在 `dsk/` 处理，不自动 rename 或创建副本；未登记资源列为 unmanaged；Schema 重命名仍独立处理 |
-| 后续 | 平台默认初始化（`dsk bootstrap` / defaults） | settings（含 `custom_css` / `module_bar`）、global presets、默认 translations / folders；项目声明覆盖默认层；本地 dev only，幂等，不写生产 |
 | 待独立设计 | Flow、Operation、Dashboard、Panel 和受控 migration | 先明确资源生命周期、危险确认与失败恢复策略，经设计和安全评审后再实现 |
 
 ## 当前不做

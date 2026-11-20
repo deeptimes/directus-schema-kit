@@ -260,7 +260,7 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 
 同样的稳定键语义适用于 folders、presets 和 translations：folder 的 `name + parent + type`、preset 的 `bookmark + collection + role + user`、translation 的 `key + language` 都是身份。**在 Studio 改名会被 DSK 视为“旧资源消失 + 新资源创建”，不会原地 update，旧资源也不会自动删除。** 需要改名时应按显式迁移处理：修改声明、规划新资源、手动或显式删除旧资源，并检查引用；不要把 Studio 改名当作普通编辑。
 
-### 受管资源状态（v3.x 设计）
+### 受管资源状态（v3.1 设计）
 
 当前 DSK 没有资源所有权状态，只能按业务键匹配；因此无法区分“Studio 改名”和“新资源”。要实现“DSK 管理的内容被 Studio 改动时提示回 `dsk/` 处理”，需要一份本地受管资源状态：
 
@@ -275,7 +275,7 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 
 这项能力尚未实现；当前行为以本文前面的“改名 = 新资源”说明为准。
 
-### 平台默认层（v3.x 设计）
+### 平台默认层（v3.1 设计）
 
 除了项目自身的 `dsk/` 声明，DSK 还可以提供一套**随 DSK 发布维护的平台默认层**，用于新项目第一次初始化本地实例：
 
@@ -336,7 +336,7 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 | D10 | d6s 资源范围显式选择 | 已确认；用 CLI flags 或 project config，不依赖默认全量 |
 | D11 | 业务内容各环境自管，初始 / 参考数据从 dev 起始 | 已确认；d6s 不同步内容，Seed 只做本地 bootstrap |
 | D12 | 增加代码级生产保护 | 已实现；`safety.environment=development` + host allowlist，默认阻止 `172.16.0.0/12` 与公网，可通过 `allowedHosts` 显式扩展 |
-| D13 | 资源改名不自动迁移 | v3.0 按稳定键视为 create + 旧资源保留；改名按显式迁移处理，v3.x 再评估 `renameFrom` / 本地 ID 映射 |
+| D13 | 资源改名不自动迁移 | v3.0 按稳定键视为 create + 旧资源保留；改名按显式迁移处理，v3.1 再评估 `renameFrom` / 本地 ID 映射 |
 
 ## 12. 开放问题
 
