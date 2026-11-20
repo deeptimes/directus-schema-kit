@@ -74,6 +74,7 @@ v3 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地�
 | --- | --- | --- |
 | 后续 | 团队级规则、可复用定义包和 drift 审查 | 明确规则入口、组合与冲突行为，并保持确定性输出和现有安全边界 |
 | 后续 | 受管资源状态与 Studio drift 检测 | 本地 `key -> ID` 状态；Studio 改名/删除时提示在 `dsk/` 处理，不自动 rename 或创建副本；未登记资源列为 unmanaged；Schema 重命名仍独立处理 |
+| 后续 | 平台默认初始化（`dsk bootstrap` / defaults） | settings（含 `custom_css` / `module_bar`）、global presets、默认 translations / folders；项目声明覆盖默认层；本地 dev only，幂等，不写生产 |
 | 待独立设计 | Flow、Operation、Dashboard、Panel 和受控 migration | 先明确资源生命周期、危险确认与失败恢复策略，经设计和安全评审后再实现 |
 
 ## 当前不做

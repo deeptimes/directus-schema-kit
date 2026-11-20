@@ -275,6 +275,23 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 
 这项能力尚未实现；当前行为以本文前面的“改名 = 新资源”说明为准。
 
+### 平台默认层（v3.x 设计）
+
+除了项目自身的 `dsk/` 声明，DSK 还可以提供一套**随 DSK 发布维护的平台默认层**，用于新项目第一次初始化本地实例：
+
+- `dsk init` 负责脚手架；新的 `dsk bootstrap`（或 `dsk defaults apply`）负责把默认层应用到本地 dev，仍走 `plan` / 审核 / `apply`，不连接生产。
+- 默认层可以包含：
+  - settings 受控字段：`project_name`、`default_language`、`default_appearance`、`default_theme_light/dark`、`custom_css`、`module_bar`、theme overrides；
+  - global presets：包括 `directus_presets` 页面自身的表格布局；
+  - 默认 translations；
+  - 默认 folders；
+  - 可选的基础 roles / policies / access / permissions（必须单独评审，默认不启用）。
+- 不包含 License、secret、存储 / 邮件 / 品牌文件引用、用户、业务内容或危险 Schema 迁移。
+- 优先级：项目 `dsk/` 声明覆盖平台默认层；同一 settings 字段以项目为准；同一 preset / translation 业务键以项目为准；personal preset 不被默认层覆盖。
+- `dsk bootstrap` 必须幂等；`reset` 清除 presets / folders 后应重新运行 bootstrap 或 `resources apply`，而 settings / translations 会保留。
+- 默认层随 DSK 版本发布；旧项目可以选择固定版本或显式同步，不自动改写已有项目声明。
+- 生产是否使用同一 settings / preset 默认，由 d6s 的 project scope 决定；DSK 不直接写生产。
+
 治理建议：
 
 - 生产环境的 Studio admin 权限不交给客户；客户只拿业务内容的编辑角色。
