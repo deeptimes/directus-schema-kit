@@ -189,10 +189,24 @@ export default settings({
   project_color: '#6644FF',
   default_language: 'zh-CN',
   default_appearance: 'auto',
+  custom_css: '.site-badge { color: var(--primary); }',
+  module_bar: [
+    { type: 'module', id: 'content', enabled: true },
+    { type: 'module', id: 'insights', enabled: false },
+    { type: 'link', id: 'docs', name: 'Docs', icon: 'book', url: 'https://example.com/docs', enabled: false },
+  ],
+  theme_light_overrides: { '--primary': '#000000' },
+  theme_dark_overrides: { '--primary': '#ffffff' },
 })
 ```
 
-允许的字段是受控白名单：`project_name`、`project_descriptor`、`project_url`、`project_color`、`default_language`、`default_appearance`、`default_theme_light`、`default_theme_dark`。值可以是字符串、数字、布尔、`null` 或 `env()` 引用；未知字段、对象/数组值和 `delete: true` 会被离线校验拒绝。
+允许的字段是受控白名单：`project_name`、`project_descriptor`、`project_url`、`project_color`、`default_language`、`default_appearance`、`default_theme_light`、`default_theme_dark`、`custom_css`、`module_bar`、`theme_light_overrides`、`theme_dark_overrides`。
+
+- 标量字段支持字符串、数字、布尔、`null` 或 `env()` 引用。
+- `custom_css` 是字符串或 `null`；它是整段 CSS，不是追加片段。
+- `module_bar` 是 `null` 或模块数组。`module` 项必须包含 `type`、`id`、`enabled`；`link` 项还必须包含 `name`、`icon`、`url`。`locked` 可选。
+- `theme_light_overrides` / `theme_dark_overrides` 是对象或 `null`，用于覆盖主题变量。
+- 未知字段、错误的 module_bar 结构、非对象 theme overrides 和 `delete: true` 都会被离线校验拒绝。
 
 `resources apply` 只 PATCH 声明字段，未声明的 settings 字段保持原值；`dry-run` 展示字段级 changes。License、AI 凭证、存储配置、邮件配置、品牌图片 / 文件引用、公开注册等敏感或环境本地字段不在白名单内，DSK 不会写入它们。`reset` 继续保留 settings；settings 的删除需要 Directus 自身维护，DSK 不支持。
 

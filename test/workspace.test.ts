@@ -26,9 +26,14 @@ test('init 幂等创建工作区并生成初始 Manifest', async () => {
   assert.equal(second.created.length, 0)
   assert.ok(second.preserved.includes('dsk/schemas/example.ts'))
   assert.ok(second.preserved.includes('dsk/docs/ai-guide.md'))
-  const manifest = JSON.parse(readFileSync(path.join(cwd, 'dsk/generated/manifest.json'), 'utf8')) as { manifestVersion: number; source: { digest: string } }
+  const manifest = JSON.parse(readFileSync(path.join(cwd, 'dsk/generated/manifest.json'), 'utf8')) as {
+    manifestVersion: number
+    source: { digest: string }
+    resources: { presets: Array<{ data: { collection?: string } }> }
+  }
   assert.equal(manifest.manifestVersion, 1)
   assert.match(manifest.source.digest, /^[a-f0-9]{64}$/)
+  assert.equal(manifest.resources.presets.some((item) => item.data.collection === 'directus_presets'), true)
 })
 
 test('build --check 和 validate 检测源码新鲜度', async () => {

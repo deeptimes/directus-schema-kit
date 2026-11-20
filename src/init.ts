@@ -26,12 +26,54 @@ const resourceExample = `/** 安全的空 Resource 定义。 */
 export default []
 `
 
-const settingsExample = `/** Directus settings 是 singleton，只允许受控 scalar 字段；按需添加 project_name 等。 */
+const settingsExample = `/** Directus settings 是 singleton，只允许受控字段；按需添加 project_name、custom_css、module_bar、theme overrides 等。 */
 export default {
   type: 'settings',
   key: 'settings',
-  data: {},
+  data: {
+    custom_css: '#app, #main-content, body {.collection-note{opacity:100}}',
+    module_bar: [
+      { type: 'module', id: 'content', enabled: true },
+      { type: 'module', id: 'visual', enabled: false },
+      { type: 'module', id: 'users', enabled: true },
+      { type: 'module', id: 'files', enabled: true },
+      { type: 'module', id: 'insights', enabled: false },
+      { type: 'module', id: 'flows', enabled: true },
+      { type: 'module', id: 'deployments', enabled: false },
+      { type: 'module', id: 'settings', enabled: true, locked: true },
+    ],
+  },
 }
+`
+
+const translationsExample = `export default [
+  { type: 'translations', key: 'hello-zh', data: { key: 'hello', language: 'zh-CN', value: '你好' } },
+  { type: 'translations', key: 'hello-en', data: { key: 'hello', language: 'en-US', value: 'hello' } },
+]
+`
+
+const presetsExample = `/** 默认 Presets 页面布局：Icon / Color 在前且保持窄列。 */
+export default [
+  {
+    type: 'presets',
+    key: 'directus-presets-table',
+    data: {
+      collection: 'directus_presets',
+      bookmark: null,
+      user: null,
+      role: null,
+      layout: 'tabular',
+      layout_query: {
+        tabular: { page: 1, fields: ['icon', 'color', 'bookmark', 'collection', 'user', 'role'] },
+      },
+      layout_options: {
+        tabular: {
+          widths: { icon: 40, color: 40, bookmark: 200, collection: 245, user: 200, role: 170 },
+        },
+      },
+    },
+  },
+]
 `
 
 const seedExample = JSON.stringify({ schemaVersion: 1, collection: 'example', upsertBy: ['slug'], items: [] }, null, 2) + '\n'
@@ -48,8 +90,9 @@ export function initializeWorkspace(projectRoot: string, dryRun = false): InitRe
     ['dsk/resources/policies.ts', resourceExample],
     ['dsk/resources/access.ts', resourceExample],
     ['dsk/resources/permissions.ts', resourceExample],
-    ['dsk/resources/presets.ts', resourceExample],
+    ['dsk/resources/presets.ts', presetsExample],
     ['dsk/resources/settings.ts', settingsExample],
+    ['dsk/resources/translations.ts', translationsExample],
     ['dsk/seeds/example/10-example.json', seedExample],
   ])
   const directories = ['dsk/docs', 'dsk/schemas', 'dsk/resources', 'dsk/seeds/example', 'dsk/generated']

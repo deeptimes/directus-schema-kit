@@ -43,6 +43,39 @@ export const settingsResourceSchema = {
         default_appearance: { anyOf: [{ enum: ['auto', 'light', 'dark'] }, envReferenceSchema] },
         default_theme_light: settingsValue({ type: ['string', 'null'], maxLength: 255 }),
         default_theme_dark: settingsValue({ type: ['string', 'null'], maxLength: 255 }),
+        custom_css: settingsValue({ type: ['string', 'null'] }),
+        module_bar: {
+          type: ['array', 'null'],
+          items: {
+            oneOf: [
+              {
+                type: 'object', additionalProperties: false,
+                required: ['type', 'id', 'enabled'],
+                properties: {
+                  type: { const: 'module' },
+                  id: { type: 'string', minLength: 1 },
+                  enabled: { type: 'boolean' },
+                  locked: { type: 'boolean' },
+                },
+              },
+              {
+                type: 'object', additionalProperties: false,
+                required: ['type', 'id', 'name', 'icon', 'url', 'enabled'],
+                properties: {
+                  type: { const: 'link' },
+                  id: { type: 'string', minLength: 1 },
+                  name: { type: 'string', minLength: 1 },
+                  icon: { type: 'string', minLength: 1 },
+                  url: { type: 'string', minLength: 1 },
+                  enabled: { type: 'boolean' },
+                  locked: { type: 'boolean' },
+                },
+              },
+            ],
+          },
+        },
+        theme_light_overrides: { type: ['object', 'null'], additionalProperties: true },
+        theme_dark_overrides: { type: ['object', 'null'], additionalProperties: true },
       },
     },
   },

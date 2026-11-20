@@ -20,6 +20,7 @@
 | `pnpm dsk build [--check]` | 根据源码生成 Manifest；check 仅检查是否最新 |
 | `pnpm dsk validate` | 离线检查定义、Manifest 新鲜度和 Seed |
 | `pnpm dsk plan` | 只读比较代码声明与实例，查看待创建、更新和冲突项 |
+| `pnpm dsk bootstrap [--dry-run]` | 首次本地初始化：build、validate、apply Schema、resources apply；不执行 seed，不连接生产 |
 | `pnpm dsk apply [--dry-run]` | 应用安全的结构创建／更新；dry-run 只预览；conflict/dangerous 全量阻断 |
 | `pnpm dsk seed [path] [--dry-run] [--plan]` | 默认写入基础数据；dry-run 仅离线校验，plan 连接实例预览；两者互斥 |
 | `pnpm dsk resources apply [--dry-run] [--confirm-destructive]` | 同步 settings、目录、角色、策略、授权、权限、预设和翻译；显式 delete 还需 confirm-destructive |
@@ -129,7 +130,7 @@ const blogTags = collection({ name: 'blog_tags', label: '博客标签', group: '
 - resources apply 删除必须显式声明 `delete: true` 并提供 `--confirm-destructive`；clear 先审查完整范围，再交互确认或显式 `--confirm`，永远保护系统集合结构。
 - `clean --dry-run` 预览清空全部自定义集合记录；`reset --dry-run` 预览完整清理，包含旧集合、普通用户、业务权限和实际上传文件。
 - 凭证、secret 和真实隐私数据不进入源码、Manifest、Seed 或报告；敏感定义使用 `env()` 引用。
-- settings 使用 `settings({...})`，只允许受控 scalar 字段（project name、descriptor、url、color、default language / appearance / theme）；不要声明 License、AI、存储、邮件、品牌图片等敏感字段。
+- settings 使用 `settings({...})`，允许受控 scalar 字段（project name、descriptor、url、color、default language / appearance / theme）、`custom_css`、`module_bar` 和 theme overrides；不要声明 License、AI、存储、邮件、品牌图片等敏感字段。`module_bar` 的 module 项需要 `type/id/enabled`，link 项还需要 `name/icon/url`。
 - folders 的稳定键是 `name + parent + type`；文件库用 `files`，流程库用 `flows`，省略 type 时按 files 处理。
 - presets 的稳定键是 `collection + bookmark + role + user`；同 collection 需要不同 bookmark；user 非 null 的个人 preset 只在本环境维护，不进入跨环境发布。
 - roles / policies 的 name 必须唯一；access 必须引用 policy；permissions 的 action 只能是 read / create / update / delete / share；admin_access: true 会在资源计划中标记审查原因。

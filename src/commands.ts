@@ -17,7 +17,7 @@ import { loadSeedBatches, runSeeds } from './seed.js'
 import { syncResources } from './resources.js'
 import { discoverDirectusProject } from './project.js'
 import { validateManifest, validateWorkspace } from './validate.js'
-import type { ApplyResult, ClearOperation, ClearResult, DoctorResult, Manifest, Plan, ResourceSyncResult, SeedResult } from './types.js'
+import type { ApplyResult, BootstrapResult, ClearOperation, ClearResult, DoctorResult, Manifest, Plan, ResourceSyncResult, SeedResult } from './types.js'
 
 export interface CommandContext {
   cwd: string
@@ -73,6 +73,50 @@ export async function applyCommand(context: CommandContext, options: { dryRun?: 
   const prepared = await preparePlan(context)
   const writer = new DirectusWriter(prepared.connection.url, prepared.connection.token)
   return executeApply({ manifest: prepared.manifest, plan: prepared.plan, writer, dryRun: options.dryRun ?? false })
+}
+
+export async function bootstrapCommand(context: CommandContext, options: { dryRun?: boolean } = {}): Promise<BootstrapResult> {
+  const dryRun = options.dryRun ?? false
+  const build = await buildCommand(context, false)
+  const validation = await validateCommand(context)
+  const plan = await planCommand(context)
+  const apply = await applyCommand(context, { dryRun })
+  if (apply.status !== 'success') {
+    return {
+      bootstrapVersion: 1,
+      dryRun,
+      status: apply.status,
+      stopped: 'apply',
+      build,
+      validation,
+      planSummary: plan.summary,
+      apply,
+    }
+  }
+  const resources = await resourcesApplyCommand(context, { dryRun })
+  if (resources.status !== 'success') {
+    return {
+      bootstrapVersion: 1,
+      dryRun,
+      status: resources.status,
+      stopped: 'resources',
+      build,
+      validation,
+      planSummary: plan.summary,
+      apply,
+      resources,
+    }
+  }
+  return {
+    bootstrapVersion: 1,
+    dryRun,
+    status: 'success',
+    build,
+    validation,
+    planSummary: plan.summary,
+    apply,
+    resources,
+  }
 }
 
 export async function seedCommand(context: CommandContext, options: { path?: string; dryRun?: boolean; plan?: boolean }): Promise<SeedResult> {

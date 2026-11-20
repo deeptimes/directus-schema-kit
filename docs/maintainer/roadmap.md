@@ -2,13 +2,13 @@
 
 本文替代原 PRD，作为当前产品需求与验收基线。后续方向不代表已实现能力，也不承诺发布日期。
 
-## 当前交付（v3.0）
+## 当前交付（v3.1）
 
 DSK 面向本地 Directus 项目，让数据模型和基础资源可以通过代码审查、离线校验和可重复初始化维护。它通过 Directus API 工作，不需要安装 Data Studio 扩展。
 
 | 能力 | 当前交付 |
 | --- | --- |
-| 工作区 | `init` 幂等创建 `dsk/`；`doctor` 诊断项目与配置 |
+| 工作区 | `init` 幂等创建 `dsk/` 并生成平台默认层；`bootstrap` 执行本地 build → validate → apply → resources apply；`doctor` 诊断项目与配置 |
 | Schema | 严格 TypeScript DSL；八类关系 blueprint；Markdown、Tags、Code、Toggle helper |
 | Manifest | 扁平、确定性 JSON，格式版本为 `manifestVersion: 1`，带源码 SHA-256 摘要；`build --check` 检查新鲜度 |
 | 变更 | 离线 validate；只读 plan；全量预检后执行安全 create/update |
@@ -25,7 +25,7 @@ DSK 面向本地 Directus 项目，让数据模型和基础资源可以通过代
 
 v3.0 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地安全硬边界**。v3.0 不把 DSK 变成生产部署工具；跨环境仍由官方 `d6s` 完成。
 
-状态：v3.0 已合并到 `main`（merge commit `7c603cf`）。`package.json` 仍是 `2.3.0`；正式发版时再统一更新版本号和 changelog，避免把“合并”与“发布”混为一谈。
+状态：v3.0 已合并到 `main`（merge commit `7c603cf`），并在 3.1.0 发版时与 v3.1 一起纳入 [更新记录](../user/changelog.md)；`package.json` 现为 `3.1.0`。
 
 | 编号 | 目标 | 优先级 | 当前状态 | v3 完成条件 |
 | --- | --- | --- | --- | --- |
@@ -70,12 +70,14 @@ v3.0 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地
 
 ## v3.1 目标（3.1.0）
 
-v3.1 的主题是 **平台默认初始化**。目标是让新项目自动获得统一的 settings、global preset、translations 和 folders 默认，而不是每个项目手动设置。
+v3.1 的主题是 **平台默认初始化**。目标是让新项目自动获得统一的 settings、global preset 和 translations 默认，而不是每个项目手动设置。
 
 | 编号 | 目标 | 优先级 | 完成条件 |
 | --- | --- | --- | --- |
 | V3.1-1 | Settings 扩展 | P0 | 支持受控 `custom_css`（字符串）、`module_bar`（模块数组）、`theme_light_overrides` / `theme_dark_overrides`；校验结构、合并策略和敏感字段排除；API / Studio 回归 |
-| V3.1-2 | 平台默认层与 `dsk bootstrap` | P0 | `init` 脚手架默认层；`bootstrap` 本地 dev only、幂等；默认 settings、`directus_presets` global preset、translations、folders；项目声明覆盖默认层；`reset` 后可重建 |
+| V3.1-2 | 平台默认层与 `dsk bootstrap` | P0 | `init` 脚手架默认层；`bootstrap` 本地 dev only、幂等；默认 settings（custom_css / module_bar）、`directus_presets` global preset、translations；项目声明覆盖默认层；`reset` 后可重建 |
+
+当前状态：**v3.1 已发布为 3.1.0**：V3.1-1 Settings 扩展、V3.1-2 `bootstrap` 与平台默认层均已实现，并通过 Directus 12.7.0 实例验证。
 
 ### v3.1 不在范围
 

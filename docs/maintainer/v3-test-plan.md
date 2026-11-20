@@ -109,7 +109,8 @@
 
 ## 5. 当前结果（2026-11-20）
 
-- 本地 Directus 12.7.0 + SQLite：schema apply 131 ops / 二次 plan unchanged；seed 10 create / 二次 unchanged；settings PATCH 收敛；folders `files` / `flows` 同名创建并收敛；translations create / update / delete 收敛；roles / policies / access / permissions 简单链创建并收敛；presets 创建并收敛。
+- 本地 Directus 12.7.0 + SQLite：schema apply 131 ops / 二次 plan unchanged；seed 10 create / 二次 unchanged；settings PATCH 收敛；settings 的 `custom_css` / `module_bar` / theme overrides 已通过 DSL、Manifest 校验、API PATCH 和二次 dry-run unchanged；folders `files` / `flows` 同名创建并收敛；translations create / update / delete 收敛；roles / policies / access / permissions 简单链创建并收敛；presets 创建并收敛。
+- `dsk bootstrap --dry-run` 和真实 `dsk bootstrap` 在 `.settings-test` 上完成 build / validate / apply Schema / resources apply，二次执行收敛；`init` 生成的默认 `directus_presets` 全局布局、`custom_css`、关闭 insights / 移除 docs link 的 `module_bar`、`hello` 中英文 translations 已通过 12.7.0 实例验证；folders 不作为默认项。
 - 跨环境 `@directus/cli@12.5.1`：dev 8056 → target 8057，使用 `collections: v3_articles` + `roles` / `folders` / `presets` / `translations` / `settings` 完成 pull / diff / push；target schema 与配置创建成功；二次 diff 15 条 `unchanged`；`id_map.json` 生成；非交互 `mirror` 无 consent 被拒绝；target role name 直接修改后 diff 显示，push 恢复 dev 名称；mirror 推送实际删除了测试 folder，最终 diff 收敛。
 - license 实例：`test/integration/directus.integration.test.ts` 自定义权限过滤 API 通过；`metadata.integration.test.ts` 的 >100 Translation Strings 和字段条件通过；`sqlite-indexes.integration.test.ts` 的 partial index / 空库 apply 通过；`cleanup.integration.test.ts` 的 clean/reset 临时实例通过。
 - d6s 扩展：版本不匹配返回 `STATE` 并阻断；`--no-schema --roles` 只 pull access 链；`--collections v3_articles,blog_posts --roles` 会警告缺失 group / relation，不静默 push；`--no-folders` 单独使用、`--no-policies` 单独使用会被依赖规则拒绝，组合排除成功；mirror 实际删除测试 folder 后最终收敛。
@@ -137,7 +138,7 @@
 - [ ] d6s 扩展矩阵：多 collection、部分 Schema、mirror 实际删除、版本 / vendor 不一致、incomplete pull、多 target id_map、首次接入生产基线。
 - [ ] Personal preset 在真实 d6s pull 中不出现（只作为环境本地资源）。
 - [ ] 受管资源状态与 Studio drift：v3.0 按稳定键视为 create + 旧资源保留；v3.2 评估本地 `key -> ID` 状态、drift 提示和显式 `renameFrom` / ID 映射。
-- [ ] 平台默认初始化（v3.1）：settings `custom_css` / `module_bar`、global presets、默认 translations / folders；项目覆盖、幂等、`reset` 后重建。
+- [x] 平台默认初始化（v3.1）：settings `custom_css` / `module_bar`、global presets、默认 translations；项目覆盖、幂等、`reset` 后重建。
 - [ ] Flows / Operations / Dashboards / Panels：v3.3 或独立设计，不在 v3.0 / v3.1 / v3.2。
 - [ ] Users / 内容 / 文件数据同步：非目标；需要时独立设计。
 - [ ] 等 `@directus/schema` 14.0.3 / 15.x 或 Directus 12.8 发布后重新核对 SQLite partial index 补丁。

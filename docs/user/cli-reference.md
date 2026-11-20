@@ -28,6 +28,7 @@ pnpm dsk [--cwd <path>] [--config <path>] [--format text|json] <command>
 | `validate` | 校验配置、Manifest、新鲜度和 seed | 否 | 否 |
 | `doctor` | 诊断项目、版本、环境变量和工作区 | 否 | 否 |
 | `plan` | 比较 Manifest 与 Directus 当前状态 | 是，只读 | 否 |
+| `bootstrap [--dry-run]` | 首次本地初始化：build、validate、apply Schema、resources apply | 是 | 默认写入 |
 | `apply [--dry-run]` | 执行安全的 Schema 创建和更新 | 是 | 默认写入 |
 | `seed [path] [--dry-run\|--plan]` | 校验、规划或幂等应用 seed | `--dry-run` 否，其余是 | 默认写入 |
 | `resources apply [--dry-run] [--confirm-destructive]` | 同步系统资源 | 是 | 默认写入 |
@@ -35,7 +36,7 @@ pnpm dsk [--cwd <path>] [--config <path>] [--format text|json] <command>
 | `clean [--dry-run] [--confirm] [--admin-user <id>]` | 清空实例全部自定义集合记录，保留结构和配置 | 是 | 需交互确认或 `--confirm` |
 | `reset [--dry-run] [--confirm] [--admin-user <id>]` | 完整清理开发业务环境，含上传文件 | 是 | 需交互确认或 `--confirm` |
 
-`build --check` 只检查现有 Manifest 是否最新。`seed --dry-run` 仅做本地结构校验；要查看实例上的 create/update/unchanged，使用 `seed --plan`。
+`build --check` 只检查现有 Manifest 是否最新。`bootstrap` 只在本地 dev 使用，按 build → validate → plan → apply → resources apply 执行；任何 Schema 冲突 / dangerous 或 resources 阻断都会停止后续阶段。它不执行 seed，不连接生产，重复执行应收敛为 unchanged。`seed --dry-run` 仅做本地结构校验；要查看实例上的 create/update/unchanged，使用 `seed --plan`。
 
 ## 开发环境清理
 
