@@ -1,6 +1,41 @@
 # 更新记录
 
-> 本文是历史版本记录。当前 v3.0 认证基线是 Directus 12.7.0 + SQLite，见 [Roadmap](../maintainer/roadmap.md) 和 [兼容性](./compatibility.md)。2.3.0 及以前条目中的 Directus 11.17.4 / 12.5.1 是当时环境，不是当前基线。
+> 本文是历史版本记录。当前 v3.1 认证基线是 Directus 12.7.0 + SQLite，见 [Roadmap](../maintainer/roadmap.md) 和 [兼容性](./compatibility.md)。2.3.0 及以前条目中的 Directus 11.17.4 / 12.5.1 是当时环境，不是当前基线。
+
+## 3.1.0（2026-11-20）
+
+### 平台默认初始化
+
+- 新增 `dsk bootstrap`：按 build → validate → plan → apply Schema → resources apply 执行本地初始化，不执行 seed；仅用于本地 dev，Schema 或 resources 阻断时停止后续阶段，重复执行收敛为 unchanged。
+- `settings()` 白名单扩展：支持 `custom_css`、`module_bar`、`theme_light_overrides`、`theme_dark_overrides`；离线校验 module / link 结构和 theme overrides 类型，`resources apply` 仍只 PATCH 声明字段。
+- `dsk init` 生成的默认工作区现在包含平台默认层：
+  - `custom_css` 默认值；
+  - `module_bar` 关闭 `insights` 和 `deployments`，移除 Documentation link，并锁定 `settings`；
+  - `directus_presets` 的 global 布局，Icon / Color 前置且保持窄列；
+  - 占位 translation `hello`（`zh-CN` / `en-US`）。
+- folders 不再作为默认初始化项；`dsk init` 仍保留空的 `folders.ts` 供项目按需声明。
+- 上述默认层与 `bootstrap` 已通过 Directus 12.7.0 + SQLite 实例验证。
+
+## 3.0.0（2026-11-20）
+
+### 系统资源覆盖
+
+- settings、folders、presets、translations、roles、policies、access、permissions 纳入 `resources apply`，支持 create / update / unchanged / delete / conflict 分类和显式删除确认。
+- settings 使用受控字段白名单，只更新声明字段；License、AI、存储、邮件、品牌图片等环境本地或敏感字段始终排除。
+- folders 使用 `name + parent + type` 稳定键，覆盖 files / flows 目录及重命名、移动和引用阻断。
+- presets 支持 global / role / personal 识别，personal preset 不跨环境；translations 使用 `key + language` 自然键，支持分页读取、更新、删除和 Unicode。
+- 权限链支持名称契约、`id_map`、`admin_access` 审查、Public policy 和 user-scoped 排除；v12 自定义权限规则先校验 license 能力。
+
+### 安全与发布边界
+
+- 新增生产写入硬保护：`safety.environment` 只接受 `development`，`allowedHosts` 默认允许 loopback 和私网、默认阻断公网；`doctor` 与所有写命令统一校验。
+- 跨环境发布继续由官方 `d6s`（`@directus/cli` 12.5.1）承担，DSK 不直连 staging / production；补充 scope、pull、diff、push merge、`id_map`、重复 push、mirror 删除和版本阻断验收。
+- Manifest 格式保持 `manifestVersion: 1`，新增系统资源校验但仍兼容旧 Manifest；`build --check` 继续检查源码新鲜度。
+
+### 文档与工程化
+
+- 文档按 `docs/user` 和 `docs/maintainer` 物理拆分，`dsk init` 改为从静态 Markdown 模板生成项目内 `dsk/docs`，不再写入仓库根 `docs/directus-schema-kit.md`。
+- 认证基线统一为 Node.js 22+、Directus 12.7.0 + SQLite；CI 集成矩阵同步为 12.7.0。
 
 ## 2.3.0（2026-10-29）
 

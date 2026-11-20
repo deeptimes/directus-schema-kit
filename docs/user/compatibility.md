@@ -2,7 +2,7 @@
 
 ## 认证基线
 
-当前 v3.0 认证基线：Node.js 22+、Directus **12.7.0** + SQLite。`@directus/cli` **12.5.1** 用于跨环境发布，是独立包，不是 Directus 服务器版本。
+当前 v3.1 认证基线：Node.js 22+、Directus **12.7.0** + SQLite。`@directus/cli` **12.5.1** 用于跨环境发布，是独立包，不是 Directus 服务器版本。
 
 | Directus | 已验证 | 待验证 |
 | --- | --- | --- |
