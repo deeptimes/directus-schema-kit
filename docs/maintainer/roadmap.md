@@ -70,14 +70,14 @@ v3.0 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地
 
 ## v3.1 目标（3.1.0）
 
-v3.1 的主题是 **平台默认初始化**。目标是让新项目自动获得统一的 settings、global preset、translations 和 folders 默认，而不是每个项目手动设置。
+v3.1 的主题是 **平台默认初始化**。目标是让新项目自动获得统一的 settings、global preset 和 translations 默认，而不是每个项目手动设置。
 
 | 编号 | 目标 | 优先级 | 完成条件 |
 | --- | --- | --- | --- |
 | V3.1-1 | Settings 扩展 | P0 | 支持受控 `custom_css`（字符串）、`module_bar`（模块数组）、`theme_light_overrides` / `theme_dark_overrides`；校验结构、合并策略和敏感字段排除；API / Studio 回归 |
-| V3.1-2 | 平台默认层与 `dsk bootstrap` | P0 | `init` 脚手架默认层；`bootstrap` 本地 dev only、幂等；默认 settings、`directus_presets` global preset、translations、folders；项目声明覆盖默认层；`reset` 后可重建 |
+| V3.1-2 | 平台默认层与 `dsk bootstrap` | P0 | `init` 脚手架默认层；`bootstrap` 本地 dev only、幂等；默认 settings（custom_css / module_bar）、`directus_presets` global preset、translations；项目声明覆盖默认层；`reset` 后可重建 |
 
-当前状态：**V3.1-1 Settings 扩展已实现**，单元测试与 Directus 12.7.0 API 验证通过；**V3.1-2 的 `bootstrap` 机制和默认 `directus_presets` 全局布局已实现**，但 settings / translations / folders 的具体默认内容仍需按项目填写。
+当前状态：**V3.1-1 Settings 扩展已实现**，单元测试与 Directus 12.7.0 API 验证通过；**V3.1-2 已实现**：`bootstrap`、默认 `custom_css` / `module_bar`、`directus_presets` global preset 和占位 translations 已通过 12.7.0 实例验证；folders 不再作为默认项。
 
 ### v3.1 不在范围
 

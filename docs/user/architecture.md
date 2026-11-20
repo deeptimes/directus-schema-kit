@@ -284,7 +284,6 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
   - settings 受控字段：`project_name`、`default_language`、`default_appearance`、`default_theme_light/dark`、`custom_css`、`module_bar`、theme overrides；
   - global presets：包括 `directus_presets` 页面自身的表格布局；
   - 默认 translations；
-  - 默认 folders；
   - 可选的基础 roles / policies / access / permissions（必须单独评审，默认不启用）。
 - 不包含 License、secret、存储 / 邮件 / 品牌文件引用、用户、业务内容或危险 Schema 迁移。
 - 优先级：项目 `dsk/` 声明覆盖平台默认层；同一 settings 字段以项目为准；同一 preset / translation 业务键以项目为准；personal preset 不被默认层覆盖。
