@@ -116,7 +116,7 @@
 
 - [ ] **Studio 基础**：打开 8056，确认 Directus 12.7.0；检查 blog collection / field / relation、Markdown / Tags / Code / Toggle、文件上传与 folder 选择；有字段条件时检查动态显示。
 - [ ] **Settings**：Settings 页确认 project name、default language、color；在 Studio 改一个未声明的 settings 字段，再运行 `.settings-test resources apply --dry-run`，确认 DSK 不碰该字段、声明字段 unchanged。
-- [ ] **Folders**：File Library 和 Flows 各有一个 `V3 Shared`，类型分别为 files / flows；重命名或移动其中一个，dry-run 出现差异，apply 恢复。
+- [ ] **Folders**：File Library 和 Flows 各有一个 `V3 Shared`，类型分别为 files / flows。重命名其中一个后，dry-run 应显示 **create**（不是 update），apply 会创建新 folder 并保留旧 folder；这是稳定键语义，旧 folder 需手动删除。移动父级同理，不会自动迁移旧记录。
 - [ ] **Bookmark**：打开 `v3_articles`，确认 `V3 Preset` tabular 视图的字段和宽度；创建一个 personal bookmark，确认它不会进入 d6s pull。
 - [ ] **Translations**：在 Translation Strings 查看 `v3.hello`；如果字段使用了 `$t:v3.hello`，切换 zh-CN / en-US 检查显示。
 - [ ] **简单权限**：创建用户并分配 `V3 Editor`，确认能读 `v3_articles`、不能写；管理员仍可管理。
@@ -133,6 +133,7 @@
 - [ ] Data Studio 人工回归：Markdown / Tags / Code / Toggle、八类关系、文件上传、字段条件、settings、folders、书签和翻译切换。
 - [ ] d6s 扩展矩阵：多 collection、部分 Schema、mirror 实际删除、版本 / vendor 不一致、incomplete pull、多 target id_map、首次接入生产基线。
 - [ ] Personal preset 在真实 d6s pull 中不出现（只作为环境本地资源）。
+- [ ] 资源重命名：v3.0 按稳定键视为 create + 旧资源保留；评估 v3.x 的显式 `renameFrom` / 本地 ID 映射。
 - [ ] Flows / Operations / Dashboards / Panels：v3.x 独立设计，不在 v3.0。
 - [ ] Users / 内容 / 文件数据同步：非目标；需要时独立设计。
 - [ ] 等 `@directus/schema` 14.0.3 / 15.x 或 Directus 12.8 发布后重新核对 SQLite partial index 补丁。

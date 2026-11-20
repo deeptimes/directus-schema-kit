@@ -149,6 +149,7 @@ Preset 的稳定键是 `collection + bookmark + role + user`：
 - 同一个 collection 需要多个 preset 时，必须使用不同的 `bookmark`；两个 `bookmark` 都为 `null` 的全局 preset 会被校验判定为重复。
 - `user` 非 null 的 preset 是个人 preset，属于环境本地配置；d6s 不会 pull 个人 preset，不要把它当作跨环境交付内容。
 - `role` 和 `user` 不能同时非 null；role preset 使用 `ref('roles.<key>')`，personal preset 的用户 ID 不进入跨环境声明。
+- 修改 `bookmark` / role / user 会被视为新的 preset；Studio 改名或改 bookmark 不会原地迁移，旧 preset 保留，需要显式删除。
 
 ## Folder 资源
 
@@ -170,6 +171,8 @@ export default [
 ```
 
 `name` 必须是非空字符串；`parent` 可以是 `null`、已有 folder ID 字符串或 `ref('folders.<key>')`；`type` 只能是 `files` 或 `flows`。同名同父级但 type 不同的 folder 不会被误认领。删除仍需 `delete: true` 和 `--confirm-destructive`；删除文件库 folder 时 Directus 会把文件移动到根目录，DSK 不接管文件内容。
+
+**重命名或移动 folder 不是自动迁移**：`name + parent + type` 是稳定键，Studio 改名后 DSK 会创建新 folder 并保留旧 folder，不会原地 rename，也不会自动删除旧记录。需要改名时按显式迁移处理，检查文件和 flow 引用后手动清理旧 folder。
 
 ## Settings 系统配置
 

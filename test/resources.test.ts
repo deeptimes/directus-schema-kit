@@ -60,6 +60,19 @@ test('folders 按 name + parent + type 区分文件库与流程库', async () =>
   assert.equal(result.operations.find((operation) => operation.key === 'flows')?.id, 'flows')
 })
 
+test('folder 改名被视为新资源，旧资源保留', async () => {
+  const store = new MemoryResources()
+  store.data.set('folders', [{ id: 'old', name: 'Old', parent: null, type: 'files' }])
+  const result = await syncResources({
+    definitions: definitions({ folders: [{ type: 'folders', key: 'renamed', data: { name: 'New', parent: null } }] }),
+    reader: store,
+    writer: store,
+    dryRun: true,
+  })
+  assert.equal(result.operations[0]?.action, 'create')
+  assert.equal(store.data.get('folders')?.length, 1)
+})
+
 test('folders 非法字段或 type 在写入前失败', async () => {
   const store = new MemoryResources()
   await assert.rejects(
