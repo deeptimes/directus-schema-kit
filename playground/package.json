@@ -1,5 +1,5 @@
 {
-  "name": "dsk-online-course-playground",
+  "name": "dsk-playground",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,13 +16,13 @@
     "v3:copy": "node scripts/create-v3-copy.mjs"
   },
   "dependencies": {
-    "directus": "12.5.1"
+    "directus": "^12.7.0"
   },
   "devDependencies": {
     "@deeptimes/directus-schema-kit": "link:..",
     "typescript": "^5.9.3"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=26"
   }
 }
