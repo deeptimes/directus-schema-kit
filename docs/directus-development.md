@@ -108,6 +108,8 @@ d6s sync push --to production
 - `d6s sync pull --from production` 只用于首次接入时查看生产现状，不应作为常规发布步骤；否则发布文件会被生产旧状态覆盖，dev 的新资源无法上线。
 - 首次接入生产已有配置时，建议用独立的 project 目录或分支保存生产基线，人工对比并解决差异后，再把 source 切回 dev。`id_map.json` 要提交，保证重复 push 更新同一条目标记录而不是重复创建。
 - `d6s pull` 默认会带上比 DSK 资源更广的配置。正式项目应在 `directus.config.json` 的 project 里固定 `resources` / `excludeResources`，或在命令中显式传 `--roles` / `--no-flows` 等；不要依赖默认全量。Schema 用 `--collections` / `--exclude-collections` 单独控制；选择粒度是资源类型，不是单条记录，`roles` / `policies` 会带入依赖的 access / permissions。
+- `settings` 会同步整条 settings 记录（除 License / AI 凭证 / 品牌图片 / 默认存储目录等被剥离字段），包括 DSK 未声明的 `project_descriptor`、`module_bar`、`custom_css`。如果 dev 里有环境本地或客户专用设置，发布前必须逐项 review，或把 settings 移出 project scope。
+- `folders` 会同步整棵 folder 树，包括 Studio 中未声明的 folder。发布前清理不需要的 folder，或从 scope 排除；d6s 没有按单条 folder 过滤的开关。
 - 常规发布只用 `merge`；`mirror` 只在明确需要删除目标记录并完成审查后使用。不要用 `--allow-drift` 绕过版本/vendor 不一致，应该先对齐环境。
 - 发布前重点审查 `admin_access`、settings、flow 端点、user 维度的 access/preset；d6s 默认不同步用户，也不应把用户个人授权当作跨环境声明。
 - Schema 与 Configuration 不是原子事务。若 Schema 已应用而 Configuration 失败，按 d6s 提示重新 `diff` 后再次 `push`，不要手工猜测状态。
