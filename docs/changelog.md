@@ -19,7 +19,7 @@
 
 ### 文档与验证
 
-- `dsk init` 生成的 `docs/directus-schema-kit.md` 增加完整命令速查、日常流程、清理边界和安装包内 CLI 参考入口，供开发者及 AI 使用；同步更新 playground 示例，已有项目文档仍不自动覆盖。
+- `dsk init` 生成的 AI 规则（2.3.0 时为 `docs/directus-schema-kit.md`；v3.0 起改为 `dsk/docs/ai-guide.md` 静态模板）增加完整命令速查、日常流程、清理边界和安装包内 CLI 参考入口，供开发者及 AI 使用；同步更新 playground 示例，已有项目文档仍不自动覆盖。
 - 增加规划、执行、Reader、CLI 回归测试及 CI 中的隔离清理验收；Directus 12.5.1 + SQLite 临时实例已验证 singleton、必填用户外键、实际文件删除、原管理员密码登录和重复执行。11.x 新清理路径尚待独立真实实例验收。
 
 ## 2.1.1（2026-10-27）

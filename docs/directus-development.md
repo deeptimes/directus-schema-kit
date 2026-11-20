@@ -8,15 +8,17 @@ DSK 是 Directus 项目的本地开发配套 CLI。Directus 负责运行服务�
 
 ```text
 dsk/
+  README.md                # 工作区短入口
+  docs/README.md           # 项目内文档索引
+  docs/ai-guide.md         # 开发者 / AI 的规则与命令入口
   config.json              # 路径与工具配置
   schemas/*.ts             # 业务 collection、field、relation
   resources/*.ts           # settings、权限、目录、Preset 等系统资源
   seeds/**/*.json          # 本地基础数据
   generated/manifest.json  # build 产物，禁止手改
-docs/directus-schema-kit.md # init 为业务项目生成的 AI 规则
 ```
 
-初始化规则统一生成到 `docs/directus-schema-kit.md`，包含 Directus 11 / 12 的兼容与安全约束。`init` 不覆盖已有文档；旧项目重新执行时会补建新路径，但保留原 `.ai/directus-schema-kit.md`，请审阅并合并项目定制内容后再自行清理旧文件。
+`init` 从安装包复制静态 Markdown 模板到 `dsk/docs`，不在代码里拼接文档；已有文件不会被覆盖。`dsk/docs/ai-guide.md` 包含 Directus 11 / 12 / v3 的兼容与安全约束，完整参考以 `node_modules/@deeptimes/directus-schema-kit/docs/user/README.md` 为准。旧项目根目录的 `docs/directus-schema-kit.md` 不会被自动删除，请审阅并合并项目定制内容后自行迁移到 `dsk/docs/`；旧 `.ai/directus-schema-kit.md` 也保留。
 
 | 内容 | 维护位置与方式 |
 | --- | --- |

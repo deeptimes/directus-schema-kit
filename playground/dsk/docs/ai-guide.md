@@ -1,6 +1,13 @@
 # Directus Schema Kit 项目开发指南与 AI 规则
 
-本文件由 `dsk init` 生成，供项目开发者与 Codex/AI 查阅常用命令、执行边界和 Schema 编写规则。已有文件不会被 init 覆盖，升级后需手动合并新增说明。
+本文件由 `dsk init` 从安装包复制到 `dsk/docs`，供项目开发者与 Codex / AI 查阅常用命令、执行边界和 Schema 编写规则。可以按项目需要修改；完整参考以安装包内的用户文档为准。
+
+## 开始前必须阅读
+
+1. 当前项目的 `AGENTS.md` 与 `dsk/docs/README.md`。
+2. 当前项目的 `dsk/README.md`。
+3. 当前项目已有的 `dsk/schemas/`、`dsk/resources/` 和 `dsk/seeds/`。
+4. 安装包内的 `node_modules/@deeptimes/directus-schema-kit/docs/user/README.md`，以及 Schema DSL、Manifest 和 CLI 参考。
 
 ## CLI 快速参考
 
@@ -15,7 +22,7 @@
 | `pnpm dsk plan` | 只读比较代码声明与实例，查看待创建、更新和冲突项 |
 | `pnpm dsk apply [--dry-run]` | 应用安全的结构创建／更新；dry-run 只预览；conflict/dangerous 全量阻断 |
 | `pnpm dsk seed [path] [--dry-run] [--plan]` | 默认写入基础数据；dry-run 仅离线校验，plan 连接实例预览；两者互斥 |
-| `pnpm dsk resources apply [--dry-run] [--confirm-destructive]` | 同步角色、策略、授权、权限、目录和预设；显式 delete 定义还需 confirm-destructive |
+| `pnpm dsk resources apply [--dry-run] [--confirm-destructive]` | 同步 settings、目录、角色、策略、授权、权限、预设和翻译；显式 delete 还需 confirm-destructive |
 | `pnpm dsk clean [--dry-run] [--confirm] [--admin-user <id>]` | 清空全部自定义集合记录，保留结构、用户、权限和文件 |
 | `pnpm dsk reset [--dry-run] [--confirm] [--admin-user <id>]` | 完整清理业务环境，包括旧集合、普通用户、业务权限和上传文件 |
 | `pnpm dsk clear [--dry-run] [--confirm]` | 兼容旧行为：只删除代码声明的自定义集合结构和数据 |
@@ -34,20 +41,14 @@ pnpm dsk reset --dry-run   # 预览完整清理，包含实际上传文件
 pnpm dsk reset             # 展示计划后确认，默认拒绝
 ```
 
+- `safety.environment` 必须显式为 `development`；在线命令默认只允许 loopback、`10/8`、`192.168/16` 和 `.local`，`172.16/12` 与公网默认拒绝，其他私网地址需在 `safety.allowedHosts` 显式加入。
 - 真实清理必须确认：交互输入 y，脚本添加 `--confirm`；`--dry-run` 与 `--confirm` 互斥。JSON／非交互模式未确认时仅返回计划。
 - 保留 settings、初始管理员账号密码及其授权链、系统 Public policy，以及 License 和运行配置。初始管理员通过 `ADMIN_EMAIL` 或 `--admin-user <id>` 识别；当前认证管理员始终保留。未指定初始管理员时，应使用该账号的 ADMIN_TOKEN。
 - settings、保留管理员或其他保留资源引用待删对象时，执行前阻断并说明；不会置空这些引用来绕过保护。reset 通过 Files API 删除已登记上传文件及实际存储，无法检查未登记的孤立存储对象。
 - 确认后重读检查计划变化；执行首项失败即停止并报告已完成项，不承诺事务回滚；完成后验证保留配置和管理员授权，重复执行安全。`safety.clearEnabled: false` 禁用清理。
-- 新清理路径已在 Directus 12.5.1 + SQLite 验收；11.x 尚待真实实例验收。无法完整预检的引用、权限或 deployment 子项会阻断，不能把部分清理当成成功。
+- 无法完整预检的引用、权限或 deployment 子项会阻断，不能把部分清理当成成功。
 
-完整参数、退出码、JSON 契约和限制见安装包内的 [CLI 参考](../node_modules/@deeptimes/directus-schema-kit/docs/cli-reference.md)；包文档位于 `node_modules/@deeptimes/directus-schema-kit/docs/`。本文件提供项目内常用说明，完整 CLI 参考随安装版本维护。
-
-## 开始前必须阅读
-
-1. 当前项目的 `AGENTS.md` 与 `docs/` 规则文档。
-2. 当前项目的 `dsk/README.md`。
-3. 当前项目已有的 `dsk/schemas/`、`dsk/resources/` 和 `dsk/seeds/`。
-4. DSK 公开文档中的 Schema DSL、Manifest 和 CLI 说明。
+完整参数、退出码、JSON 契约和限制见安装包内的 [CLI 参考](../../node_modules/@deeptimes/directus-schema-kit/docs/cli-reference.md)；包文档入口位于 `../../node_modules/@deeptimes/directus-schema-kit/docs/user/README.md`。
 
 ## 必须遵守
 
@@ -116,20 +117,22 @@ const blogTags = collection({ name: 'blog_tags', label: '博客标签', group: '
 
 ## Directus 11 / 12 兼容与开发边界
 
-- 使用 Node.js 22+；自动集成基线为 Directus 11.17.4 / 12.5.1 + SQLite，不能把版本准入等同于所有数据库和 Studio 行为已认证。
+- 使用 Node.js 22+；自动集成基线为 Directus 11.17.4 / 12.5.1 + SQLite，v3 目标为 12.7.0；不能把版本准入等同于所有数据库和 Studio 行为已认证。
 - DSK 通过 Directus API 工作；连接配置使用项目环境中的 `PUBLIC_URL`、`ADMIN_TOKEN`，仅用于本地或私网开发实例。
 - v12 自定义权限过滤、字段限制、validation 和 presets 依赖 `custom_permission_rules_enabled`。资源同步（包括 dry-run）会检查实际服务许可；未启用或查询失败时停止，不得删除规则绕过限制。
 - 无自定义规则的全字段 permission 应明确声明 `fields: ['*']`；不要把缺省 fields 当作不受许可限制。
 - 自定义系统资源使用稳定 key 与 `ref()`；Public permission 使用 `systemRef('policies.public')`，不重复创建内置 Public policy。
 - `field.boolean()` / `field.toggle()` 默认生成 `special: ['cast-boolean']`，保证 SQLite API 返回布尔值。已有字段若因此出现 dangerous，需审查并独立变更，不能自动绕过 Plan。
 - `dateTime` 表示不带时区的日期时间，Seed 使用 `YYYY-MM-DDTHH:mm:ss`；跨时区绝对时间使用 timestamp。
-- v12 Studio 新集合默认 Archived 不影响显式声明的字符串 `status`；不要自动将已有状态字段改为布尔类型。
-- Markdown helper 不依赖 TinyMCE；自定义 WYSIWYG interface/options 时，需单独核对 v12 Tiptap 配置与内容兼容性。
 - Seed 使用自然键和稳定业务键引用；计划可引用更早出现的新增项。`__dsk_seed_plan__:` 只是计划内占位 ID，不写入源码或当作真实 ID。
 - 升级 Directus 时先备份，再由 Directus bootstrap 执行系统迁移；不使用 DSK clear 代替版本迁移。
 - resources apply 删除必须显式声明 `delete: true` 并提供 `--confirm-destructive`；clear 先审查完整范围，再交互确认或显式 `--confirm`，永远保护系统集合结构。
-- `clean --dry-run` 预览清空全部自定义集合记录；`reset --dry-run` 预览完整清理，包含旧集合、普通用户、业务权限和实际上传文件。真实执行先审查完整计划，再交互确认或显式 `--confirm`。保留 settings、初始管理员及其授权链和 License 配置，不调用 bootstrap；初始管理员通过 ADMIN_EMAIL 或 `--admin-user <id>` 指定，当前认证管理员始终保留。保留资源引用待删对象时阻断，不置空引用绕过。
+- `clean --dry-run` 预览清空全部自定义集合记录；`reset --dry-run` 预览完整清理，包含旧集合、普通用户、业务权限和实际上传文件。
 - 凭证、secret 和真实隐私数据不进入源码、Manifest、Seed 或报告；敏感定义使用 `env()` 引用。
+- settings 使用 `settings({...})`，只允许受控 scalar 字段（project name、descriptor、url、color、default language / appearance / theme）；不要声明 License、AI、存储、邮件、品牌图片等敏感字段。
+- folders 的稳定键是 `name + parent + type`；文件库用 `files`，流程库用 `flows`，省略 type 时按 files 处理。
+- presets 的稳定键是 `collection + bookmark + role + user`；同 collection 需要不同 bookmark；user 非 null 的个人 preset 只在本环境维护，不进入跨环境发布。
+- roles / policies 的 name 必须唯一；access 必须引用 policy；permissions 的 action 只能是 read / create / update / delete / share；admin_access: true 会在资源计划中标记审查原因。
 
 ## 修改后检查
 

@@ -19,12 +19,13 @@ test('init 幂等创建工作区并生成初始 Manifest', async () => {
   const second = await initCommand(context, false)
 
   assert.ok(first.created.includes('dsk/config.json'))
-  assert.ok(first.created.includes('docs/directus-schema-kit.md'))
+  assert.ok(first.created.includes('dsk/docs/README.md'))
+  assert.ok(first.created.includes('dsk/docs/ai-guide.md'))
   assert.equal(existsSync(path.join(cwd, '.ai')), false)
-  assert.equal(existsSync(path.join(cwd, 'docs/directus-schema-kit.md')), true)
+  assert.equal(existsSync(path.join(cwd, 'dsk/docs/ai-guide.md')), true)
   assert.equal(second.created.length, 0)
   assert.ok(second.preserved.includes('dsk/schemas/example.ts'))
-  assert.ok(second.preserved.includes('docs/directus-schema-kit.md'))
+  assert.ok(second.preserved.includes('dsk/docs/ai-guide.md'))
   const manifest = JSON.parse(readFileSync(path.join(cwd, 'dsk/generated/manifest.json'), 'utf8')) as { manifestVersion: number; source: { digest: string } }
   assert.equal(manifest.manifestVersion, 1)
   assert.match(manifest.source.digest, /^[a-f0-9]{64}$/)
@@ -49,7 +50,8 @@ test('init --dry-run 不写入文件', async () => {
   const result = await initCommand({ cwd, packageVersion: '1.0.0' }, true)
   assert.ok(result.created.length > 0)
   assert.throws(() => readFileSync(path.join(cwd, 'dsk/config.json')))
-  assert.ok(result.created.includes('docs/directus-schema-kit.md'))
+  assert.ok(result.created.includes('dsk/docs/ai-guide.md'))
+  assert.equal(existsSync(path.join(cwd, 'dsk/docs/ai-guide.md')), false)
   assert.equal(existsSync(path.join(cwd, 'docs')), false)
   assert.equal(existsSync(path.join(cwd, '.ai')), false)
 })
@@ -112,28 +114,28 @@ test('跨文件重复 collection 报告全部来源', async () => {
 })
 
 
-test('init 保留用户已有的 docs 规则与旧 .ai 文件', async () => {
+test('init 保留用户已有的 dsk/docs 规则与旧 .ai 文件', async () => {
   const cwd = project()
-  mkdirSync(path.join(cwd, 'docs'))
+  mkdirSync(path.join(cwd, 'dsk/docs'), { recursive: true })
   mkdirSync(path.join(cwd, '.ai'))
-  const guide = path.join(cwd, 'docs/directus-schema-kit.md')
+  const guide = path.join(cwd, 'dsk/docs/ai-guide.md')
   const legacy = path.join(cwd, '.ai/directus-schema-kit.md')
   writeFileSync(guide, '# 项目自定义规则\n')
   writeFileSync(legacy, '# 旧规则与项目备注\n')
   const result = await initCommand({ cwd, packageVersion: '1.0.0' }, false)
-  assert.ok(result.preserved.includes('docs/directus-schema-kit.md'))
+  assert.ok(result.preserved.includes('dsk/docs/ai-guide.md'))
   assert.equal(readFileSync(guide, 'utf8'), '# 项目自定义规则\n')
   assert.equal(readFileSync(legacy, 'utf8'), '# 旧规则与项目备注\n')
 })
 
-test('旧项目重新 init 时创建 docs 规则并保留旧 .ai 内容', async () => {
+test('旧项目重新 init 时创建 dsk/docs 规则并保留旧 .ai 内容', async () => {
   const cwd = project()
   mkdirSync(path.join(cwd, '.ai'))
   const legacy = path.join(cwd, '.ai/directus-schema-kit.md')
   writeFileSync(legacy, '# 旧规则与项目备注\n')
   const result = await initCommand({ cwd, packageVersion: '1.0.0' }, false)
-  assert.ok(result.created.includes('docs/directus-schema-kit.md'))
-  assert.equal(existsSync(path.join(cwd, 'docs/directus-schema-kit.md')), true)
+  assert.ok(result.created.includes('dsk/docs/ai-guide.md'))
+  assert.equal(existsSync(path.join(cwd, 'dsk/docs/ai-guide.md')), true)
   assert.equal(readFileSync(legacy, 'utf8'), '# 旧规则与项目备注\n')
 })
 
