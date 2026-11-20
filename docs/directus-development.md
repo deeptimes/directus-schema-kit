@@ -187,6 +187,35 @@ pnpm dsk apply --dry-run
 - Public permission 使用 `systemRef('policies.public')` 关联内置 policy，不创建副本、不硬编码 UUID。
 - Seed 使用自然键 upsert 和稳定业务键引用；重复执行应收敛为 unchanged，不保存凭证或真实隐私数据。
 
+## Studio 修改与 DSK 的识别边界（v3.0）
+
+下表是 v3.0 的**当前行为**：`plan` 只比较 Schema，`resources apply --dry-run` 比较 resources。v3.x 的受管资源状态尚未实现；在那之前，资源改名仍然等于“新资源”。
+
+| Studio 操作 | 当前识别结果 | DSK 后续动作 |
+| --- | --- | --- |
+| 改 role / policy 的 description、icon，name 不变 | `update` | apply 恢复声明值 |
+| 改 role / policy 的 name | 视为新资源：`create`，旧资源保留 | 不自动 rename、不删除旧资源；需手动清理或显式 delete |
+| 改 folder 的 name / parent / type | 视为新资源：`create`，旧 folder 保留 | 同上；文件 / flow 引用需人工检查 |
+| 改 preset 的 bookmark / role / user | 视为新 preset：`create`，旧 preset 保留 | 同上 |
+| 改 translation 的 value，key / language 不变 | `update` | apply 恢复声明值 |
+| 改 translation 的 key / language | 视为新翻译：`create`，旧记录保留 | 不自动删除旧记录 |
+| 在 Studio 删除 DSK 声明的资源 | 声明侧显示 `create`（实例已找不到） | apply 重建；不会提示“被删除” |
+| 在 Studio 新建 role / policy / folder / preset / translation | 正常 `plan` / `resources apply` 不处理未声明资源 | 不自动删除、不改写；`clean` / `reset` 的清理边界见下 |
+| 改 declared settings 字段 | `update` | apply 恢复声明值 |
+| 改 undeclared settings 字段 | 不处理 | 保留 Studio 值，这是刻意设计 |
+| 改 Schema 的 collection / field 名称 | `plan` 显示差异，通常不是友好 rename | Schema 重命名超出当前范围，需独立迁移 |
+| 改 seed 内容 | `seed --plan` 显示 update | `seed` 按自然键覆盖；没有“被 Studio 改动”的所有权提示 |
+
+**未声明资源与清理边界：**
+
+- 正常 `build` / `plan` / `apply` / `resources apply` 不会删除或改写未声明资源。
+- `clean` 清空全部自定义集合记录，保留 Schema、用户、资源、文件和文件夹；Studio 新建的自定义集合记录也会被清空。
+- `reset` 会删除自定义 Schema、非保留用户、业务 roles / policies / access / permissions、presets、上传文件和文件夹；Studio 新建的这些资源会在 reset 中被清理。
+- `reset` 保留 `directus_settings`、管理员及授权链、Public policy、License 和 Translation Strings；Studio 新建的 translation 不会被 reset 删除。
+- Studio 新建的 role / policy / access 会在实例中**立即生效**，DSK 的普通 apply 不会自动撤销；如果它不应该存在，需要手动删除或执行受控的 `reset`。
+
+v3.x 计划增加本地 `key -> ID` 受管状态，届时可以提示“受管资源在 Studio 被改名/删除，请回 `dsk/` 处理”，而不是创建副本。设计见 [架构](./architecture.md) 的“受管资源状态”一节。
+
 ## 重建、失败与审查
 
 `pnpm dsk clear --dry-run` 展示完整 Manifest 声明的自定义 Schema 清理范围。仅在一次性本地实例或初期建模时使用真实 clear：交互执行默认拒绝，非交互必须显式 `--confirm`。它会删除相关结构和数据，也会清除其他自定义集合指向目标集合的关系字段；必须审查完整计划。它永远保护 `directus_*`，不支持局部清理。
