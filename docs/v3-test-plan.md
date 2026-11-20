@@ -31,6 +31,18 @@
 
 `@directus/cli` 是独立包，当前 latest 12.5.1；d6s 的 CLI 版本和 Directus 服务器版本不是同一个版本号。
 
+### 当前可用实例（本地，未提交）
+
+- `playground/.v3-runtime`：Directus 12.7.0，端口 8056；`pnpm dev:v3` 启动。凭证见该目录 `.env`。
+- `playground/.v3-target`：Directus 12.7.0，端口 8057；`pnpm start` 启动。用于 d6s 跨环境对比。
+- `playground/.v3-runtime/.settings-test`：settings / folders / translations / roles / policies / access / permissions / preset 的 DSK 测试项目，连接 8056；命令：
+  ```bash
+  node dist/cli.js --cwd playground/.v3-runtime/.settings-test build
+  node dist/cli.js --cwd playground/.v3-runtime/.settings-test validate
+  node dist/cli.js --cwd playground/.v3-runtime/.settings-test resources apply --dry-run
+  node dist/cli.js --cwd playground/.v3-runtime/.settings-test resources apply
+  ```
+
 ### 测试数据
 
 - 在 `playground/dsk/resources/` 增加或使用最小 fixture：settings、translations、folders、presets、roles、policies、access、permissions。
@@ -100,7 +112,19 @@
 - 跨环境 `@directus/cli@12.5.1`：dev 8056 → target 8057，使用 `collections: v3_articles` + `roles` / `folders` / `presets` / `translations` / `settings` 完成 pull / diff / push；target schema 与配置创建成功；二次 diff 14 条 `unchanged`；`id_map.json` 生成；非交互 `mirror` 无 consent 被拒绝；target role name 直接修改后 diff 显示，push 恢复 dev 名称。
 - 尚未执行：有 license 的自定义权限、>100 条翻译的真实 12.7.0 分页、Data Studio 交互回归；Flows / Dashboards 不在 v3.0 范围。
 
-## 6. 待验收清单
+### 人工验收（P0）
+
+- [ ] **Studio 基础**：打开 8056，确认 Directus 12.7.0；检查 blog collection / field / relation、Markdown / Tags / Code / Toggle、文件上传与 folder 选择；有字段条件时检查动态显示。
+- [ ] **Settings**：Settings 页确认 project name、default language、color；在 Studio 改一个未声明的 settings 字段，再运行 `.settings-test resources apply --dry-run`，确认 DSK 不碰该字段、声明字段 unchanged。
+- [ ] **Folders**：File Library 和 Flows 各有一个 `V3 Shared`，类型分别为 files / flows；重命名或移动其中一个，dry-run 出现差异，apply 恢复。
+- [ ] **Bookmark**：打开 `v3_articles`，确认 `V3 Preset` tabular 视图的字段和宽度；创建一个 personal bookmark，确认它不会进入 d6s pull。
+- [ ] **Translations**：在 Translation Strings 查看 `v3.hello`；如果字段使用了 `$t:v3.hello`，切换 zh-CN / en-US 检查显示。
+- [ ] **简单权限**：创建用户并分配 `V3 Editor`，确认能读 `v3_articles`、不能写；管理员仍可管理。
+- [ ] **d6s 目标**：打开 8057，确认 schema、settings、folders、translation、V3 Editor role / policy、preset；运行 `d6s sync diff --to target --json` 应为 `changes: false`；非交互 mirror 应被拒绝；在 Studio 改 target role name 后 diff 显示差异，push 恢复 dev 名称。
+- [ ] **License 自定义权限**：在 `.v3-runtime/.env` 配置 `LICENSE_KEY` 并重启，使用带过滤、字段限制、validation、presets 的项目验证 Studio 实际行为。
+- [ ] **硬保护抽查**：`dsk doctor` 对 8056 应 pass 并显示 `127.0.0.0/8`；临时把 `PUBLIC_URL` 改为 `http://8.8.8.8:8055`，`plan` 应在 HTTP 请求前失败；恢复后正常。
+
+## 7. 待验收清单
 
 以下项目尚未完成，按用户逐个配合的节奏执行：
 
@@ -114,7 +138,7 @@
 - [ ] 等 `@directus/schema` 14.0.3 / 15.x 或 Directus 12.8 发布后重新核对 SQLite partial index 补丁。
 - [ ] 用户全部验收后再合并 `v3` 到 `main`。
 
-## 7. 建议的记录方式
+## 8. 建议的记录方式
 
 - API 层优先使用自动化 integration test；Studio 的文件夹、书签、settings、翻译和管理员体验仍需人工验收。
 - 命令输出使用 `dsk --format json` / `d6s --json` 保存为证据；文件放在临时目录，不提交真实 token。
