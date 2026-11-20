@@ -70,27 +70,34 @@ v3.0 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地
 
 ## v3.1 目标（3.1.0）
 
-v3.1 的主题是 **平台默认初始化 + 受管资源状态**。目标是让新项目自动获得统一默认，并让 DSK 能识别“它管理的资源在 Studio 被改了”，而不是继续创建副本。
+v3.1 的主题是 **平台默认初始化**。目标是让新项目自动获得统一的 settings、global preset、translations 和 folders 默认，而不是每个项目手动设置。
 
 | 编号 | 目标 | 优先级 | 完成条件 |
 | --- | --- | --- | --- |
 | V3.1-1 | Settings 扩展 | P0 | 支持受控 `custom_css`（字符串）、`module_bar`（模块数组）、`theme_light_overrides` / `theme_dark_overrides`；校验结构、合并策略和敏感字段排除；API / Studio 回归 |
 | V3.1-2 | 平台默认层与 `dsk bootstrap` | P0 | `init` 脚手架默认层；`bootstrap` 本地 dev only、幂等；默认 settings、`directus_presets` global preset、translations、folders；项目声明覆盖默认层；`reset` 后可重建 |
-| V3.1-3 | 受管资源状态与 Studio drift | P0 | 本地 `projectId -> key -> ID` 状态（不入 Manifest、不提交）；按 ID 找回受管资源；Studio 改名/删除显示 drift / missing-managed 并阻断该项；未登记资源列为 unmanaged；不自动 rename / 创建副本 |
-| V3.1-4 | `dsk status` / drift 报告 | P1 | 聚合 Schema + resources 的 drift、missing-managed、unmanaged、Manifest 新鲜度；支持 JSON 输出；不写入实例 |
-| V3.1-5 | d6s 发布矩阵补全 | P1 | incomplete pull、多 target `id_map`、不同数据库 vendor 阻断、版本不一致回归；补文档和测试证据 |
-| V3.1-6 | 兼容性维护 | P1 | 重新核对 `@directus/schema` 14.0.3 / 15.x 或 Directus 12.8 的 partial index 补丁；必要时更新 patch |
 
 ### v3.1 不在范围
 
-- Flows / Operations / Dashboards / Panels：放 v3.2 或独立设计。
+- 受管资源状态、Studio drift、`dsk status`：移到 v3.2。
+- d6s 扩展矩阵和兼容性 patch 维护：移到 v3.2。
+- Flows / Operations / Dashboards / Panels：放 v3.3 或独立设计。
 - Schema collection / field 重命名、类型变更、存量数据迁移。
 - Users / 业务内容 / 文件数据同步。
 - DSK 直连生产；生产仍由 d6s 发布。
 
-v3.1 建议实现顺序：Settings 扩展 → 平台默认层 / bootstrap → 受管状态 / drift → `dsk status` → d6s 矩阵和兼容性维护。
+v3.1 建议实现顺序：Settings 扩展 → 平台默认层 / bootstrap。
 
-## v3.2 / 后续方向
+## v3.2 目标（3.2.0）
+
+| 编号 | 目标 | 优先级 | 完成条件 |
+| --- | --- | --- | --- |
+| V3.2-1 | 受管资源状态与 Studio drift | P0 | 本地 `projectId -> key -> ID` 状态（不入 Manifest、不提交）；按 ID 找回受管资源；Studio 改名/删除显示 drift / missing-managed 并阻断该项；未登记资源列为 unmanaged；不自动 rename / 创建副本 |
+| V3.2-2 | `dsk status` / drift 报告 | P1 | 聚合 Schema + resources 的 drift、missing-managed、unmanaged、Manifest 新鲜度；支持 JSON 输出；不写入实例 |
+| V3.2-3 | d6s 发布矩阵补全 | P1 | incomplete pull、多 target `id_map`、不同数据库 vendor 阻断、版本不一致回归；补文档和测试证据 |
+| V3.2-4 | 兼容性维护 | P1 | 重新核对 `@directus/schema` 14.0.3 / 15.x 或 Directus 12.8 的 partial index 补丁；必要时更新 patch |
+
+## v3.3 / 后续方向
 
 | 优先顺序 | 方向 | 完成条件 |
 | --- | --- | --- |

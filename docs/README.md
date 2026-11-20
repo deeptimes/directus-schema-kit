@@ -17,7 +17,7 @@
 ## 维护者文档
 
 - [维护者文档入口](./maintainer/README.md)：发布、实现和测试文档的索引。
-- [Roadmap 与产品边界](./maintainer/roadmap.md)：当前交付范围、v3.1 目标和验收基线。
+- [Roadmap 与产品边界](./maintainer/roadmap.md)：当前交付范围、v3.1 / v3.2 目标和验收基线。
 - [DSK 实现与验收](./maintainer/development.md)：模块职责、结果契约、测试和发布检查。
 - [v3 测试计划](./maintainer/v3-test-plan.md)：Directus 系统模型资源的本地矩阵和跨环境测试矩阵。
 - [历史需求](./maintainer/requests/README.md)：已实现需求的原始记录与验收参考。

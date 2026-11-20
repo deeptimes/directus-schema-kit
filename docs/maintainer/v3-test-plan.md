@@ -136,9 +136,9 @@
 - [ ] Data Studio 人工回归：Markdown / Tags / Code / Toggle、八类关系、文件上传、字段条件、settings、folders、书签和翻译切换。
 - [ ] d6s 扩展矩阵：多 collection、部分 Schema、mirror 实际删除、版本 / vendor 不一致、incomplete pull、多 target id_map、首次接入生产基线。
 - [ ] Personal preset 在真实 d6s pull 中不出现（只作为环境本地资源）。
-- [ ] 受管资源状态与 Studio drift：v3.0 按稳定键视为 create + 旧资源保留；v3.1 评估本地 `key -> ID` 状态、drift 提示和显式 `renameFrom` / ID 映射。
-- [ ] 平台默认初始化：settings `custom_css` / `module_bar`、global presets、默认 translations / folders；项目覆盖、幂等、`reset` 后重建。
-- [ ] Flows / Operations / Dashboards / Panels：v3.2 或独立设计，不在 v3.0 / v3.1。
+- [ ] 受管资源状态与 Studio drift：v3.0 按稳定键视为 create + 旧资源保留；v3.2 评估本地 `key -> ID` 状态、drift 提示和显式 `renameFrom` / ID 映射。
+- [ ] 平台默认初始化（v3.1）：settings `custom_css` / `module_bar`、global presets、默认 translations / folders；项目覆盖、幂等、`reset` 后重建。
+- [ ] Flows / Operations / Dashboards / Panels：v3.3 或独立设计，不在 v3.0 / v3.1 / v3.2。
 - [ ] Users / 内容 / 文件数据同步：非目标；需要时独立设计。
 - [ ] 等 `@directus/schema` 14.0.3 / 15.x 或 Directus 12.8 发布后重新核对 SQLite partial index 补丁。
 - [ ] 用户全部验收后再合并 `v3` 到 `main`。
