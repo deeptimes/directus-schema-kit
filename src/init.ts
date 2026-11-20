@@ -19,6 +19,14 @@ const resourceExample = `/** 安全的空 Resource 定义。 */
 export default []
 `
 
+const settingsExample = `/** Directus settings 是 singleton，只允许受控 scalar 字段；按需添加 project_name 等。 */
+export default {
+  type: 'settings',
+  key: 'settings',
+  data: {},
+}
+`
+
 const seedExample = JSON.stringify({ schemaVersion: 1, collection: 'example', upsertBy: ['slug'], items: [] }, null, 2) + '\n'
 
 const aiGuide = `# Directus Schema Kit 项目开发指南与 AI 规则
@@ -57,6 +65,7 @@ pnpm dsk reset --dry-run   # 预览完整清理，包含实际上传文件
 pnpm dsk reset             # 展示计划后确认，默认拒绝
 \`\`\`
 
+- \`safety.environment\` 必须显式为 \`development\`；在线命令默认只允许 loopback、\`10/8\`、\`192.168/16\` 和 \`.local\`，\`172.16/12\` 与公网默认拒绝，其他私网地址需在 \`safety.allowedHosts\` 显式加入。
 - 真实清理必须确认：交互输入 y，脚本添加 \`--confirm\`；\`--dry-run\` 与 \`--confirm\` 互斥。JSON／非交互模式未确认时仅返回计划。
 - 保留 settings、初始管理员账号密码及其授权链、系统 Public policy，以及 License 和运行配置。初始管理员通过 \`ADMIN_EMAIL\` 或 \`--admin-user <id>\` 识别；当前认证管理员始终保留。未指定初始管理员时，应使用该账号的 ADMIN_TOKEN。
 - settings、保留管理员或其他保留资源引用待删对象时，执行前阻断并说明；不会置空这些引用来绕过保护。reset 通过 Files API 删除已登记上传文件及实际存储，无法检查未登记的孤立存储对象。
@@ -153,6 +162,10 @@ const blogTags = collection({ name: 'blog_tags', label: '博客标签', group: '
 - resources apply 删除必须显式声明 \`delete: true\` 并提供 \`--confirm-destructive\`；clear 先审查完整范围，再交互确认或显式 \`--confirm\`，永远保护系统集合结构。
 - \`clean --dry-run\` 预览清空全部自定义集合记录；\`reset --dry-run\` 预览完整清理，包含旧集合、普通用户、业务权限和实际上传文件。真实执行先审查完整计划，再交互确认或显式 \`--confirm\`。保留 settings、初始管理员及其授权链和 License 配置，不调用 bootstrap；初始管理员通过 ADMIN_EMAIL 或 \`--admin-user <id>\` 指定，当前认证管理员始终保留。保留资源引用待删对象时阻断，不置空引用绕过。
 - 凭证、secret 和真实隐私数据不进入源码、Manifest、Seed 或报告；敏感定义使用 \`env()\` 引用。
+- settings 使用 \`settings({...})\`，只允许受控 scalar 字段（project name、descriptor、url、color、default language / appearance / theme）；不要声明 License、AI、存储、邮件、品牌图片等敏感字段。
+- folders 的稳定键是 \`name + parent + type\`；文件库用 \`files\`，流程库用 \`flows\`，省略 type 时按 files 处理。
+- presets 的稳定键是 \`collection + bookmark + role + user\`；同 collection 需要不同 bookmark；user 非 null 的个人 preset 只在本环境维护，不进入跨环境发布。
+- roles / policies 的 name 必须唯一；access 必须引用 policy；permissions 的 action 只能是 read / create / update / delete / share；admin_access: true 会在资源计划中标记审查原因。
 
 ## 修改后检查
 
@@ -202,6 +215,7 @@ export function initializeWorkspace(projectRoot: string, dryRun = false): InitRe
     ['dsk/resources/access.ts', resourceExample],
     ['dsk/resources/permissions.ts', resourceExample],
     ['dsk/resources/presets.ts', resourceExample],
+    ['dsk/resources/settings.ts', settingsExample],
     ['dsk/seeds/example/10-example.json', seedExample],
     ['docs/directus-schema-kit.md', aiGuide],
   ])

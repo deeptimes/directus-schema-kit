@@ -151,6 +151,7 @@ function integrationSeeds(): SeedBatch[] {
 function integrationResources(remove: boolean): Record<ResourceType, ResourceDefinition[]> {
   const mark = <T extends ResourceDefinition>(value: T): T => ({ ...value, ...(remove ? { delete: true } : {}) })
   return {
+    settings: [],
     folders: [mark({ type: 'folders', key: 'ci', data: { name: 'DSK CI Folder', parent: null } })],
     roles: [mark({ type: 'roles', key: 'ci', data: { name: 'DSK CI Role', icon: 'science' } })],
     policies: [mark({ type: 'policies', key: 'ci', data: { name: 'DSK CI Policy', icon: 'science', app_access: false, admin_access: false } })],
@@ -165,5 +166,5 @@ function integrationResources(remove: boolean): Record<ResourceType, ResourceDef
 }
 
 function emptyResources(): Record<ResourceType, ResourceDefinition[]> {
-  return { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [], translations: [] }
+  return { settings: [], folders: [], roles: [], policies: [], access: [], permissions: [], presets: [], translations: [] }
 }

@@ -30,6 +30,7 @@
       "additionalProperties": false,
       "required": ["folders", "roles", "policies", "access", "permissions", "presets"],
       "properties": {
+        "settings": { "type": "array", "items": { "$ref": "#/$defs/settingsResource" } },
         "folders": { "type": "array" },
         "roles": { "type": "array" },
         "policies": { "type": "array" },
@@ -41,6 +42,33 @@
     }
   },
   "$defs": {
+    "envReference": {
+      "type": "object", "additionalProperties": false, "required": ["$env"],
+      "properties": { "$env": { "type": "string", "pattern": "^[A-Z_][A-Z0-9_]*$" } }
+    },
+    "settingsResource": {
+      "type": "object", "additionalProperties": false,
+      "required": ["type", "key", "data"],
+      "properties": {
+        "type": { "const": "settings" },
+        "key": { "const": "settings" },
+        "source": { "type": "string" },
+        "delete": { "const": false },
+        "data": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "project_name": { "anyOf": [{ "type": "string", "minLength": 1, "maxLength": 100 }, { "$ref": "#/$defs/envReference" }] },
+            "project_descriptor": { "anyOf": [{ "type": ["string", "null"], "maxLength": 100 }, { "$ref": "#/$defs/envReference" }] },
+            "project_url": { "anyOf": [{ "type": ["string", "null"], "maxLength": 255 }, { "$ref": "#/$defs/envReference" }] },
+            "project_color": { "anyOf": [{ "type": "string", "maxLength": 255 }, { "$ref": "#/$defs/envReference" }] },
+            "default_language": { "anyOf": [{ "type": "string", "minLength": 1, "maxLength": 255 }, { "$ref": "#/$defs/envReference" }] },
+            "default_appearance": { "anyOf": [{ "enum": ["auto", "light", "dark"] }, { "$ref": "#/$defs/envReference" }] },
+            "default_theme_light": { "anyOf": [{ "type": ["string", "null"], "maxLength": 255 }, { "$ref": "#/$defs/envReference" }] },
+            "default_theme_dark": { "anyOf": [{ "type": ["string", "null"], "maxLength": 255 }, { "$ref": "#/$defs/envReference" }] }
+          }
+        }
+      }
+    },
     "conditions": {
       "type": [
         "array",

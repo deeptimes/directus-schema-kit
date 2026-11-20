@@ -37,8 +37,174 @@ class MemoryResources implements ResourceReader, ResourceWriter {
 }
 
 function definitions(overrides: Partial<Record<ResourceType, ResourceDefinition[]>> = {}): Record<ResourceType, ResourceDefinition[]> {
-  return { folders: [], roles: [], policies: [], access: [], permissions: [], presets: [], translations: [], ...overrides }
+  return { settings: [], folders: [], roles: [], policies: [], access: [], permissions: [], presets: [], translations: [], ...overrides }
 }
+
+test('folders 按 name + parent + type 区分文件库与流程库', async () => {
+  const store = new MemoryResources()
+  store.data.set('folders', [
+    { id: 'files', name: 'Shared', parent: null, type: 'files' },
+    { id: 'flows', name: 'Shared', parent: null, type: 'flows' },
+  ])
+  const result = await syncResources({
+    definitions: definitions({ folders: [
+      { type: 'folders', key: 'files', data: { name: 'Shared', parent: null } },
+      { type: 'folders', key: 'flows', data: { name: 'Shared', parent: null, type: 'flows' } },
+    ] }),
+    reader: store,
+    dryRun: true,
+  })
+  assert.equal(result.operations.find((operation) => operation.key === 'files')?.action, 'unchanged')
+  assert.equal(result.operations.find((operation) => operation.key === 'files')?.id, 'files')
+  assert.equal(result.operations.find((operation) => operation.key === 'flows')?.action, 'unchanged')
+  assert.equal(result.operations.find((operation) => operation.key === 'flows')?.id, 'flows')
+})
+
+test('folder 改名被视为新资源，旧资源保留', async () => {
+  const store = new MemoryResources()
+  store.data.set('folders', [{ id: 'old', name: 'Old', parent: null, type: 'files' }])
+  const result = await syncResources({
+    definitions: definitions({ folders: [{ type: 'folders', key: 'renamed', data: { name: 'New', parent: null } }] }),
+    reader: store,
+    writer: store,
+    dryRun: true,
+  })
+  assert.equal(result.operations[0]?.action, 'create')
+  assert.equal(store.data.get('folders')?.length, 1)
+})
+
+test('folders 非法字段或 type 在写入前失败', async () => {
+  const store = new MemoryResources()
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ folders: [{ type: 'folders', key: 'bad', data: { name: 'X', type: 'invalid' } }] }),
+      reader: store,
+    }),
+    /Folders 校验失败/,
+  )
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ folders: [{ type: 'folders', key: 'bad', data: { name: 'X', extra: true } }] }),
+      reader: store,
+    }),
+    /Folders 校验失败/,
+  )
+})
+
+test('presets 按 collection + bookmark + role + user 匹配 global / role / personal', async () => {
+  const store = new MemoryResources()
+  store.data.set('presets', [
+    { id: 'global', collection: 'articles', bookmark: null, role: null, user: null },
+    { id: 'role', collection: 'articles', bookmark: 'Editor view', role: 'editor', user: null },
+    { id: 'personal', collection: 'articles', bookmark: 'My view', role: null, user: 'writer' },
+  ])
+  const result = await syncResources({
+    definitions: definitions({ presets: [
+      { type: 'presets', key: 'global', data: { collection: 'articles', bookmark: null, role: null, user: null } },
+      { type: 'presets', key: 'role', data: { collection: 'articles', bookmark: 'Editor view', role: 'editor', user: null } },
+    ] }),
+    reader: store,
+    dryRun: true,
+  })
+  assert.equal(result.operations.find((operation) => operation.key === 'global')?.id, 'global')
+  assert.equal(result.operations.find((operation) => operation.key === 'global')?.action, 'unchanged')
+  assert.equal(result.operations.find((operation) => operation.key === 'role')?.id, 'role')
+  assert.equal(result.operations.find((operation) => operation.key === 'role')?.action, 'unchanged')
+  assert.equal(result.operations.some((operation) => operation.id === 'personal'), false)
+})
+
+test('presets 自然键重复或 user + role 同时非 null 在写入前失败', async () => {
+  const store = new MemoryResources()
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ presets: [
+        { type: 'presets', key: 'one', data: { collection: 'articles', bookmark: 'X', role: null, user: null } },
+        { type: 'presets', key: 'two', data: { collection: 'articles', bookmark: 'X', role: null, user: null } },
+      ] }),
+      reader: store,
+    }),
+    /Presets 校验失败/,
+  )
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ presets: [{ type: 'presets', key: 'bad', data: { collection: 'articles', bookmark: 'X', role: 'editor', user: 'writer' } }] }),
+      reader: store,
+    }),
+    /Presets 校验失败/,
+  )
+})
+
+test('settings singleton 只更新声明字段并收敛', async () => {
+  const store = new MemoryResources()
+  store.data.set('settings', [{ id: 1, project_name: 'Old', project_color: '#000000', default_language: 'en-US' }])
+  const settingsDefinitions = definitions({
+    settings: [{ type: 'settings', key: 'settings', data: { project_name: 'New', default_language: 'zh-CN' } }],
+  })
+  const result = await syncResources({ definitions: settingsDefinitions, reader: store, writer: store })
+  assert.equal(result.status, 'success')
+  assert.deepEqual(store.writes, ['update:settings.1'])
+  assert.deepEqual(result.operations[0]?.changes?.map((change) => change.path).sort(), ['default_language', 'project_name'])
+  assert.equal(store.data.get('settings')?.[0]?.project_color, '#000000')
+
+  const converged = await syncResources({ definitions: settingsDefinitions, reader: store, dryRun: true })
+  assert.equal(converged.operations[0]?.action, 'unchanged')
+})
+
+test('settings 记录缺失、重复声明或非法字段在写入前失败', async () => {
+  const store = new MemoryResources()
+  await assert.rejects(
+    () => syncResources({ definitions: definitions({ settings: [{ type: 'settings', key: 'settings', data: { project_name: 'X' } }] }), reader: store }),
+    /settings 记录缺失/,
+  )
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ settings: [
+        { type: 'settings', key: 'settings', data: { project_name: 'A' } },
+        { type: 'settings', key: 'settings', data: { project_name: 'B' } },
+      ] }),
+      reader: store,
+    }),
+    /Settings 校验失败/,
+  )
+  await assert.rejects(
+    () => syncResources({ definitions: definitions({ settings: [{ type: 'settings', key: 'settings', data: { license: 'secret' } }] }), reader: store }),
+    /Settings 校验失败/,
+  )
+  await assert.rejects(
+    () => syncResources({ definitions: definitions({ settings: [{ type: 'settings', key: 'settings', delete: true, data: { project_name: 'X' } }] }), reader: store }),
+    /Settings 校验失败/,
+  )
+})
+
+test('权限链校验名称、引用、动作和 admin_access 审查提示', async () => {
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ policies: [
+        { type: 'policies', key: 'one', data: { name: 'Duplicate Policy' } },
+        { type: 'policies', key: 'two', data: { name: 'Duplicate Policy' } },
+      ] }),
+      reader: new MemoryResources(),
+    }),
+    /权限链校验失败/,
+  )
+  await assert.rejects(
+    () => syncResources({
+      definitions: definitions({ permissions: [{ type: 'permissions', key: 'bad', data: { policy: ref('policies.editor'), collection: 'articles', action: 'write' } }] }),
+      reader: new MemoryResources(),
+    }),
+    /权限链校验失败/,
+  )
+  const store = new MemoryResources()
+  const result = await syncResources({
+    definitions: definitions({ policies: [{ type: 'policies', key: 'admin', data: { name: 'Admin Policy', admin_access: true } }] }),
+    reader: store,
+    writer: store,
+  })
+  assert.equal(result.status, 'success')
+  const operation = result.operations.find((item) => item.key === 'admin')
+  assert.equal(operation?.dangerous, true)
+  assert.match(operation?.reason ?? '', /admin_access=true/)
+})
 
 test('系统资源按依赖顺序创建并解析稳定引用', async () => {
   const store = new MemoryResources()
@@ -121,17 +287,17 @@ test('重复业务键产生 conflict 且不写入', async () => {
 
 test('关联资源删除按依赖逆序且不会重复执行', async () => {
   const store = new MemoryResources()
-  store.data.set('roles', [{ id: 'role-1', name: 'Legacy' }])
-  store.data.set('permissions', [{ id: 'permission-1', role: 'role-1', collection: 'articles', action: 'read' }])
+  store.data.set('policies', [{ id: 'policy-1', name: 'Legacy Policy' }])
+  store.data.set('permissions', [{ id: 'permission-1', policy: 'policy-1', collection: 'articles', action: 'read' }])
   const result = await syncResources({
     definitions: definitions({
-      roles: [{ type: 'roles', key: 'legacy', data: { name: 'Legacy' }, delete: true }],
-      permissions: [{ type: 'permissions', key: 'legacy-read', data: { role: ref('roles.legacy'), collection: 'articles', action: 'read' }, delete: true }],
+      policies: [{ type: 'policies', key: 'legacy', data: { name: 'Legacy Policy' }, delete: true }],
+      permissions: [{ type: 'permissions', key: 'legacy-read', data: { policy: ref('policies.legacy'), collection: 'articles', action: 'read' }, delete: true }],
     }),
     reader: store, writer: store, confirmDestructive: true,
   })
   assert.equal(result.status, 'success')
-  assert.deepEqual(store.writes, ['delete:permissions.permission-1', 'delete:roles.role-1'])
+  assert.deepEqual(store.writes, ['delete:permissions.permission-1', 'delete:policies.policy-1'])
 })
 
 test('未启用 Directus 自定义权限规则时，在任何资源写入前拒绝同步', async () => {

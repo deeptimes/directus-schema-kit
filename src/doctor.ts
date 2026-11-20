@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { loadConfig } from './config.js'
-import { loadProjectEnvironment } from './env.js'
+import { loadProjectEnvironment, resolveHostPolicy, validateAllowedHosts } from './env.js'
 import { discoverDirectusProject } from './project.js'
 import { validateWorkspace } from './validate.js'
 import type { DoctorCheck, DoctorResult } from './types.js'
@@ -12,7 +12,7 @@ export async function diagnoseProject(cwd: string, customConfig?: string): Promi
   const configPath = path.resolve(project.root, customConfig ?? 'dsk/config.json')
   if (!existsSync(configPath)) {
     checks.push({ name: 'config', status: 'fail', message: '缺少 dsk/config.json，请运行 dsk init' })
-    return result(project.root, project.directusVersion, configPath, null, checks, path.join(project.root, '.env'), [], ['PUBLIC_URL'])
+    return result(project.root, project.directusVersion, configPath, null, emptySafety(), checks, path.join(project.root, '.env'), [], ['PUBLIC_URL'])
   }
 
   let loaded
@@ -21,7 +21,7 @@ export async function diagnoseProject(cwd: string, customConfig?: string): Promi
     checks.push({ name: 'config', status: 'pass', message: '配置文件有效' })
   } catch (error) {
     checks.push({ name: 'config', status: 'fail', message: error instanceof Error ? error.message : String(error) })
-    return result(project.root, project.directusVersion, configPath, null, checks, path.join(project.root, '.env'), [], ['PUBLIC_URL'])
+    return result(project.root, project.directusVersion, configPath, null, emptySafety(), checks, path.join(project.root, '.env'), [], ['PUBLIC_URL'])
   }
 
   const envFile = path.resolve(loaded.directory, loaded.config.env?.file ?? '../.env')
@@ -34,6 +34,56 @@ export async function diagnoseProject(cwd: string, customConfig?: string): Promi
     message: environment.PUBLIC_URL ? 'Directus 连接变量已配置' : '缺少 PUBLIC_URL；离线命令可用，实例命令不可用',
   })
 
+  const allowedHosts = loaded.config.safety?.allowedHosts ?? []
+  const safety: DoctorResult['safety'] = {
+    environment: loaded.config.safety?.environment ?? null,
+    allowedHosts,
+    host: null,
+    hostAllowed: null,
+    matchedRule: null,
+  }
+  checks.push({
+    name: 'safety',
+    status: safety.environment === 'development' ? 'pass' : 'fail',
+    message: safety.environment === 'development'
+      ? 'safety.environment=development，在线命令只连接本地开发实例'
+      : 'safety.environment 必须显式为 development；在线命令会拒绝连接',
+  })
+  try {
+    validateAllowedHosts(allowedHosts)
+    checks.push({
+      name: 'allowedHosts',
+      status: 'pass',
+      message: allowedHosts.length ? `附加允许：${allowedHosts.join(', ')}` : '使用默认本地 / 私网规则',
+    })
+  } catch (error) {
+    checks.push({ name: 'allowedHosts', status: 'fail', message: error instanceof Error ? error.message : String(error) })
+  }
+  if (environment.PUBLIC_URL) {
+    try {
+      const target = new URL(environment.PUBLIC_URL)
+      safety.host = target.hostname
+      if (!['http:', 'https:'].includes(target.protocol)) {
+        checks.push({ name: 'target', status: 'fail', message: `不支持的目标协议: ${target.protocol}` })
+      } else {
+        const policy = resolveHostPolicy(target.hostname, allowedHosts)
+        safety.hostAllowed = policy.allowed
+        safety.matchedRule = policy.matchedRule
+        checks.push({
+          name: 'target',
+          status: policy.allowed ? 'pass' : 'fail',
+          message: policy.allowed
+            ? `${target.origin} 命中 ${policy.matchedRule}`
+            : `${target.origin} 不允许：${policy.reason ?? '未命中允许规则'}`,
+        })
+      }
+    } catch (error) {
+      checks.push({ name: 'target', status: 'fail', message: error instanceof Error ? error.message : String(error) })
+    }
+  } else {
+    checks.push({ name: 'target', status: 'warn', message: '缺少 PUBLIC_URL，跳过目标地址校验' })
+  }
+
   const manifestPath = path.resolve(loaded.directory, loaded.config.paths.manifest)
   for (const directory of ['dsk/schemas', 'dsk/resources', 'dsk/seeds', 'dsk/generated']) {
     checks.push({ name: directory, status: existsSync(path.join(project.root, directory)) ? 'pass' : 'fail', message: existsSync(path.join(project.root, directory)) ? '目录存在' : '目录缺失' })
@@ -44,15 +94,20 @@ export async function diagnoseProject(cwd: string, customConfig?: string): Promi
   } catch (error) {
     checks.push({ name: 'workspace', status: 'fail', message: error instanceof Error ? error.message : String(error) })
   }
-  return result(project.root, project.directusVersion, configPath, manifestPath, checks, envFile, configured, missing)
+  return result(project.root, project.directusVersion, configPath, manifestPath, safety, checks, envFile, configured, missing)
 }
 
-function result(root: string, directusVersion: string, config: string, manifest: string | null, checks: DoctorCheck[], envFile: string, configuredVariables: string[], missingVariables: string[]): DoctorResult {
+function emptySafety(): DoctorResult['safety'] {
+  return { environment: null, allowedHosts: [], host: null, hostAllowed: null, matchedRule: null }
+}
+
+function result(root: string, directusVersion: string, config: string, manifest: string | null, safety: DoctorResult['safety'], checks: DoctorCheck[], envFile: string, configuredVariables: string[], missingVariables: string[]): DoctorResult {
   return {
     doctorVersion: 1,
     ok: checks.every((check) => check.status !== 'fail'),
     project: { root, directusVersion, packageManager: packageManager(root) },
     environment: { file: envFile, exists: existsSync(envFile), configuredVariables, missingVariables },
+    safety,
     workspace: { config, manifest },
     checks,
   }

@@ -21,6 +21,7 @@ export const defaultConfig: DskConfig = {
   },
   safety: {
     clearEnabled: true,
+    environment: 'development',
   },
 }
 
@@ -54,7 +55,11 @@ export const configJsonSchema = {
     },
     safety: {
       type: 'object', additionalProperties: false,
-      properties: { clearEnabled: { type: 'boolean' } },
+      properties: {
+        clearEnabled: { type: 'boolean' },
+        environment: { enum: ['development'] },
+        allowedHosts: { type: 'array', uniqueItems: true, items: { type: 'string', minLength: 1 } },
+      },
     },
   },
 } as const

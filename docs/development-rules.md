@@ -10,6 +10,7 @@
 - 不手写或编辑 `dsk/generated/manifest.json`。修改定义后重新 build、validate，再查看 plan。
 - collection 全局唯一，一个 collection 只能在一个文件完整定义；其他文件通过 relation 引用。文件名、`source` 和 UI group 不构成 namespace 或局部执行范围。
 - 普通 apply 只允许安全 create/update，不自动删除、重命名、变更类型或迁移存量数据。白名单外差异默认阻断。
+- Schema 和受管系统配置的变更从 `dsk/` 发起；Studio 只用于探索和业务内容编辑，需要保留的配置必须回写 `dsk/`。生产发布由 d6s 执行，不通过 DSK 直连生产。
 
 ## 命名与建模
 
@@ -53,14 +54,15 @@ DBML 是建模说明，不是 DSK 执行输入；建模要求需通过当前 DSL
 
 ## 系统资源与 Seed
 
-- 系统资源放在 `dsk/resources/`，除非现有项目已有明确组织方式；普通 Schema 不声明或修改 `directus_*` collection。
+- 系统资源放在 `dsk/resources/`，除非现有项目已有明确组织方式；普通 Schema 不声明或修改 `directus_*` collection。Settings 是 singleton，最多一条，只允许受控 scalar 字段；不声明 License、AI、存储、邮件、品牌图片等敏感 / 环境本地字段。
+- 资源稳定键是身份：folder `name + parent + type`、preset `bookmark + collection + role + user`、role / policy `name`、translation `key + language`。在 Studio 改名会被视为新资源，旧资源保留，DSK 不自动 rename 或 delete；需要改名时按显式迁移处理。
 - 不硬编码 role、policy、user 等环境 UUID。自定义资源用稳定业务键引用，内置 Public policy 用 `systemRef('policies.public')`；不重复创建系统 policy。
 - Seed 只做本地基础数据初始化，使用版本化 JSON、自然键和稳定业务键引用，重复执行不产生重复数据。
 - 不声明 Flow、Operation、Dashboard、Panel，当前版本不支持。
 
 ## 安全与写入授权
 
-- 只允许连接 localhost、RFC1918 私网和 `.local`；DSK 不承担生产发布或实例间同步，跨环境发布由 Directus 官方 Environment Sync（`d6s`）承担。地址校验不区分开发与生产，禁止把 `PUBLIC_URL` 指向生产；只覆盖 schema 的 `schema snapshot` 不包含 roles、policies、access、permissions 等配置资源，详见[环境与发布](./directus-development.md#环境与发布)。
+- 只允许连接 localhost、`127.0.0.0/8`、`10.0.0.0/8`、`192.168.0.0/16` 和 `.local`；`safety.environment` 必须为 `development`，其他私网地址需在 `safety.allowedHosts` 显式加入，`172.16.0.0/12` 与公网默认拒绝。DSK 不承担生产发布或实例间同步，跨环境发布由 Directus 官方 Environment Sync（`d6s`）承担。只覆盖 schema 的 `schema snapshot` 不包含 roles、policies、access、permissions 等配置资源，详见[环境与发布](./directus-development.md#环境与发布)。
 - token、secret、密码、数据库凭证和真实隐私数据不得写入 Manifest、seed、日志或报告；敏感定义使用 `env()` 引用。
 - Schema apply 遇到任一 conflict/dangerous 全量阻断；实例额外资源不会被推断为删除。
 - `resources apply` 删除系统资源必须声明 `delete: true`，并额外提供 `--confirm-destructive`；独立 `reset` 按已确认的完整清理计划删除目标资源。

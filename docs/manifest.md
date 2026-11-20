@@ -8,9 +8,9 @@
 - `generator`：包名与版本。
 - `source`：源码摘要和参与构建的文件；每项定义使用 `source` 定位来源文件。
 - `collections`、`fields`、`relations`：完全展开的 Schema。
-- `resources`：folders、roles、policies、access、permissions、presets、translations 定义。
+- `resources`：settings（可选 singleton）、folders、roles、policies、access、permissions、presets、translations 定义。
 
-`resources.translations` 为兼容已有 V1 输入而允许省略；新 build 始终输出数组。翻译按 `data.key + data.language` 校验唯一性，条件数组保留声明顺序。字段条件和翻译资源的属性约束与示例见 [Schema DSL](./schema-dsl.md)。
+`resources.translations` 和 `resources.settings` 为兼容已有 V1 输入而允许省略；新 build 始终输出数组。settings 是 Directus singleton，最多一条，只允许受控 scalar 字段。翻译按 `data.key + data.language` 校验唯一性，条件数组保留声明顺序。字段条件、settings 和翻译资源的属性约束与示例见 [Schema DSL](./schema-dsl.md)。
 
 Manifest 不包含函数、解析后的 secret 或生成时间戳。`plan/apply` 会重新计算源码摘要；缺失或过期时拒绝执行。配套 Schema 位于 `schemas/manifest.schema.json`。
 

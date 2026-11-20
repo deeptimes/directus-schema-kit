@@ -2,7 +2,7 @@
 
 Directus Schema Kit 是面向 Directus 本地开发项目的声明式 Schema Provisioning 工具。TypeScript DSL 负责人工编写，版本化 JSON Manifest 负责校验、规划和执行边界。
 
-CLI 接受 Directus 11.x 与 12.x。Node.js 22+ 下已验证 Directus 11.17.4、12.5.1 + SQLite 的自动集成生命周期；v12 自定义权限依赖相应 license 能力，完整 Studio 编辑回归仍待验证，详见 [兼容性](docs/compatibility.md)。
+CLI 接受 Directus 11.x 与 12.x。Node.js 22+ 下已验证 Directus 11.17.4、12.5.1 + SQLite 的自动集成生命周期；v3 目标基线为 Directus 12.7.0（12.6.1 回退），v12 自定义权限依赖相应 license 能力，完整 Studio 编辑回归仍待验证，详见 [兼容性](docs/compatibility.md)。`@directus/cli` 是独立包，latest 与 Directus 服务器版本不是同一个版本号。
 
 ## 当前实现
 
@@ -14,7 +14,7 @@ CLI 接受 Directus 11.x 与 12.x。Node.js 22+ 下已验证 Directus 11.17.4、
 - `dsk plan`：只读获取本地 Directus 状态，分类 create、update、unchanged、conflict 和 dangerous。
 - `dsk apply`：全量预检后按依赖顺序执行安全 create/update，默认阻断 conflict/dangerous。
 - `dsk seed`：严格 JSON Seed，自然键 upsert、跨集合/同集合引用以及 plan/apply。
-- `dsk resources apply`：folders、roles、policies、access、permissions、presets、translations 同步。
+- `dsk resources apply`：settings、folders、roles、policies、access、permissions、presets、translations 同步。
 - `dsk clean`：清空全部自定义集合记录，保留结构和权限配置。
 - `dsk reset`：完整清理开发业务环境，包括旧集合、业务权限、普通用户和上传文件；保留管理员、settings、License 配置。
 - `dsk clear`：兼容旧版，仅清理代码声明的自定义 Schema。

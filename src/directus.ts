@@ -33,6 +33,7 @@ export class DirectusReader {
   }
 
   async listSystemResource(endpoint: string): Promise<Array<Record<string, unknown>>> {
+    if (endpoint === 'settings') return [await this.readObject('settings')]
     if (endpoint === 'translations') return this.listAll(endpoint)
     return this.get<Array<Record<string, unknown>>>(`/${endpoint}?limit=-1`)
   }
@@ -178,6 +179,7 @@ export class DirectusWriter {
   }
 
   updateSystemResource(endpoint: string, id: string | number, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    if (endpoint === 'settings') return this.request<Record<string, unknown>>('/settings', 'PATCH', data)
     return this.request<Record<string, unknown>>(`/${endpoint}/${encodeURIComponent(String(id))}`, 'PATCH', data)
   }
 

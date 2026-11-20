@@ -118,6 +118,15 @@ export default resource('permissions', {
 
 `systemRef()` 首版只支持 `policies.public`。`dsk resources apply` 必须在实例中唯一找到 Directus 内置 `$t:public_label` policy，否则在任何写入前失败。该引用只用于关联，DSK 不管理系统 policy 的生命周期。
 
+权限链的离线校验：
+
+- roles / policies 的 `name` 非空且同一 Manifest 内唯一。
+- `policies.app_access` 控制该 policy 的用户能否登录 Data Studio；需要 Studio 编辑的角色要设为 `true`。纯 API / 前台用户角色可以设为 `false`。`admin_access` 只给管理员，不要与普通编辑器混用。
+- access 必须声明 `policy`；`role` / `user` 可以为 null 或引用。`user` 非 null 的 access 属于环境本地，不应作为跨环境交付内容。
+- permissions 的 `action` 只能是 `read`、`create`、`update`、`delete` 或 `share`；`policy + collection + action` 自然键必须唯一。
+- `admin_access: true` 的 policy 会在 `resources apply` 计划中标记 `dangerous` 并给出审查原因，但不会自动阻断本地开发。
+- Public permission 使用 `systemRef('policies.public')`，不要创建或硬编码 Public policy 的 UUID。
+
 ## 表格 Preset
 
 使用 `preset.tabular()` 声明集合的默认表格视图，不需要重复编写 `layout_query` 和 `layout_options`：
@@ -135,6 +144,59 @@ export default preset.tabular({
 ```
 
 默认生成全局 tabular preset（`bookmark`、`role`、`user` 均为 `null`），page 为 1，并根据常见字段名设置列宽；`widths` 可以逐字段覆盖，`defaultWidth` 控制其他字段的默认宽度。
+
+Preset 的稳定键是 `collection + bookmark + role + user`：
+
+- 同一个 collection 需要多个 preset 时，必须使用不同的 `bookmark`；两个 `bookmark` 都为 `null` 的全局 preset 会被校验判定为重复。
+- `user` 非 null 的 preset 是个人 preset，属于环境本地配置；d6s 不会 pull 个人 preset，不要把它当作跨环境交付内容。
+- `role` 和 `user` 不能同时非 null；role preset 使用 `ref('roles.<key>')`，personal preset 的用户 ID 不进入跨环境声明。
+- 修改 `bookmark` / role / user 会被视为新的 preset；Studio 改名或改 bookmark 不会原地迁移，旧 preset 保留，需要显式删除。
+
+## Folder 资源
+
+文件库和流程库共用 `directus_folders`，通过 `type` 区分。`resource('folders')` 的稳定键是 `name + parent + type`；省略 `type` 时按 Directus 默认的 `files` 处理：
+
+```ts
+import { resource } from '@deeptimes/directus-schema-kit'
+
+export default [
+  resource('folders', {
+    key: 'blog-media',
+    data: { name: 'Blog Media', parent: null, type: 'files' },
+  }),
+  resource('folders', {
+    key: 'flow-archive',
+    data: { name: 'Flow Archive', parent: null, type: 'flows' },
+  }),
+]
+```
+
+`name` 必须是非空字符串；`parent` 可以是 `null`、已有 folder ID 字符串或 `ref('folders.<key>')`；`type` 只能是 `files` 或 `flows`。同名同父级但 type 不同的 folder 不会被误认领。删除仍需 `delete: true` 和 `--confirm-destructive`；删除文件库 folder 时 Directus 会把文件移动到根目录，DSK 不接管文件内容。
+
+**重命名或移动 folder 不是自动迁移**：`name + parent + type` 是稳定键，Studio 改名后 DSK 会创建新 folder 并保留旧 folder，不会原地 rename，也不会自动删除旧记录。需要改名时按显式迁移处理，检查文件和 flow 引用后手动清理旧 folder。
+
+## Settings 系统配置
+
+使用 `settings()` 声明 Directus `directus_settings` singleton。整个 Manifest 最多只能有一条 settings 资源，不能删除、不能创建，只能更新声明字段：
+
+```ts
+import { settings } from '@deeptimes/directus-schema-kit'
+
+export default settings({
+  project_name: 'Example Project',
+  project_descriptor: '内部项目',
+  project_url: null,
+  project_color: '#6644FF',
+  default_language: 'zh-CN',
+  default_appearance: 'auto',
+})
+```
+
+允许的字段是受控白名单：`project_name`、`project_descriptor`、`project_url`、`project_color`、`default_language`、`default_appearance`、`default_theme_light`、`default_theme_dark`。值可以是字符串、数字、布尔、`null` 或 `env()` 引用；未知字段、对象/数组值和 `delete: true` 会被离线校验拒绝。
+
+`resources apply` 只 PATCH 声明字段，未声明的 settings 字段保持原值；`dry-run` 展示字段级 changes。License、AI 凭证、存储配置、邮件配置、品牌图片 / 文件引用、公开注册等敏感或环境本地字段不在白名单内，DSK 不会写入它们。`reset` 继续保留 settings；settings 的删除需要 Directus 自身维护，DSK 不支持。
+
+跨环境发布时，settings 由 d6s 的 configuration 通道处理；本地 dev 的 settings 是否应该进入发布范围，需要按项目逐项确认。
 
 ## 全量 Clear
 

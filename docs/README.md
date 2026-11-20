@@ -18,5 +18,6 @@
 - [CLI 参考](./cli-reference.md)：参数、Plan 分类、退出码和 JSON 输出。
 - [Manifest V1](./manifest.md)：生成格式、源码摘要和关系展开约束。
 - [兼容性](./compatibility.md)：认证环境、字段类型和关系支持范围。
+- [历史需求](./requests/README.md)：已实现需求的原始记录与验收参考。
 
 每项规则只在对应文档维护，示例以公开 API 为准。Manifest V1 是格式版本，包版本以 `package.json` 或 `dsk --version` 为准。

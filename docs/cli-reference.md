@@ -15,6 +15,10 @@ pnpm dsk [--cwd <path>] [--config <path>] [--format text|json] <command>
 | `--format text\|json` | 人工可读或机器可读输出，默认 `text` |
 | `--version` | 输出安装的包版本 |
 
+## 项目配置与安全边界
+
+`dsk/config.json` 的 `safety.environment` 必须显式为 `development`；在线命令在连接前统一校验，缺失或非 `development` 直接拒绝。`safety.allowedHosts` 可追加私网 IP / CIDR；默认只允许 `localhost`、`127.0.0.0/8`、`::1`、`10.0.0.0/8`、`192.168.0.0/16`、`.local`，`172.16.0.0/12` 与公网默认拒绝。`doctor` 会输出解析出的 host、命中的规则和是否允许。
+
 ## 命令
 
 | 命令 | 作用 | 是否连接实例 | 是否写入 |

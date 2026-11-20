@@ -45,7 +45,7 @@ DSK 是 **local-first 的声明式 provisioning 工具**。
 | 声明 | 人 / AI 编写的 TypeScript Schema、资源定义和 JSON Seed |
 | Manifest | `build` 的确定性产物；执行层唯一的输入契约；禁止手改 |
 | 本地开发实例 | DSK 唯一连接和写入的 Directus 实例，通常是 localhost 或私网开发库 |
-| 资源 | 除 Schema 外的系统配置对象：folders、roles、policies、access、permissions、presets、translations |
+| 资源 | 除 Schema 外的系统配置对象：settings、folders、roles、policies、access、permissions、presets、translations |
 | 稳定业务键 | DSK 在实例中认领资源时使用的字段，例如 role / policy 的 `name`、permission 的 `policy + collection + action` |
 | 漂移（drift） | 实例状态与声明不一致；由 `plan` 或 `d6s diff` 暴露，不自动回写源码 |
 | 发布文件 | d6s 生成的 `schema/`、`data/` 和 `id_map.json`，提交到 git 后再 push 到目标环境 |
@@ -117,6 +117,20 @@ DSK 不能物理阻止 AI 直接操作数据库；它提供的是可审计的默
 - 人在 Studio 探索模型和界面后，需要保留的改动回写 `dsk/`；不回写的改动会在下一次 `plan` 中显示为 drift。
 - 绕过 DSK 的 API / SQL 修改不会自动进入 `dsk/`，因此不能成为跨环境交付的一部分。
 
+### 变更发起权
+
+这条治理原则贯穿项目早期、中期和后期：
+
+- **Schema 和 DSK 管理的系统配置**（settings、folders、roles、policies、access、permissions、presets、translations）：变更应从 `dsk/` 发起，先应用到本地 dev，再由 d6s 发布到目标环境。
+- **Studio** 用于探索模型、验证编辑体验和编辑业务内容。任何需要长期保留的 Schema / 系统配置修改，必须回写 `dsk/`；Studio 不是受管配置的 source of truth。
+- **DSK 不直接写生产**；“由 DSK 发起”指的是作者层和 dev 实例，生产执行仍由 d6s 完成。
+- **业务内容、文件、用户**各环境自管，不属于 DSK / d6s 的系统配置同步范围。
+- **DSK 尚未管理的系统配置**（如 flows、dashboards、部分 settings）必须明确 owner：由 Studio 维护、由 d6s 同步，或后续纳入 DSK；不能默认 DSK 会处理。
+- **紧急生产修改**只能作为明确例外：记录原因、尽快回写 `dsk/`，否则下一次发布会出现 drift 或被覆盖。
+- `clean` / `reset` 只用于一次性 dev 实例；它们不是生产回滚或备份工具。代码层用 `safety.environment` + allowlist 收紧目标，但私网生产如果被显式加入 allowlist 仍可能连接，因此仍需流程审查。
+
+v3.0 的实际识别边界见 [配合 Directus 开发](./directus-development.md) 的“Studio 修改与 DSK 的识别边界（v3.0）”一节。
+
 ## 6. 资源分类
 
 只用“系统资源 / 用户资源”二分容易和 `directus_users`、业务 collection 混淆。建议按以下五类整理，其中“环境本地”是横切的同步属性：
@@ -124,17 +138,17 @@ DSK 不能物理阻止 AI 直接操作数据库；它提供的是可审计的默
 | 分类 | 典型内容 | 期望状态来源 | DSK 当前能力 | 跨环境同步 | 允许环境差异 |
 | --- | --- | --- | --- | --- | --- |
 | **Schema** | collections、fields、relations、groups | `dsk/schemas/` | `build` / `plan` / `apply` | d6s Schema | 不允许 |
-| **系统配置资源** | folders、roles、policies、access、permissions、presets、translations | `dsk/resources/` | `resources apply` | d6s Configuration | 不允许（名称和授权链是契约） |
+| **系统配置资源** | settings、folders、roles、policies、access、permissions、presets、translations | `dsk/resources/` | `resources apply` | d6s Configuration | 不允许（名称、授权链和 settings 白名单是契约） |
 | **业务内容** | 自定义集合的 items、上传文件 | Directus / Studio；Seed 只做本地 bootstrap | `seed`（仅本地） | 当前不同步 | 允许 |
 | **用户数据** | `directus_users`、用户个人 access / preset | 各环境自行维护 | 不管理 | 默认不同步；d6s 用户为 opt-in，源端 user grant 会从同步范围中丢弃，目标端已有授权不会被 mirror 删除 | 允许 |
-| **环境本地配置** | settings、项目名、URL、License、邮件、客户展示文案 / 覆盖 | 各环境自行维护 | 当前不声明 settings | 按需排除或逐项 review | 允许 |
+| **环境本地配置** | settings 白名单外的字段、URL、License、邮件、客户展示文案 / 覆盖 | 各环境自行维护 | settings 仅声明受控 scalar 字段 | 按需排除或逐项 review | 允许 |
 
 说明：
 
 - 你说的“系统资源”对应前两层：Schema 和系统配置资源；“用户资源”更接近业务内容和用户数据。
 - “环境本地配置”不是独立对象类型，而是一种**同步属性**：同一个对象或字段允许在不同环境有差异。
-- DSK 当前只声明 7 类系统配置资源；settings、flows、operations、dashboards、panels 属于系统配置，但 DSK 尚未提供声明入口。d6s 可以同步它们，但需要先在 dev 维护并纳入 review，或等 DSK 扩展。
-- `reset` 保留 `directus_settings`、管理员和 License；因此 settings 的“初始配置”目前不在 DSK 的可复现范围内。如果这部分也要版本化，需要单独设计 settings 资源。
+- DSK 当前声明 8 类系统配置资源，其中 settings 只覆盖受控 scalar 白名单；flows、operations、dashboards、panels 属于系统配置，但 DSK 尚未提供声明入口。d6s 可以同步它们，但需要先在 dev 维护并纳入 review，或等 DSK 扩展。
+- `reset` 保留 `directus_settings`、管理员和 License；settings 的受控 scalar 字段已可通过 DSK 重建，License、AI、存储、邮件和品牌图片仍不在声明范围。
 
 ## 7. 快速重建回路
 
@@ -160,7 +174,7 @@ dsk reset（清理本地业务环境，保留管理员 / settings / License）
 ### 8.1 边界
 
 - DSK 只写本地实例，不连接 staging / production。
-- 当前 `PUBLIC_URL` 校验只识别 localhost、RFC1918 和 `.local`，**不区分开发与生产**；一台位于私网的生产实例在技术上仍可能被连上。因此“不写生产”首先是流程约束，发布配置必须保证 `PUBLIC_URL` 永远不指向生产。
+- 连接层已强制 `safety.environment=development` 和 host allowlist：默认 loopback、`10.0.0.0/8`、`192.168.0.0/16`、`.local`；`172.16.0.0/12` 与公网默认拒绝，其他私网地址需在 `safety.allowedHosts` 显式加入。私网生产实例仍可能被显式加入，因此“不写生产”仍是流程约束加配置审查，而不是靠地址猜测。
 - 不在目标主机上执行普通的 `dsk resources apply` 作为发布手段。那会让 DSK 进入生产写路径，也会绕过发布审查。
 - 跨环境发布由官方 d6s 负责；DSK 不替代 d6s，也不替代官方备份 / 恢复能力。
 
@@ -244,6 +258,40 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 
 已确认采用**名称契约**：roles / policies 的 `name` 不在各环境自由改写；客户展示名由应用层映射。若未来客户必须使用不同名称，则把该资源标记为环境本地并从 d6s 排除，作为明确例外。
 
+同样的稳定键语义适用于 folders、presets 和 translations：folder 的 `name + parent + type`、preset 的 `bookmark + collection + role + user`、translation 的 `key + language` 都是身份。**在 Studio 改名会被 DSK 视为“旧资源消失 + 新资源创建”，不会原地 update，旧资源也不会自动删除。** 需要改名时应按显式迁移处理：修改声明、规划新资源、手动或显式删除旧资源，并检查引用；不要把 Studio 改名当作普通编辑。
+
+### 受管资源状态（v3.x 设计）
+
+当前 DSK 没有资源所有权状态，只能按业务键匹配；因此无法区分“Studio 改名”和“新资源”。要实现“DSK 管理的内容被 Studio 改动时提示回 `dsk/` 处理”，需要一份本地受管资源状态：
+
+- `dsk/.managed-state.json`（本地、gitignore，不进入 Manifest 或跨环境交付）记录 `projectId -> {dsk key -> Directus ID}`。
+- 首次 apply 创建或认领资源时写入 ID；后续 dry-run 优先按 ID 找回记录，而不是只按名称匹配。
+- ID 存在但业务键（name / bookmark / translation key）变化：标为 `drift` 并阻断该项，提示“在 `dsk/` 修改声明，或在 Studio 恢复原名”，不自动 rename、不创建副本。
+- ID 存在但记录被 Studio 删除：标为 `missing-managed`，提示重建或移除声明。
+- 未登记的资源：作为 `unmanaged` 信息列出，不自动删除；文件库中用户自建 folder 可能很多，默认只做提示。
+- 状态按 Directus `project_id` 而不是 URL 区分，dev 地址变化时仍能保持映射。
+- d6s 继续使用自己的 `id_map.json`；DSK 的本地状态不用于跨环境映射。
+- 首版只覆盖 resources；Schema 的 collection / field 重命名仍属于独立迁移，不自动改名。
+
+这项能力尚未实现；当前行为以本文前面的“改名 = 新资源”说明为准。
+
+### 平台默认层（v3.x 设计）
+
+除了项目自身的 `dsk/` 声明，DSK 还可以提供一套**随 DSK 发布维护的平台默认层**，用于新项目第一次初始化本地实例：
+
+- `dsk init` 负责脚手架；新的 `dsk bootstrap`（或 `dsk defaults apply`）负责把默认层应用到本地 dev，仍走 `plan` / 审核 / `apply`，不连接生产。
+- 默认层可以包含：
+  - settings 受控字段：`project_name`、`default_language`、`default_appearance`、`default_theme_light/dark`、`custom_css`、`module_bar`、theme overrides；
+  - global presets：包括 `directus_presets` 页面自身的表格布局；
+  - 默认 translations；
+  - 默认 folders；
+  - 可选的基础 roles / policies / access / permissions（必须单独评审，默认不启用）。
+- 不包含 License、secret、存储 / 邮件 / 品牌文件引用、用户、业务内容或危险 Schema 迁移。
+- 优先级：项目 `dsk/` 声明覆盖平台默认层；同一 settings 字段以项目为准；同一 preset / translation 业务键以项目为准；personal preset 不被默认层覆盖。
+- `dsk bootstrap` 必须幂等；`reset` 清除 presets / folders 后应重新运行 bootstrap 或 `resources apply`，而 settings / translations 会保留。
+- 默认层随 DSK 版本发布；旧项目可以选择固定版本或显式同步，不自动改写已有项目声明。
+- 生产是否使用同一 settings / preset 默认，由 d6s 的 project scope 决定；DSK 不直接写生产。
+
 治理建议：
 
 - 生产环境的 Studio admin 权限不交给客户；客户只拿业务内容的编辑角色。
@@ -261,17 +309,16 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 - d6s 发布前必须 `diff`；`mirror`、`admin_access`、settings、flow 端点、user 维度授权都需要单独 review。
 - 生产发布使用独立凭证和审批流程；DSK 的本地 `ADMIN_TOKEN` 不应指向生产。
 
-### 生产保护（待实现）
+### 生产保护（已实现）
 
-已确认需要代码级硬性阻止，不能只靠文档约定。设计方向：
+已确认需要代码级硬性阻止，不能只靠文档约定。当前实现：
 
-- `dsk/config.json` 增加 `safety.environment`，只接受 `development`；出现其他值时所有连接命令拒绝。
-- 增加 `safety.allowedHosts` 显式 allowlist。默认允许 loopback、`10.0.0.0/8`、`192.168.0.0/16` 和 `.local`；**不默认允许 `172.16.0.0/12` 和公网地址**。dev 地址变化时在 `allowedHosts` 中显式加入（例如 `10.x`、`192.168.x`、`dev.local`）；`172.x` 需要单独显式放开。
-- `doctor` 先展示解析出的 host、命中的 allowlist 规则和是否允许。
-- `doctor`、`plan`、`apply`、`resources apply`、`seed`、`clean`、`reset` 在连接或写入前统一校验目标。
-- 目标地址不能只靠 `.env` 静默切换；变更必须修改显式配置并经过确认。
+- `dsk/config.json` 的 `safety.environment` 只接受 `development`；缺失或出现其他值时所有在线命令拒绝。
+- `safety.allowedHosts` 是显式附加 allowlist。默认允许 loopback、`10.0.0.0/8`、`192.168.0.0/16` 和 `.local`；**不默认允许 `172.16.0.0/12` 和公网地址**。dev 地址变化时在 `allowedHosts` 中显式加入（例如 `172.20.0.0/24`）；公网地址和过宽 CIDR 在配置校验阶段拒绝。
+- `doctor` 展示解析出的 host、命中的 allowlist 规则和是否允许。
+- `doctor`、`plan`、`apply`、`resources apply`、`seed`、`clean`、`reset` 统一经过 `directusConnection` 的目标校验；目标地址不能只靠 `.env` 静默切换。
 - 生产发布只走 d6s；DSK 的本地 `ADMIN_TOKEN` 不进入生产。
-- 当前状态：需求已确认，代码尚未实现；实现前按文档和流程约束执行。
+- 当前状态：代码和单元测试已实现；v3 本地矩阵继续覆盖命令级行为。
 
 ## 11. 关键决策
 
@@ -288,7 +335,8 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 | D9 | DEV 固定为本地实例，发布从本地 dev 开始 | 已确认；避免从不同人的本地或目标环境 pull 造成源漂移 |
 | D10 | d6s 资源范围显式选择 | 已确认；用 CLI flags 或 project config，不依赖默认全量 |
 | D11 | 业务内容各环境自管，初始 / 参考数据从 dev 起始 | 已确认；d6s 不同步内容，Seed 只做本地 bootstrap |
-| D12 | 增加代码级生产保护 | 已确认必要；默认 loopback / 10.0.0.0/8 / 192.168.0.0/16 / `.local`，默认阻止 `172.16.0.0/12` 与公网，可通过 `allowedHosts` 显式扩展；待实现 |
+| D12 | 增加代码级生产保护 | 已实现；`safety.environment=development` + host allowlist，默认阻止 `172.16.0.0/12` 与公网，可通过 `allowedHosts` 显式扩展 |
+| D13 | 资源改名不自动迁移 | v3.0 按稳定键视为 create + 旧资源保留；改名按显式迁移处理，v3.x 再评估 `renameFrom` / 本地 ID 映射 |
 
 ## 12. 开放问题
 
@@ -296,7 +344,7 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 - **初始 / 参考数据的交付机制**：方向和来源已确认（从 dev 起始），但具体用 Directus 导出 / 导入、一次性脚本还是独立工具，仍需设计。
 - **多人协作**：当前 DEV 是发布执行人的本地实例；如果未来多人开发，需要指定 release operator 或共享 dev。
 - **用户维度授权**：user-scoped access / preset 是否明确禁止跨环境声明？如果需要，如何建立稳定用户键。
-- **settings 字段集合**：v3.0 已确定只做受控 scalar settings；具体白名单、清空语义以及 License / AI / 存储 / 邮件 / 品牌图片的排除规则仍需实现时确认。
+- **settings 字段集合**：v3.0 已实现受控 scalar 白名单；License / AI / 存储 / 邮件 / 品牌图片等字段始终排除，后续是否扩展需单独评审。
 - **生产保护实现**：environment 标签和 host allowlist 的具体字段、默认值和迁移策略。
 - **11.x 回退**：如果必须支持 11.x，跨环境只能走 snapshot + 资源双通道或第三方工具；需要明确这是例外而非常规路径。
 

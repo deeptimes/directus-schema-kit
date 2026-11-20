@@ -56,6 +56,10 @@ export function resource(type: ResourceType, options: { key: string; data: Resou
   return { type, key: options.key, data: options.data, ...(options.delete ? { delete: true } : {}) }
 }
 
+export function settings(data: ResourceDefinition['data']): ResourceDefinition {
+  return resource('settings', { key: 'settings', data })
+}
+
 function primaryField(type: 'uuid' | 'integer'): FieldDefinition {
   if (type === 'integer') {
     return {

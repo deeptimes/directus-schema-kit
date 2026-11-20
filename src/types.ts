@@ -236,11 +236,11 @@ export interface CollectionGroupDefinition extends CollectionDefinition {
   schema: null
 }
 
-export type ResourceType = 'folders' | 'roles' | 'policies' | 'access' | 'permissions' | 'presets' | 'translations'
+export type ResourceType = 'settings' | 'folders' | 'roles' | 'policies' | 'access' | 'permissions' | 'presets' | 'translations'
 
-// translations 可省略，兼容已有 Manifest V1。
-export type ResourceDefinitions = Record<Exclude<ResourceType, 'translations'>, ResourceDefinition[]>
-  & { translations?: ResourceDefinition[] }
+// translations / settings 可省略，兼容已有 Manifest V1。
+export type ResourceDefinitions = Record<Exclude<ResourceType, 'translations' | 'settings'>, ResourceDefinition[]>
+  & { translations?: ResourceDefinition[]; settings?: ResourceDefinition[] }
 
 export interface ResourceDefinition {
   type: ResourceType
@@ -298,6 +298,8 @@ export interface DskConfig {
   }
   safety?: {
     clearEnabled?: boolean
+    environment?: 'development'
+    allowedHosts?: string[]
   }
 }
 
@@ -451,6 +453,13 @@ export interface DoctorResult {
     exists: boolean
     configuredVariables: string[]
     missingVariables: string[]
+  }
+  safety: {
+    environment: 'development' | null
+    allowedHosts: string[]
+    host: string | null
+    hostAllowed: boolean | null
+    matchedRule: string | null
   }
   workspace: {
     config: string

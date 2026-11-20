@@ -7,7 +7,7 @@
 ### 本地矩阵
 
 - 项目：`playground/`
-- Directus：12.5.1 + SQLite
+- Directus：12.7.0 + SQLite（12.6.1 回退候选）
 - 命令：`pnpm dsk ...`
 - 用途：Schema、资源、Seed、清理和本地安全边界；先 `build`、`validate`、`plan`，再 `apply`。
 - 每轮开始前用 `pnpm dsk reset --confirm` 恢复，或重建一次性 SQLite 实例。
@@ -20,6 +20,30 @@
 - 不使用 staging / production 地址或凭证。
 - 每轮开始前重建 target，避免上一轮资源残留影响 `id_map` 和匹配结果。
 
+### 建议的项目结构
+
+- **不**把 `playground/` 拆成多个完整的 Directus 子项目。那会复制 package、lockfile、数据库和上传目录，维护成本高，也容易让测试和示例互相污染。
+- 保持 `playground/` 单项目作为 dev；target 用**一次性第二实例**：独立 SQLite 文件、独立 uploads、端口 8056，测试后销毁。
+- 已提供 `playground/scripts/create-v3-copy.mjs`（`pnpm v3:copy`），生成 `playground/.v3-runtime`：Directus 12.7.0、端口 8056、独立 DB / uploads / admin token；现有 playground 不受影响。生成后执行 `pnpm install && pnpm bootstrap`，再用 `pnpm dev:v3` 启动。
+- 如果以后需要长期稳定地同时跑 dev / staging / target，再考虑 `docker compose` 两个同版本 Directus 服务；不要用多个提交的子项目模拟环境。
+- 场景隔离用 `dsk reset` 或临时项目副本；不要把多套 Directus 运行时提交进仓库。
+- v3 使用一次性副本升级到 12.7.0；`playground/package.json` 的 12.5.1 保持不动，避免影响现有数据库和 uploads。12.6.1 只在 12.7.0 出现兼容问题时回退。
+
+`@directus/cli` 是独立包，当前 latest 12.5.1；d6s 的 CLI 版本和 Directus 服务器版本不是同一个版本号。
+
+### 当前可用实例（本地，未提交）
+
+- `playground/.v3-runtime`：Directus 12.7.0，端口 8056；`pnpm dev:v3` 启动。凭证见该目录 `.env`。
+- `playground/.v3-target`：Directus 12.7.0，端口 8057；`pnpm start` 启动。用于 d6s 跨环境对比。
+- `.v3-runtime` 必须在自身目录执行 `pnpm install`，确保 `@directus/schema` partial index 补丁生效；不要让 target 通过 node_modules symlink 重装，否则补丁可能被替换成未打补丁的包。测试脚本可重新执行 `pnpm install && pnpm bootstrap` 恢复。
+- `playground/.v3-runtime/.settings-test`：settings / folders / translations / roles / policies / access / permissions / preset 的 DSK 测试项目，连接 8056；命令：
+  ```bash
+  node dist/cli.js --cwd playground/.v3-runtime/.settings-test build
+  node dist/cli.js --cwd playground/.v3-runtime/.settings-test validate
+  node dist/cli.js --cwd playground/.v3-runtime/.settings-test resources apply --dry-run
+  node dist/cli.js --cwd playground/.v3-runtime/.settings-test resources apply
+  ```
+
 ### 测试数据
 
 - 在 `playground/dsk/resources/` 增加或使用最小 fixture：settings、translations、folders、presets、roles、policies、access、permissions。
@@ -30,7 +54,7 @@
 
 | 编号 | 资源 / 主题 | 场景 | 预期 |
 | --- | --- | --- | --- |
-| L-SET-1 | settings | 声明 `project_name`、`default_language`、`default_timezone`、`project_color` | 首次 apply 写入；只更新声明字段；未声明字段保持原值 |
+| L-SET-1 | settings | 声明 `project_name`、`default_language`、`project_color` | 首次 apply 写入；只更新声明字段；未声明字段保持原值 |
 | L-SET-2 | settings | 修改单个字段后再 apply | 只更新该字段；第二次 apply `unchanged` |
 | L-SET-3 | settings | 环境本地 / 敏感字段（License、AI、存储、邮件、品牌图片） | 不进入 Manifest；不被 DSK 写入；reset 后仍保留 |
 | L-FLD-1 | folders | 创建 media folder 根目录和子目录 | `name + parent + type` 正确；第二次 apply `unchanged` |
@@ -83,7 +107,43 @@
 - 测试证据记录命令、实例版本、数据库 vendor、预期和实际结果；失败项单独开 issue，不静默跳过。
 - 只有本地矩阵和跨环境矩阵都通过，v3.0 的资源覆盖才算完成。
 
-## 5. 建议的记录方式
+## 5. 当前结果（2026-11-20）
+
+- 本地 Directus 12.7.0 + SQLite：schema apply 131 ops / 二次 plan unchanged；seed 10 create / 二次 unchanged；settings PATCH 收敛；folders `files` / `flows` 同名创建并收敛；translations create / update / delete 收敛；roles / policies / access / permissions 简单链创建并收敛；presets 创建并收敛。
+- 跨环境 `@directus/cli@12.5.1`：dev 8056 → target 8057，使用 `collections: v3_articles` + `roles` / `folders` / `presets` / `translations` / `settings` 完成 pull / diff / push；target schema 与配置创建成功；二次 diff 15 条 `unchanged`；`id_map.json` 生成；非交互 `mirror` 无 consent 被拒绝；target role name 直接修改后 diff 显示，push 恢复 dev 名称；mirror 推送实际删除了测试 folder，最终 diff 收敛。
+- license 实例：`test/integration/directus.integration.test.ts` 自定义权限过滤 API 通过；`metadata.integration.test.ts` 的 >100 Translation Strings 和字段条件通过；`sqlite-indexes.integration.test.ts` 的 partial index / 空库 apply 通过；`cleanup.integration.test.ts` 的 clean/reset 临时实例通过。
+- d6s 扩展：版本不匹配返回 `STATE` 并阻断；`--no-schema --roles` 只 pull access 链；`--collections v3_articles,blog_posts --roles` 会警告缺失 group / relation，不静默 push；`--no-folders` 单独使用、`--no-policies` 单独使用会被依赖规则拒绝，组合排除成功；mirror 实际删除测试 folder 后最终收敛。
+- 尚未执行：Data Studio 中自定义权限的视觉 / 交互验收（用户已口头确认没发现问题）；incomplete pull、多 target id_map；Flows / Dashboards 不在 v3.0 范围。
+
+### 人工验收（P0）
+
+- [ ] **Studio 基础**：打开 8056，确认 Directus 12.7.0；检查 blog collection / field / relation、Markdown / Tags / Code / Toggle、文件上传与 folder 选择；有字段条件时检查动态显示。
+- [ ] **Settings**：Settings 页确认 project name、default language、color；在 Studio 改一个未声明的 settings 字段，再运行 `.settings-test resources apply --dry-run`，确认 DSK 不碰该字段、声明字段 unchanged。
+- [ ] **Folders**：File Library 和 Flows 各有一个 `V3 Shared`，类型分别为 files / flows。重命名其中一个后，dry-run 应显示 **create**（不是 update），apply 会创建新 folder 并保留旧 folder；这是稳定键语义，旧 folder 需手动删除。移动父级同理，不会自动迁移旧记录。
+- [ ] **Bookmark**：打开 `v3_articles`，确认 `V3 Preset` tabular 视图的字段和宽度；创建一个 personal bookmark，确认它不会进入 d6s pull。
+- [ ] **Translations**：在 Translation Strings 查看 `v3.hello`；如果字段使用了 `$t:v3.hello`，切换 zh-CN / en-US 检查显示。
+- [ ] **简单权限**：创建用户并分配 `V3 Editor`，确认能读 `v3_articles`、不能写；管理员仍可管理。`V3 Editor Policy` 必须 `app_access: true` 才能登录 Studio；`Blog Member` 这类纯 API 角色保持 `app_access: false`。
+- [ ] **d6s 目标**：打开 8057，确认 schema、settings、folders、translation、V3 Editor role / policy、preset；运行 `d6s sync diff --to target --json` 应为 `changes: false`；非交互 mirror 应被拒绝；在 Studio 改 target role name 后 diff 显示差异，push 恢复 dev 名称。
+- [ ] **License 自定义权限**：在 `.v3-runtime/.env` 配置 `LICENSE_KEY` 并重启，使用带过滤、字段限制、validation、presets 的项目验证 Studio 实际行为。
+- [ ] **硬保护抽查**：`dsk doctor` 对 8056 应 pass 并显示 `127.0.0.0/8`；临时把 `PUBLIC_URL` 改为 `http://8.8.8.8:8055`，`plan` 应在 HTTP 请求前失败；恢复后正常。
+
+## 7. 待验收清单
+
+以下项目尚未完成，按用户逐个配合的节奏执行：
+
+- [ ] 有 license 的 Directus 实例：自定义权限过滤、字段限制、validation、presets 和 Studio 实际效果。
+- [ ] Directus 12.7.0 真实实例的 >100 条 Translation Strings 分页、更新和删除。
+- [ ] Data Studio 人工回归：Markdown / Tags / Code / Toggle、八类关系、文件上传、字段条件、settings、folders、书签和翻译切换。
+- [ ] d6s 扩展矩阵：多 collection、部分 Schema、mirror 实际删除、版本 / vendor 不一致、incomplete pull、多 target id_map、首次接入生产基线。
+- [ ] Personal preset 在真实 d6s pull 中不出现（只作为环境本地资源）。
+- [ ] 受管资源状态与 Studio drift：v3.0 按稳定键视为 create + 旧资源保留；评估 v3.x 的本地 `key -> ID` 状态、drift 提示和显式 `renameFrom` / ID 映射。
+- [ ] 平台默认初始化：settings `custom_css` / `module_bar`、global presets、默认 translations / folders；项目覆盖、幂等、`reset` 后重建。
+- [ ] Flows / Operations / Dashboards / Panels：v3.x 独立设计，不在 v3.0。
+- [ ] Users / 内容 / 文件数据同步：非目标；需要时独立设计。
+- [ ] 等 `@directus/schema` 14.0.3 / 15.x 或 Directus 12.8 发布后重新核对 SQLite partial index 补丁。
+- [ ] 用户全部验收后再合并 `v3` 到 `main`。
+
+## 8. 建议的记录方式
 
 - API 层优先使用自动化 integration test；Studio 的文件夹、书签、settings、翻译和管理员体验仍需人工验收。
 - 命令输出使用 `dsk --format json` / `d6s --json` 保存为证据；文件放在临时目录，不提交真实 token。

@@ -2,14 +2,18 @@
 
 ## 验证矩阵
 
-升级评估日期：2026-10-26。npm `latest` 与官方 release 均为 **12.5.1**，playground 固定使用此版本。
+升级评估日期：2026-11-20。npm `latest` 为 Directus **12.7.0**；`@directus/cli` 的 latest 是 **12.5.1**，这是两个不同的包，不要混淆。playground 当前固定 12.5.1，v3 目标基线升级到 **12.7.0 + SQLite**，12.6.1 作为回退候选。
 
 | Directus | 自动验证 | 待验证范围 |
 | --- | --- | --- |
 | 11.17.4 + SQLite | provisioning 生命周期、八类关系、Seed、六类系统资源、幂等、权限过滤和 Clear 通过 | 其他数据库与版本需单独验证 |
-| 12.5.1 + SQLite | 新实例及 11.17.4 数据库迁移副本通过同一生命周期；Core 自定义权限阻断通过 | 含有效 license 的自定义权限与完整 Data Studio 编辑回归 |
+| 12.5.1 + SQLite | 历史基线：新实例及 11.17.4 数据库迁移副本通过同一生命周期；Core 自定义权限阻断通过 | 含有效 license 的自定义权限与完整 Data Studio 编辑回归 |
+| 12.7.0 + SQLite | 基础生命周期通过：bootstrap、doctor、schema apply 131 ops、二次 plan unchanged、seed 10 unchanged、settings singleton PATCH / 二次 dry-run unchanged、folders files / flows 同名创建与二次 unchanged、translations create / update / delete / 二次 unchanged、roles / policies / access / permissions 简单权限链创建与二次 unchanged；license 自定义权限过滤 API、SQLite partial index、>100 Translation Strings / 字段条件、clean/reset 临时实例、d6s mirror 实际删除通过；`d6s` 12.5.1 跨环境 scope / schema / settings / folders / presets / translations / 权限链 push、二次 diff unchanged、role rename 恢复通过；Core 自定义权限阻断通过 | Data Studio 自定义权限视觉回归、Flows / Dashboards 待验证 |
+| 12.6.1 + SQLite | 回退候选，待验证 | 若 12.7.0 出现兼容问题再切换 |
 
 CLI 接受 11.x 和 12.x，不表示所有小版本、数据库或许可能力都已认证。CI 同时运行上述两个固定版本；当前 v12 测试使用 Core，不能据此宣称博客会员权限已经可用。
+
+2026-11-20 在 Directus 12.7.0 + SQLite 的一次性副本验证：`directus bootstrap`、`dsk doctor`、`dsk build/validate/plan/apply`（131 项 create）、二次 `plan` 全部 `unchanged`、`dsk seed` 10 条 create / 二次 `unchanged` 通过；settings singleton 通过 `PATCH /settings` 只更新声明字段，二次 dry-run `unchanged`；folders 以同名同父级、type 为 `files` / `flows` 的两条记录创建成功，二次 dry-run 均为 `unchanged`；translations 以 `key + language` 创建、更新、显式删除，二次 dry-run 均收敛；roles / policies / access / permissions 简单权限链创建并二次 `unchanged`；`@directus/cli@12.5.1` 以 `collections: v3_articles` + `roles` / `folders` / `presets` / `translations` / `settings` 完成 dev → target 的 pull / diff / push，目标 schema 与配置创建成功，二次 diff 为 14 条 unchanged，`id_map.json` 生成；非交互 `mirror` 无 `--dangerously-allow-delete` 被拒绝；直接修改 target role name 后 diff 显示差异，push 恢复源名称（名称契约）。Core 未启用 `custom_permission_rules_enabled` 时自定义权限在写入前阻断（预期）。有 license 的 12.7.0 集成生命周期已覆盖自定义权限过滤 API；SQLite 条件唯一补丁在 12.7.0 上仍通过，条件唯一 / 全局唯一 / 复合唯一识别和空库 apply 均通过；>100 Translation Strings、字段条件、clean/reset 临时实例和 d6s mirror 实际删除也已通过。Data Studio 中自定义权限的视觉 / 交互验收仍需人工完成；Flows / Dashboards 不在 v3.0 范围。
 
 新增 `clean`／`reset` 已在独立 Directus 12.5.1 + SQLite 临时实例验证 singleton、循环业务记录、普通用户的必填外键、文件实际存储删除、原管理员密码登录和重复执行；11.x 的新清理路径尚待独立真实实例验收。安全阻断范围见 [CLI 清理命令](./cli-reference.md#开发环境清理)。
 
@@ -46,6 +50,8 @@ Core 的 collection 等限额仍由 Directus 执行，DSK 不预留配额或绕�
 ## SQLite 条件唯一索引兼容补丁
 
 Directus 12.5.1 使用的 `@directus/schema@14.0.2` 在识别 SQLite 单列唯一索引时未排除 `partial = 1`，会将条件唯一误报为字段全局唯一。REST `/fields` 不提供索引条件，DSK 无法仅凭该响应安全区分两者，因此继续严格比较 `schema.is_unique`，不忽略差异、不删除索引，也不把字段声明为全局唯一。
+
+2026-11-20 核对：`@directus/schema` 的 npm `latest` 仍是 **14.0.2**（2026-08-18），Directus 12.7.0 的 `@directus/api@42.0.0` 仍依赖 14.0.2；上游 `packages/schema/src/dialects/sqlite.ts` 的 `main` 分支仍只读取 `unique`，没有检查 `partial`。因此该补丁在 12.7.0 上仍然必要，不是 DSK 的兼容代码过期。等 14.0.3 / 15.x 或 Directus 12.8 发布后重新核对上游实现。
 
 兼容方案是在**运行 Directus 的项目**中安装 [14.0.2 补丁](./patches/@directus__schema@14.0.2.patch)，在上游 inspector 中跳过 partial index。补丁只修正索引识别，不修改数据库；普通单列唯一仍返回 true，复合唯一与条件唯一不会作为字段全局唯一。同字段同时存在条件唯一与全局唯一索引时，仍识别为全局唯一。
 
