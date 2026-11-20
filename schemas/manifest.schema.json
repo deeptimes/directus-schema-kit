@@ -64,7 +64,40 @@
             "default_language": { "anyOf": [{ "type": "string", "minLength": 1, "maxLength": 255 }, { "$ref": "#/$defs/envReference" }] },
             "default_appearance": { "anyOf": [{ "enum": ["auto", "light", "dark"] }, { "$ref": "#/$defs/envReference" }] },
             "default_theme_light": { "anyOf": [{ "type": ["string", "null"], "maxLength": 255 }, { "$ref": "#/$defs/envReference" }] },
-            "default_theme_dark": { "anyOf": [{ "type": ["string", "null"], "maxLength": 255 }, { "$ref": "#/$defs/envReference" }] }
+            "default_theme_dark": { "anyOf": [{ "type": ["string", "null"], "maxLength": 255 }, { "$ref": "#/$defs/envReference" }] },
+            "custom_css": { "anyOf": [{ "type": ["string", "null"] }, { "$ref": "#/$defs/envReference" }] },
+            "module_bar": {
+              "type": ["array", "null"],
+              "items": {
+                "oneOf": [
+                  {
+                    "type": "object", "additionalProperties": false,
+                    "required": ["type", "id", "enabled"],
+                    "properties": {
+                      "type": { "const": "module" },
+                      "id": { "type": "string", "minLength": 1 },
+                      "enabled": { "type": "boolean" },
+                      "locked": { "type": "boolean" }
+                    }
+                  },
+                  {
+                    "type": "object", "additionalProperties": false,
+                    "required": ["type", "id", "name", "icon", "url", "enabled"],
+                    "properties": {
+                      "type": { "const": "link" },
+                      "id": { "type": "string", "minLength": 1 },
+                      "name": { "type": "string", "minLength": 1 },
+                      "icon": { "type": "string", "minLength": 1 },
+                      "url": { "type": "string", "minLength": 1 },
+                      "enabled": { "type": "boolean" },
+                      "locked": { "type": "boolean" }
+                    }
+                  }
+                ]
+              }
+            },
+            "theme_light_overrides": { "type": ["object", "null"], "additionalProperties": true },
+            "theme_dark_overrides": { "type": ["object", "null"], "additionalProperties": true }
           }
         }
       }

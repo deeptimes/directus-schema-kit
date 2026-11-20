@@ -150,6 +150,70 @@ test('settings singleton 只更新声明字段并收敛', async () => {
   assert.equal(converged.operations[0]?.action, 'unchanged')
 })
 
+test('settings 支持 custom_css、module_bar 与 theme overrides', async () => {
+  const store = new MemoryResources()
+  store.data.set('settings', [{ id: 1, custom_css: null, module_bar: null, theme_light_overrides: null, theme_dark_overrides: null }])
+  const result = await syncResources({
+    definitions: definitions({ settings: [{
+      type: 'settings',
+      key: 'settings',
+      data: {
+        custom_css: '.site-badge { color: red; }',
+        module_bar: [
+          { type: 'module', id: 'content', enabled: true },
+          { type: 'link', id: 'docs', name: 'Docs', icon: 'book', url: 'https://example.com/docs', enabled: false },
+        ],
+        theme_light_overrides: { '--primary': '#000000' },
+        theme_dark_overrides: { '--primary': '#ffffff' },
+      },
+    }] }),
+    reader: store,
+    writer: store,
+  })
+  assert.equal(result.status, 'success')
+  assert.deepEqual(result.operations[0]?.changes?.map((change) => change.path).sort(), [
+    'custom_css',
+    'module_bar',
+    'theme_dark_overrides',
+    'theme_light_overrides',
+  ])
+  const saved = store.data.get('settings')?.[0]
+  assert.equal(saved?.custom_css, '.site-badge { color: red; }')
+  assert.deepEqual(saved?.module_bar, [
+    { type: 'module', id: 'content', enabled: true },
+    { type: 'link', id: 'docs', name: 'Docs', icon: 'book', url: 'https://example.com/docs', enabled: false },
+  ])
+  const converged = await syncResources({ definitions: definitions({ settings: [{
+    type: 'settings', key: 'settings',
+    data: {
+      custom_css: '.site-badge { color: red; }',
+      module_bar: [
+        { type: 'module', id: 'content', enabled: true },
+        { type: 'link', id: 'docs', name: 'Docs', icon: 'book', url: 'https://example.com/docs', enabled: false },
+      ],
+      theme_light_overrides: { '--primary': '#000000' },
+      theme_dark_overrides: { '--primary': '#ffffff' },
+    },
+  }] }), reader: store, dryRun: true })
+  assert.equal(converged.operations[0]?.action, 'unchanged')
+})
+
+test('settings 校验 module_bar 结构和 theme overrides 类型', async () => {
+  const store = new MemoryResources()
+  for (const data of [
+    { module_bar: [{ type: 'module', id: 'content', enabled: 'yes' }] },
+    { module_bar: [{ type: 'link', id: 'docs', enabled: true }] },
+    { module_bar: [{ type: 'module', id: 'content', enabled: true, extra: true }] },
+    { theme_light_overrides: [] },
+    { custom_css: 1 },
+  ]) {
+    await assert.rejects(
+      () => syncResources({ definitions: definitions({ settings: [{ type: 'settings', key: 'settings', data }] }), reader: store }),
+      /Settings 校验失败/,
+    )
+  }
+})
+
 test('settings 记录缺失、重复声明或非法字段在写入前失败', async () => {
   const store = new MemoryResources()
   await assert.rejects(

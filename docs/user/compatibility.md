@@ -6,7 +6,7 @@
 
 | Directus | 已验证 | 待验证 |
 | --- | --- | --- |
-| 12.7.0 + SQLite | bootstrap、doctor、schema apply / 二次 plan unchanged、seed、settings、folders、presets、translations、roles / policies / access / permissions、license 自定义权限过滤、>100 Translation Strings / 字段条件、clean / reset、d6s pull / diff / push / mirror 删除 | Data Studio 自定义权限视觉回归；Flows / Dashboards 不在 v3.0 范围 |
+| 12.7.0 + SQLite | bootstrap、doctor、schema apply / 二次 plan unchanged、seed、settings（含 `custom_css` / `module_bar` / theme overrides）、folders、presets、translations、roles / policies / access / permissions、license 自定义权限过滤、>100 Translation Strings / 字段条件、clean / reset、d6s pull / diff / push / mirror 删除 | Data Studio 自定义权限视觉回归；Flows / Dashboards 不在 v3.0 范围 |
 
 其他 Directus 版本、数据库 vendor 和部署方式不在当前认证范围；需要时单独验证，不能把“代码接受”当作已认证。
 
