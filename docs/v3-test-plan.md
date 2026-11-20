@@ -112,7 +112,8 @@
 - 本地 Directus 12.7.0 + SQLite：schema apply 131 ops / 二次 plan unchanged；seed 10 create / 二次 unchanged；settings PATCH 收敛；folders `files` / `flows` 同名创建并收敛；translations create / update / delete 收敛；roles / policies / access / permissions 简单链创建并收敛；presets 创建并收敛。
 - 跨环境 `@directus/cli@12.5.1`：dev 8056 → target 8057，使用 `collections: v3_articles` + `roles` / `folders` / `presets` / `translations` / `settings` 完成 pull / diff / push；target schema 与配置创建成功；二次 diff 15 条 `unchanged`；`id_map.json` 生成；非交互 `mirror` 无 consent 被拒绝；target role name 直接修改后 diff 显示，push 恢复 dev 名称；mirror 推送实际删除了测试 folder，最终 diff 收敛。
 - license 实例：`test/integration/directus.integration.test.ts` 自定义权限过滤 API 通过；`metadata.integration.test.ts` 的 >100 Translation Strings 和字段条件通过；`sqlite-indexes.integration.test.ts` 的 partial index / 空库 apply 通过；`cleanup.integration.test.ts` 的 clean/reset 临时实例通过。
-- 尚未执行：Data Studio 中自定义权限的视觉 / 交互验收；d6s 版本 / vendor 不一致、incomplete pull、多 target id_map；Flows / Dashboards 不在 v3.0 范围。
+- d6s 扩展：版本不匹配返回 `STATE` 并阻断；`--no-schema --roles` 只 pull access 链；`--collections v3_articles,blog_posts --roles` 会警告缺失 group / relation，不静默 push；`--no-folders` 单独使用、`--no-policies` 单独使用会被依赖规则拒绝，组合排除成功；mirror 实际删除测试 folder 后最终收敛。
+- 尚未执行：Data Studio 中自定义权限的视觉 / 交互验收（用户已口头确认没发现问题）；incomplete pull、多 target id_map；Flows / Dashboards 不在 v3.0 范围。
 
 ### 人工验收（P0）
 

@@ -36,7 +36,7 @@ v3 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地�
 | V3-5 | Translations | P0 | 已实现，单元测试与 12.7.0 API 验证通过 | 多语言、`key + language`、>100 分页、更新 / 删除 / 空文字 / Unicode；测试 |
 | V3-6 | 权限链 roles / policies / access / permissions | P0 | 已实现，单元测试与 12.7.0 简单权限链验证通过 | 名称契约、id_map、admin_access 审查、user-scoped 排除、Public policy；跨环境无重复；测试 |
 | V3-7 | d6s 发布契约 | P0 | release checklist 已定；scope / pull / diff / push / id_map / mirror / rename 跨环境矩阵通过 | CLI 版本 pin、project `resources` / `excludeResources`、`--roles` / `--no-*`、`id_map`、release checklist |
-| V3-8 | v3 测试矩阵 | P0 | 大部分完成：本地 12.7.0 API smoke、license 自定义权限过滤、>100 翻译、SQLite 补丁、clean/reset、d6s 基础矩阵和 mirror 删除通过；Data Studio 自定义权限视觉回归仍待执行 | playground 本地矩阵 + 双实例 d6s 矩阵；每类资源 create / update / unchanged / delete / conflict / drift |
+| V3-8 | v3 测试矩阵 | P0 | 大部分完成：本地 12.7.0 API smoke、license 自定义权限过滤、>100 翻译、SQLite 补丁、clean/reset、d6s 基础矩阵 / mirror 删除 / 版本阻断 / scope 依赖规则通过；Data Studio 自定义权限视觉回归由用户确认；incomplete pull、多 target id_map 仍待补 | playground 本地矩阵 + 双实例 d6s 矩阵；每类资源 create / update / unchanged / delete / conflict / drift |
 | V3-9 | Manifest / 兼容性 | P1 | settings / folders / presets 校验已纳入 Manifest V1，暂不引入 V2 | 新资源类型是否需要 Manifest V2；若需要提供迁移；否则明确 V1 扩展 |
 | V3-10 | Flows / Operations / Dashboards / Panels | P1（v3.x） | 待独立设计 | 先明确生命周期、危险确认和失败恢复；v3.0 不纳入，v3.x 单独评审 |
 | V3-11 | Users / 内容 / 文件数据同步 | 非目标 | 明确边界 | 各环境自管；需要时独立设计，不用 DSK / d6s 做内容同步 |
