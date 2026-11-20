@@ -54,7 +54,7 @@ field.code('config', { type: 'json' })
 field.toggle('enabled', { labelOn: '启用' })
 ```
 
-所有 helper 都保留 `interface`、`options`、`display` 和 `displayOptions` 高级入口。Directus 11.17.4 的 Field Type 映射见 [兼容矩阵](./compatibility.md)。`unknown` 是 Directus 内部兜底类型，不作为 DSK 声明入口。
+所有 helper 都保留 `interface`、`options`、`display` 和 `displayOptions` 高级入口。Directus 12.7.0 的 Field Type 映射见 [兼容矩阵](./compatibility.md)。`unknown` 是 Directus 内部兜底类型，不作为 DSK 声明入口。
 
 ## 跨文件关系
 
@@ -95,7 +95,7 @@ relation.m2a({ collection: 'articles', field: 'blocks', allowedCollections: ['te
 
 `relation.files()` 使用 Directus 专用 Files 界面，不按普通 M2M 展示。它默认生成隐藏的 `<collection>_files` junction、自增整数主键、`sort` 字段和 `SET NULL` 删除策略，并支持 `allowedMimeTypes`。同一 collection 定义多个 Files 字段时，必须通过 `junction.collection` 为每个字段指定不同的 junction 名称。
 
-`relation.file()` 和 `relation.image()` 使用 Directus 专用单文件界面并生成 `special: ['file']`。`relation.file()` 可通过 `allowedMimeTypes` 限制视频、文档等类型；`relation.image()` 默认使用 Directus 11.17.4 支持的图片 MIME 类型集合，也允许显式覆盖。
+`relation.file()` 和 `relation.image()` 使用 Directus 专用单文件界面并生成 `special: ['file']`。`relation.file()` 可通过 `allowedMimeTypes` 限制视频、文档等类型；`relation.image()` 默认使用 Directus 12.7.0 支持的图片 MIME 类型集合，也允许显式覆盖。
 
 ## 系统资源引用
 

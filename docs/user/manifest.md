@@ -1,4 +1,6 @@
-# Manifest V1
+# Manifest 格式 V1
+
+`manifestVersion: 1` 是 `dsk/generated/manifest.json` 的**格式版本**，不是 DSK 产品版本，也不是 Directus 版本。它定义 build / plan / apply 之间的 JSON 契约；只有格式发生不兼容变化时才升级为 V2，并要求重新 build 和迁移。
 
 `dsk/generated/manifest.json` 是 `build` 的确定性输出，也是 plan/apply 唯一执行输入。
 
@@ -16,7 +18,7 @@ Manifest 不包含函数、解析后的 secret 或生成时间戳。`plan/apply`
 
 ## 扁平模型
 
-Manifest V1 不包含 modules。所有 Schema 文件编译到全局唯一的 collections、fields 和 relations；定义上的 `source` 仅用于定位源码。Manifest V1 允许 M2A 的 `related_collection: null` 并完整保存 Relation Meta。M2M、Files、Translations 和 M2A blueprint 在 build 时展开，Manifest 中不保留 blueprint。
+Manifest 格式 V1 不包含 modules。所有 Schema 文件编译到全局唯一的 collections、fields 和 relations；定义上的 `source` 仅用于定位源码。该格式允许 M2A 的 `related_collection: null` 并完整保存 Relation Meta。M2M、Files、Translations 和 M2A blueprint 在 build 时展开，Manifest 中不保留 blueprint。
 
 复合关系的两条 junction relations 必须通过 `meta.junction_field` 互相引用。缺少反向引用时 Directus Studio 会把 alias 误判为 O2M，并报告 M2M/M2A Interface 不可用；validate 会拒绝这种不完整结构。
 

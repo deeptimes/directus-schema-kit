@@ -1,5 +1,7 @@
 # 更新记录
 
+> 本文是历史版本记录。当前 v3.0 认证基线是 Directus 12.7.0 + SQLite，见 [Roadmap](../maintainer/roadmap.md) 和 [兼容性](./compatibility.md)。2.3.0 及以前条目中的 Directus 11.17.4 / 12.5.1 是当时环境，不是当前基线。
+
 ## 2.3.0（2026-10-29）
 
 - Translation Strings 纳入现有 resources：DSL / Manifest 校验、`key + language` 自然键认领、分页读取、只读预览、原位更新、显式删除确认及失败后未执行项报告；旧 Manifest V1 兼容，clear / clean / reset 不扩大删除范围。

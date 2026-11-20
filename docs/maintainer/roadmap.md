@@ -2,7 +2,7 @@
 
 本文替代原 PRD，作为当前产品需求与验收基线。后续方向不代表已实现能力，也不承诺发布日期。
 
-## 当前基线：Manifest V1
+## 当前交付（v3.0）
 
 DSK 面向本地 Directus 项目，让数据模型和基础资源可以通过代码审查、离线校验和可重复初始化维护。它通过 Directus API 工作，不需要安装 Data Studio 扩展。
 
@@ -10,16 +10,16 @@ DSK 面向本地 Directus 项目，让数据模型和基础资源可以通过代
 | --- | --- |
 | 工作区 | `init` 幂等创建 `dsk/`；`doctor` 诊断项目与配置 |
 | Schema | 严格 TypeScript DSL；八类关系 blueprint；Markdown、Tags、Code、Toggle helper |
-| Manifest | 扁平、确定性 JSON，带源码 SHA-256 摘要；`build --check` 检查新鲜度 |
+| Manifest | 扁平、确定性 JSON，格式版本为 `manifestVersion: 1`，带源码 SHA-256 摘要；`build --check` 检查新鲜度 |
 | 变更 | 离线 validate；只读 plan；全量预检后执行安全 create/update |
 | 基础数据 | 版本化 JSON seed，自然键 upsert 和跨集合／同集合引用 |
 | 系统资源 | settings、folders、roles、policies、access、permissions、presets、translations |
 | 清理 | `clean` 清空全部自定义集合记录；`reset` 完整清理业务环境并保留管理员和基础配置；`clear` 保持仅清理声明 Schema 的兼容行为，真实删除必须确认 |
 | 工程化 | 文本／版本化 JSON 输出、稳定退出码、凭证脱敏 |
 
-CLI 接受 Directus 11.x 和 12.x；当前自动集成基线为 Node.js 22+，Directus 11.17.4 / 12.5.1 + SQLite。详细状态统一见 [兼容性](../user/compatibility.md)。
+当前认证基线：Node.js 22+、Directus **12.7.0** + SQLite。其他 Directus 版本或数据库需单独验证。`@directus/cli` **12.5.1** 仅用于跨环境发布，不是 Directus 服务器版本。
 
-v3 目标基线：Directus **12.7.0** + SQLite；12.6.1 作为回退候选。`@directus/cli` 仍是 **12.5.1**，不要把它当成 Directus 服务器版本。
+**`manifestVersion: 1` 的含义**：它是 `dsk/generated/manifest.json` 的**格式版本**，不是 DSK 产品版本，也不是 Directus 版本。它定义 build / plan / apply 之间的 JSON 契约；格式发生不兼容变化时才升级为 V2，并要求重新 build 和迁移。
 
 ## v3.0 已交付（3.0.0）
 
@@ -37,7 +37,7 @@ v3.0 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地
 | V3-6 | 权限链 roles / policies / access / permissions | P0 | 已实现，单元测试与 12.7.0 简单权限链验证通过 | 名称契约、id_map、admin_access 审查、user-scoped 排除、Public policy；跨环境无重复；测试 |
 | V3-7 | d6s 发布契约 | P0 | release checklist 已定；scope / pull / diff / push / id_map / mirror / rename 跨环境矩阵通过 | CLI 版本 pin、project `resources` / `excludeResources`、`--roles` / `--no-*`、`id_map`、release checklist |
 | V3-8 | v3 测试矩阵 | P0 | 大部分完成：本地 12.7.0 API smoke、license 自定义权限过滤、>100 翻译、SQLite 补丁、clean/reset、d6s 基础矩阵 / mirror 删除 / 版本阻断 / scope 依赖规则通过；Data Studio 自定义权限视觉回归由用户确认；incomplete pull、多 target id_map 仍待补 | playground 本地矩阵 + 双实例 d6s 矩阵；每类资源 create / update / unchanged / delete / conflict / drift |
-| V3-9 | Manifest / 兼容性 | P1 | settings / folders / presets 校验已纳入 Manifest V1，暂不引入 V2 | 新资源类型是否需要 Manifest V2；若需要提供迁移；否则明确 V1 扩展 |
+| V3-9 | Manifest / 兼容性 | P1 | settings / folders / presets 校验已纳入 Manifest 格式 V1，暂不引入 V2 | 新资源类型是否需要升级格式版本；若需要提供迁移；否则明确 V1 扩展 |
 | V3-10 | Flows / Operations / Dashboards / Panels | P1（v3.x） | 待独立设计 | 先明确生命周期、危险确认和失败恢复；v3.0 不纳入，v3.x 单独评审 |
 | V3-11 | Users / 内容 / 文件数据同步 | 非目标 | 明确边界 | 各环境自管；需要时独立设计，不用 DSK / d6s 做内容同步 |
 | V3-12 | 补全 Directus 12.x 认证 | P0 | 12.7.0 基础生命周期、简单权限链、license 自定义权限过滤 API 和 d6s 跨环境通过；Data Studio 自定义权限视觉回归待执行 | 有许可的自定义权限规则和 Data Studio 编辑回归完成 |
@@ -62,7 +62,7 @@ v3.0 的主题是 **Directus 系统模型资源全覆盖 + 逐项验收 + 本地
 
 ### v3 验收方式
 
-- **本地矩阵**：`playground` + Directus 12.7.0 + SQLite（12.6.1 回退），使用 `dsk` 命令逐项验证。
+- **本地矩阵**：`playground` + Directus 12.7.0 + SQLite，使用 `dsk` 命令逐项验证。
 - **跨环境矩阵**：两个同版本、同数据库 vendor 的一次性实例（dev / target），通过 `d6s` profile 连接；不使用生产凭证。
 - 每类资源至少覆盖：create、update、重复 apply `unchanged`、显式 delete、冲突、drift。
 - d6s 至少覆盖：scope、`pull`、`diff`、`push merge`、`id_map`、重复 push `unchanged`、scope 排除、`mirror` 门禁、版本不一致阻断。

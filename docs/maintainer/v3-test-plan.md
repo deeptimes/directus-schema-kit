@@ -7,7 +7,7 @@
 ### 本地矩阵
 
 - 项目：`playground/`
-- Directus：12.7.0 + SQLite（12.6.1 回退候选）
+- Directus：12.7.0 + SQLite
 - 命令：`pnpm dsk ...`
 - 用途：Schema、资源、Seed、清理和本地安全边界；先 `build`、`validate`、`plan`，再 `apply`。
 - 每轮开始前用 `pnpm dsk reset --confirm` 恢复，或重建一次性 SQLite 实例。
@@ -27,7 +27,7 @@
 - 已提供 `playground/scripts/create-v3-copy.mjs`（`pnpm v3:copy`），生成 `playground/.v3-runtime`：Directus 12.7.0、端口 8056、独立 DB / uploads / admin token；现有 playground 不受影响。生成后执行 `pnpm install && pnpm bootstrap`，再用 `pnpm dev:v3` 启动。
 - 如果以后需要长期稳定地同时跑 dev / staging / target，再考虑 `docker compose` 两个同版本 Directus 服务；不要用多个提交的子项目模拟环境。
 - 场景隔离用 `dsk reset` 或临时项目副本；不要把多套 Directus 运行时提交进仓库。
-- v3 使用一次性副本升级到 12.7.0；`playground/package.json` 的 12.5.1 保持不动，避免影响现有数据库和 uploads。12.6.1 只在 12.7.0 出现兼容问题时回退。
+- v3 使用一次性副本升级到 12.7.0；现有 playground 数据库和 uploads 保持不动。
 
 `@directus/cli` 是独立包，当前 latest 12.5.1；d6s 的 CLI 版本和 Directus 服务器版本不是同一个版本号。
 

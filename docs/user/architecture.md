@@ -346,7 +346,7 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 - **用户维度授权**：user-scoped access / preset 是否明确禁止跨环境声明？如果需要，如何建立稳定用户键。
 - **settings 字段集合**：v3.0 已实现受控 scalar 白名单；License / AI / 存储 / 邮件 / 品牌图片等字段始终排除，后续是否扩展需单独评审。
 - **生产保护实现**：environment 标签和 host allowlist 的具体字段、默认值和迁移策略。
-- **11.x 回退**：如果必须支持 11.x，跨环境只能走 snapshot + 资源双通道或第三方工具；需要明确这是例外而非常规路径。
+- **版本范围**：v3.0 认证基线是 Directus 12.7.0 + SQLite；其他版本如果需要支持，必须单独验证，不能把代码接受当作已认证。
 
 ## 13. 与现有文档的关系
 
@@ -354,6 +354,6 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 - [配合 Directus 开发](./directus-development.md)：日常命令、工作流和环境发布操作。
 - [开发规则](./development-rules.md)：Schema / DBML 命名、AI 编写约束和安全边界。
 - [DSK 实现与验收](../maintainer/development.md)：模块职责、结果契约、测试和发布检查。
-- [Manifest V1](./manifest.md)、[Schema DSL](./schema-dsl.md)、[CLI 参考](./cli-reference.md)、[兼容性](./compatibility.md)：具体格式和 API 细节。
+- [Manifest 格式 V1](./manifest.md)、[Schema DSL](./schema-dsl.md)、[CLI 参考](./cli-reference.md)、[兼容性](./compatibility.md)：具体格式和 API 细节。
 
 本文是架构基线；操作细节与实现契约以对应文档为准。若产品需求与本文冲突，以 [Roadmap](../maintainer/roadmap.md) 为准并更新本文。

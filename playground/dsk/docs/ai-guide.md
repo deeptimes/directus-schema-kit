@@ -117,7 +117,7 @@ const blogTags = collection({ name: 'blog_tags', label: '博客标签', group: '
 
 ## Directus 11 / 12 兼容与开发边界
 
-- 使用 Node.js 22+；自动集成基线为 Directus 11.17.4 / 12.5.1 + SQLite，v3 目标为 12.7.0；不能把版本准入等同于所有数据库和 Studio 行为已认证。
+- 使用 Node.js 22+；当前认证基线为 Directus 12.7.0 + SQLite；不能把版本准入等同于所有数据库和 Studio 行为已认证。
 - DSK 通过 Directus API 工作；连接配置使用项目环境中的 `PUBLIC_URL`、`ADMIN_TOKEN`，仅用于本地或私网开发实例。
 - v12 自定义权限过滤、字段限制、validation 和 presets 依赖 `custom_permission_rules_enabled`。资源同步（包括 dry-run）会检查实际服务许可；未启用或查询失败时停止，不得删除规则绕过限制。
 - 无自定义规则的全字段 permission 应明确声明 `fields: ['*']`；不要把缺省 fields 当作不受许可限制。

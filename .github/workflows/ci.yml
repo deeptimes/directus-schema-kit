@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        directus: ['11.17.4', '12.5.1']
+        directus: ['12.7.0']
     services:
       directus:
         image: directus/directus:${{ matrix.directus }}
