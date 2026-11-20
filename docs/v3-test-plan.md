@@ -35,6 +35,7 @@
 
 - `playground/.v3-runtime`：Directus 12.7.0，端口 8056；`pnpm dev:v3` 启动。凭证见该目录 `.env`。
 - `playground/.v3-target`：Directus 12.7.0，端口 8057；`pnpm start` 启动。用于 d6s 跨环境对比。
+- `.v3-runtime` 必须在自身目录执行 `pnpm install`，确保 `@directus/schema` partial index 补丁生效；不要让 target 通过 node_modules symlink 重装，否则补丁可能被替换成未打补丁的包。测试脚本可重新执行 `pnpm install && pnpm bootstrap` 恢复。
 - `playground/.v3-runtime/.settings-test`：settings / folders / translations / roles / policies / access / permissions / preset 的 DSK 测试项目，连接 8056；命令：
   ```bash
   node dist/cli.js --cwd playground/.v3-runtime/.settings-test build
@@ -109,8 +110,9 @@
 ## 5. 当前结果（2026-11-20）
 
 - 本地 Directus 12.7.0 + SQLite：schema apply 131 ops / 二次 plan unchanged；seed 10 create / 二次 unchanged；settings PATCH 收敛；folders `files` / `flows` 同名创建并收敛；translations create / update / delete 收敛；roles / policies / access / permissions 简单链创建并收敛；presets 创建并收敛。
-- 跨环境 `@directus/cli@12.5.1`：dev 8056 → target 8057，使用 `collections: v3_articles` + `roles` / `folders` / `presets` / `translations` / `settings` 完成 pull / diff / push；target schema 与配置创建成功；二次 diff 14 条 `unchanged`；`id_map.json` 生成；非交互 `mirror` 无 consent 被拒绝；target role name 直接修改后 diff 显示，push 恢复 dev 名称。
-- 尚未执行：有 license 的自定义权限、>100 条翻译的真实 12.7.0 分页、Data Studio 交互回归；Flows / Dashboards 不在 v3.0 范围。
+- 跨环境 `@directus/cli@12.5.1`：dev 8056 → target 8057，使用 `collections: v3_articles` + `roles` / `folders` / `presets` / `translations` / `settings` 完成 pull / diff / push；target schema 与配置创建成功；二次 diff 15 条 `unchanged`；`id_map.json` 生成；非交互 `mirror` 无 consent 被拒绝；target role name 直接修改后 diff 显示，push 恢复 dev 名称；mirror 推送实际删除了测试 folder，最终 diff 收敛。
+- license 实例：`test/integration/directus.integration.test.ts` 自定义权限过滤 API 通过；`metadata.integration.test.ts` 的 >100 Translation Strings 和字段条件通过；`sqlite-indexes.integration.test.ts` 的 partial index / 空库 apply 通过；`cleanup.integration.test.ts` 的 clean/reset 临时实例通过。
+- 尚未执行：Data Studio 中自定义权限的视觉 / 交互验收；d6s 版本 / vendor 不一致、incomplete pull、多 target id_map；Flows / Dashboards 不在 v3.0 范围。
 
 ### 人工验收（P0）
 
