@@ -1,6 +1,6 @@
 # Directus Schema Kit：Translation Strings 原生同步需求
 
-> **状态（2026-11-20）**：核心能力已在 DSK 2.3.0 实现（`translations` 资源、Manifest 校验、自然键匹配、dry-run / apply / 显式删除、分页读取）。本文保留为历史需求与验收参考，不是当前能力清单。文中 DSK 2.2.0 / Directus 12.5.1 是当时环境；当前 v3 基线是 Directus 12.7.0，以 [兼容性](../compatibility.md) 为准。`$t:` 引用完整性检查仍属于后续增强。
+> **状态（2026-11-20）**：核心能力已在 DSK 2.3.0 实现（`translations` 资源、Manifest 校验、自然键匹配、dry-run / apply / 显式删除、分页读取）。本文保留为历史需求与验收参考，不是当前能力清单。文中 DSK 2.2.0 / Directus 12.5.1 是当时环境；当前 v3 基线是 Directus 12.7.0，以 [兼容性](../../user/compatibility.md) 为准。`$t:` 引用完整性检查仍属于后续增强。
 
 日期：2026-10-29。用途：交给负责 `@deeptimes/directus-schema-kit` 的对话评估和实现。
 
@@ -216,4 +216,4 @@ Schema 中仍是普通 `$t:` 字符串，语言文字作为资源管理。两者
 
 第二阶段再考虑翻译引用完整性检查和批量生成多语言 choices 的便捷 helper。第一阶段不需要增加机器翻译、业务内容多语言建模或新的独立命令体系。
 
-另一个独立需求已整理为 [字段条件元数据更新支持](schema-kit-field-conditions-request.md)，包含 `meta.conditions` 更新被判 conflict 的原因、本项目实际场景、风险边界和验收标准。两项需求可分别实现与验收。
+另一个独立需求已整理为 [字段条件元数据更新支持](./schema-kit-field-conditions-request.md)，包含 `meta.conditions` 更新被判 conflict 的原因、本项目实际场景、风险边界和验收标准。两项需求可分别实现与验收。

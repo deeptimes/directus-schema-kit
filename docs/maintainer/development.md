@@ -1,6 +1,6 @@
 # DSK 实现与验收
 
-本文面向维护 DSK 本身的开发者。业务项目工作流见 [配合 Directus 开发](./directus-development.md)，产品需求与交付标准见 [Roadmap](./roadmap.md)。
+本文面向维护 DSK 本身的开发者。业务项目工作流见 [配合 Directus 开发](../user/directus-development.md)，产品需求与交付标准见 [Roadmap](./roadmap.md)。
 
 ## 模块职责
 
@@ -23,7 +23,7 @@ Seed 按文件名、批次和 item 确定性执行，自然键索引分页加载
 
 ## 结果契约
 
-以下为内部执行结果，CLI 的全局参数与退出码统一见 [CLI 参考](./cli-reference.md)。
+以下为内部执行结果，CLI 的全局参数与退出码统一见 [CLI 参考](../user/cli-reference.md)。
 
 | 入口 | 稳定结果 |
 | --- | --- |
@@ -40,7 +40,7 @@ Plan 始终比较完整 Manifest，target.url 仅保留 origin；operation 包�
 
 ## 开发检查
 
-工具链使用 Node.js 22+、TypeScript strict mode、pnpm；CI 的 pnpm 版本为 11.5.2。Directus 认证环境统一见 [兼容性](./compatibility.md)。
+工具链使用 Node.js 22+、TypeScript strict mode、pnpm；CI 的 pnpm 版本为 11.5.2。Directus 认证环境统一见 [兼容性](../user/compatibility.md)。
 
 ```bash
 pnpm install
@@ -58,7 +58,7 @@ DSK_INTEGRATION_PASSWORD='<本地测试密码>' \
 pnpm test:integration
 ```
 
-也可通过 `DSK_INTEGRATION_TOKEN` 提供认证；`DSK_INTEGRATION_VERSION` 可校验连接的实际服务版本。缺少连接／认证配置时，集成测试会 skip，不能当作通过。CI 的 Directus 11.17.4 / 12.5.1 + SQLite 服务矩阵配置见 [ci.yml](../.github/workflows/ci.yml)；v3 目标增加 Directus 12.7.0（12.6.1 回退）。
+也可通过 `DSK_INTEGRATION_TOKEN` 提供认证；`DSK_INTEGRATION_VERSION` 可校验连接的实际服务版本。缺少连接／认证配置时，集成测试会 skip，不能当作通过。CI 的 Directus 11.17.4 / 12.5.1 + SQLite 服务矩阵配置见 [ci.yml](../../.github/workflows/ci.yml)；v3 目标增加 Directus 12.7.0（12.6.1 回退）。
 
 发布前执行 `pnpm check:release`。纯文档修改检查相对链接、旧路径和代码契约一致性即可，不要求启动实例或执行完整测试。
 

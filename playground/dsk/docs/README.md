@@ -11,12 +11,12 @@
 以下文档随 `@deeptimes/directus-schema-kit` 安装，始终以当前安装版本为准：
 
 - [用户与 AI 文档索引](../../node_modules/@deeptimes/directus-schema-kit/docs/user/README.md)
-- [Schema DSL](../../node_modules/@deeptimes/directus-schema-kit/docs/schema-dsl.md)
-- [CLI 参考](../../node_modules/@deeptimes/directus-schema-kit/docs/cli-reference.md)
-- [Manifest V1](../../node_modules/@deeptimes/directus-schema-kit/docs/manifest.md)
-- [兼容性](../../node_modules/@deeptimes/directus-schema-kit/docs/compatibility.md)
-- [配合 Directus 开发](../../node_modules/@deeptimes/directus-schema-kit/docs/directus-development.md)
-- [开发规则](../../node_modules/@deeptimes/directus-schema-kit/docs/development-rules.md)
+- [Schema DSL](../../node_modules/@deeptimes/directus-schema-kit/docs/user/schema-dsl.md)
+- [CLI 参考](../../node_modules/@deeptimes/directus-schema-kit/docs/user/cli-reference.md)
+- [Manifest V1](../../node_modules/@deeptimes/directus-schema-kit/docs/user/manifest.md)
+- [兼容性](../../node_modules/@deeptimes/directus-schema-kit/docs/user/compatibility.md)
+- [配合 Directus 开发](../../node_modules/@deeptimes/directus-schema-kit/docs/user/directus-development.md)
+- [开发规则](../../node_modules/@deeptimes/directus-schema-kit/docs/user/development-rules.md)
 
 ## AI 阅读顺序
 

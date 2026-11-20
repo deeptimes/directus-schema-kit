@@ -4,7 +4,7 @@ DSK 是 Directus 项目的本地开发配套 CLI。Directus 负责运行服务�
 
 ## 文件与职责
 
-在已有 Directus 项目中安装并执行 `pnpm dsk init`。初始化不会覆盖已有文件，非 Directus 项目会被拒绝。安装与基础命令见 [README](../README.md)。
+在已有 Directus 项目中安装并执行 `pnpm dsk init`。初始化不会覆盖已有文件，非 Directus 项目会被拒绝。安装与基础命令见 [README](../../README.md)。
 
 ```text
 dsk/

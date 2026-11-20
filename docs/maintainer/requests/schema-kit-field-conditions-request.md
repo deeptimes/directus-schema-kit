@@ -1,10 +1,10 @@
 # Directus Schema Kit：字段条件元数据更新需求
 
-> **状态（2026-11-20）**：已在 DSK 2.3.0 实现（`meta.conditions` 结构化校验、安全差异、顺序比对、`null` / `[]` 清空语义）。本文保留为历史需求与验收参考，不是当前能力清单。文中 DSK 2.2.0 / Directus 12.5.1 是当时环境；当前 v3 基线是 Directus 12.7.0，以 [兼容性](../compatibility.md) 为准。
+> **状态（2026-11-20）**：已在 DSK 2.3.0 实现（`meta.conditions` 结构化校验、安全差异、顺序比对、`null` / `[]` 清空语义）。本文保留为历史需求与验收参考，不是当前能力清单。文中 DSK 2.2.0 / Directus 12.5.1 是当时环境；当前 v3 基线是 Directus 12.7.0，以 [兼容性](../../user/compatibility.md) 为准。
 
 日期：2026-10-29。用途：交给负责 `@deeptimes/directus-schema-kit` 的对话评估和实现。
 
-这是独立于 [Translation Strings 支持需求](schema-kit-translations-request.md) 的另一项能力补齐。本文仅整理需求，不授权修改 schema-kit 仓库、发布包或清理其他实例。
+这是独立于 [Translation Strings 支持需求](./schema-kit-translations-request.md) 的另一项能力补齐。本文仅整理需求，不授权修改 schema-kit 仓库、发布包或清理其他实例。
 
 ## 1. 问题与目标
 

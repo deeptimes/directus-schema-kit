@@ -48,7 +48,7 @@ pnpm dsk reset             # 展示计划后确认，默认拒绝
 - 确认后重读检查计划变化；执行首项失败即停止并报告已完成项，不承诺事务回滚；完成后验证保留配置和管理员授权，重复执行安全。`safety.clearEnabled: false` 禁用清理。
 - 无法完整预检的引用、权限或 deployment 子项会阻断，不能把部分清理当成成功。
 
-完整参数、退出码、JSON 契约和限制见安装包内的 [CLI 参考](../../node_modules/@deeptimes/directus-schema-kit/docs/cli-reference.md)；包文档入口位于 `../../node_modules/@deeptimes/directus-schema-kit/docs/user/README.md`。
+完整参数、退出码、JSON 契约和限制见安装包内的 [CLI 参考](../../node_modules/@deeptimes/directus-schema-kit/docs/user/cli-reference.md)；包文档入口位于 `../../node_modules/@deeptimes/directus-schema-kit/docs/user/README.md`。
 
 ## 必须遵守
 

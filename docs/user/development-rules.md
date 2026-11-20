@@ -1,6 +1,6 @@
 # 开发规则
 
-本文合并原 Directus / DBML 规范、Schema 编写规则和安全边界。修改 Schema、DBML、resource 或 seed 前必须阅读；产品范围以 [Roadmap 与产品边界](./roadmap.md) 为准。
+本文合并原 Directus / DBML 规范、Schema 编写规则和安全边界。修改 Schema、DBML、resource 或 seed 前必须阅读；产品范围以 [Roadmap 与产品边界](../maintainer/roadmap.md) 为准。
 
 ## 源码与执行边界
 

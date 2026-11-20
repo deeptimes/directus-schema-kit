@@ -1,6 +1,6 @@
 # 历史需求
 
-这些文档记录 DSK 2.2.0 时期的原始需求和验收标准，不是当前能力清单；实现状态以 [Roadmap](../roadmap.md) 和 [兼容性](../compatibility.md) 为准。
+这些文档记录 DSK 2.2.0 时期的原始需求和验收标准，不是当前能力清单；实现状态以 [Roadmap](../roadmap.md) 和 [兼容性](../../user/compatibility.md) 为准。
 
 | 文档 | 状态 |
 | --- | --- |

@@ -17,7 +17,7 @@ DSK 面向本地 Directus 项目，让数据模型和基础资源可以通过代
 | 清理 | `clean` 清空全部自定义集合记录；`reset` 完整清理业务环境并保留管理员和基础配置；`clear` 保持仅清理声明 Schema 的兼容行为，真实删除必须确认 |
 | 工程化 | 文本／版本化 JSON 输出、稳定退出码、凭证脱敏 |
 
-CLI 接受 Directus 11.x 和 12.x；当前自动集成基线为 Node.js 22+，Directus 11.17.4 / 12.5.1 + SQLite。详细状态统一见 [兼容性](./compatibility.md)。
+CLI 接受 Directus 11.x 和 12.x；当前自动集成基线为 Node.js 22+，Directus 11.17.4 / 12.5.1 + SQLite。详细状态统一见 [兼容性](../user/compatibility.md)。
 
 v3 目标基线：Directus **12.7.0** + SQLite；12.6.1 作为回退候选。`@directus/cli` 仍是 **12.5.1**，不要把它当成 Directus 服务器版本。
 
@@ -101,7 +101,7 @@ v3.1 建议实现顺序：Settings 扩展 → 平台默认层 / bootstrap → �
 
 - 字段或 collection 自动重命名、类型变更和存量数据迁移。
 - 普通 apply 删除未声明资源、通用 down migration 或事务回滚。
-- 测试、预发布、生产环境发布，以及 Directus 实例间同步。跨环境发布由 Directus 官方 Environment Sync（`d6s`）承担；DSK 保持本地开发定位，不扩展生产写入，也不替代官方备份／恢复能力。官方 `schema snapshot` 只覆盖 Schema，不包含 roles / policies / access / permissions 等配置资源，详见[环境与发布](./directus-development.md#环境与发布)。
+- 测试、预发布、生产环境发布，以及 Directus 实例间同步。跨环境发布由 Directus 官方 Environment Sync（`d6s`）承担；DSK 保持本地开发定位，不扩展生产写入，也不替代官方备份／恢复能力。官方 `schema snapshot` 只覆盖 Schema，不包含 roles / policies / access / permissions 等配置资源，详见[环境与发布](../user/directus-development.md#环境与发布)。
 - Web 管理界面、不受约束的自定义执行器或生命周期钩子。
 
 遇到这些需求应先确认产品范围，不能通过绕过 Plan 或直接写数据库实现。
@@ -117,4 +117,4 @@ v3.1 建议实现顺序：Settings 扩展 → 平台默认层 / bootstrap → �
 - clean/reset 覆盖未声明的自定义集合，清理前全量检查引用；保留 settings、初始管理员及授权链、系统 Public policy 和运行／License 配置；reset 删除普通用户、业务授权配置和上传文件，重复执行安全。
 - 版本化 JSON 输出、退出码和敏感值脱敏保持兼容。
 
-具体开发规则见 [开发规则](./development-rules.md)，验证方法见 [DSK 实现与验收](./development.md)。若产品需求与建模规范冲突，以本文为准，并在变更说明中明确冲突。
+具体开发规则见 [开发规则](../user/development-rules.md)，验证方法见 [DSK 实现与验收](./development.md)。若产品需求与建模规范冲突，以本文为准，并在变更说明中明确冲突。

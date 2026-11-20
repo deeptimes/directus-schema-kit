@@ -2,7 +2,7 @@
 
 Directus Schema Kit 是面向 Directus 本地开发项目的声明式 Schema Provisioning 工具。TypeScript DSL 负责人工编写，版本化 JSON Manifest 负责校验、规划和执行边界。
 
-CLI 接受 Directus 11.x 与 12.x。Node.js 22+ 下已验证 Directus 11.17.4、12.5.1 + SQLite 的自动集成生命周期；v3 目标基线为 Directus 12.7.0（12.6.1 回退），v12 自定义权限依赖相应 license 能力，完整 Studio 编辑回归仍待验证，详见 [兼容性](docs/compatibility.md)。`@directus/cli` 是独立包，latest 与 Directus 服务器版本不是同一个版本号。
+CLI 接受 Directus 11.x 与 12.x。Node.js 22+ 下已验证 Directus 11.17.4、12.5.1 + SQLite 的自动集成生命周期；v3 目标基线为 Directus 12.7.0（12.6.1 回退），v12 自定义权限依赖相应 license 能力，完整 Studio 编辑回归仍待验证，详见 [兼容性](./docs/user/compatibility.md)。`@directus/cli` 是独立包，latest 与 Directus 服务器版本不是同一个版本号。
 
 ## 当前实现
 
@@ -50,8 +50,8 @@ pnpm dsk clean --dry-run
 pnpm dsk reset --dry-run
 ```
 
-Directus 项目的 `.env` 或 shell 需提供 `PUBLIC_URL` 和具备管理权限的 `ADMIN_TOKEN`。DSK 仅作为本地开发工具，只把 `dsk/` 声明应用到本地／私网开发实例，不用于生产发布；跨环境发布由 Directus 官方 Environment Sync（`@directus/cli@12` / `d6s`）承担，它同时同步 Schema 与 Configuration。官方 `schema snapshot` 只覆盖 Schema，不包含 roles / policies / access / permissions 等配置资源。架构边界见 [架构](docs/architecture.md)，发布流程见 [环境与发布](docs/directus-development.md#环境与发布)。`clean`／`reset` 先展示完整计划，真实执行需交互确认或显式 `--confirm`。初始管理员的识别和文件引用保护规则见 [清理命令](docs/cli-reference.md#开发环境清理)。
+Directus 项目的 `.env` 或 shell 需提供 `PUBLIC_URL` 和具备管理权限的 `ADMIN_TOKEN`。DSK 仅作为本地开发工具，只把 `dsk/` 声明应用到本地／私网开发实例，不用于生产发布；跨环境发布由 Directus 官方 Environment Sync（`@directus/cli@12` / `d6s`）承担，它同时同步 Schema 与 Configuration。官方 `schema snapshot` 只覆盖 Schema，不包含 roles / policies / access / permissions 等配置资源。架构边界见 [架构](./docs/user/architecture.md)，发布流程见 [环境与发布](./docs/user/directus-development.md#环境与发布)。`clean`／`reset` 先展示完整计划，真实执行需交互确认或显式 `--confirm`。初始管理员的识别和文件引用保护规则见 [清理命令](./docs/user/cli-reference.md#开发环境清理)。
 
 `build` 会执行可信的项目 TypeScript 源码；后续 `plan/apply` 执行层只允许消费 `dsk/generated/manifest.json`。
 
-开发文档见 [文档首页](docs/README.md)：[用户/AI 入口](docs/user/README.md)、[维护者入口](docs/maintainer/README.md)、[架构](docs/architecture.md)、[Roadmap](docs/roadmap.md)、[配合 Directus 开发](docs/directus-development.md)、[开发规则](docs/development-rules.md) 和 [DSK 实现与验收](docs/development.md)。命令与格式细节见 [CLI 参考](docs/cli-reference.md)、[Schema DSL](docs/schema-dsl.md)、[Manifest V1](docs/manifest.md) 和 [兼容性](docs/compatibility.md)。
+开发文档见 [文档首页](./docs/README.md)：[用户/AI 入口](./docs/user/README.md)、[维护者入口](./docs/maintainer/README.md)、[架构](./docs/user/architecture.md)、[Roadmap](./docs/maintainer/roadmap.md)、[配合 Directus 开发](./docs/user/directus-development.md)、[开发规则](./docs/user/development-rules.md) 和 [DSK 实现与验收](./docs/maintainer/development.md)。命令与格式细节见 [CLI 参考](./docs/user/cli-reference.md)、[Schema DSL](./docs/user/schema-dsl.md)、[Manifest V1](./docs/user/manifest.md) 和 [兼容性](./docs/user/compatibility.md)。

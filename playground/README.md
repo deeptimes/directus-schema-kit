@@ -1,6 +1,6 @@
 # Directus Playground
 
-独立的 Directus 本地项目，使用 IT 博客模型验证 DSK：分类、标签、文章、文件、评论、会员资料，以及 Public / Member / Editor 权限。当前锁定 12.5.1 作为历史基线；v3 通过 `.v3-runtime` 一次性副本升级到 12.7.0（12.6.1 作为回退候选），兼容结论见 [兼容性](../docs/compatibility.md)。
+独立的 Directus 本地项目，使用 IT 博客模型验证 DSK：分类、标签、文章、文件、评论、会员资料，以及 Public / Member / Editor 权限。当前锁定 12.5.1 作为历史基线；v3 通过 `.v3-runtime` 一次性副本升级到 12.7.0（12.6.1 作为回退候选），兼容结论见 [兼容性](../docs/user/compatibility.md)。
 
 ## 安装、升级与启动
 
@@ -61,10 +61,10 @@ pnpm dev:v3           # http://127.0.0.1:8056
 
 `.v3-runtime` 已被 gitignore，现有 `playground` 12.5.1 的数据库和 uploads 不会被改动。重建副本使用 `pnpm v3:copy -- --force`。
 
-如果以后需要长期并行 dev / target，优先用 `docker compose` 跑两个同版本 Directus 服务，而不是复制多个 Directus 项目目录。详细矩阵见 [v3 测试计划](../docs/v3-test-plan.md)。
+如果以后需要长期并行 dev / target，优先用 `docker compose` 跑两个同版本 Directus 服务，而不是复制多个 Directus 项目目录。详细矩阵见 [v3 测试计划](../docs/maintainer/v3-test-plan.md)。
 
 ## 回归范围
 
-Kit 根目录的 CI 已覆盖 Directus 11.17.4 / 12.5.1 + SQLite，包括八类关系、基础字段、Seed、六类资源、幂等与 Clear；有许可时验证匿名过滤，无许可时验证写入前阻断。连接测试实例的方法见 [DSK 实现与验收](../docs/development.md)。
+Kit 根目录的 CI 已覆盖 Directus 11.17.4 / 12.5.1 + SQLite，包括八类关系、基础字段、Seed、六类资源、幂等与 Clear；有许可时验证匿名过滤，无许可时验证写入前阻断。连接测试实例的方法见 [DSK 实现与验收](../docs/maintainer/development.md)。
 
 完整 Data Studio 编辑、会员／编辑角色的实际业务权限仍需在有对应许可的一次性实例人工验收。Clear 只用于可丢弃实例，执行前必须审查完整计划，不要清理已有业务数据来解决升级冲突。

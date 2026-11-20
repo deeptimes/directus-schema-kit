@@ -1,6 +1,6 @@
 # 架构
 
-本文定义 DSK 的定位、分层、状态流、资源分类和跨环境边界。产品范围见 [Roadmap](./roadmap.md)；日常操作见 [配合 Directus 开发](./directus-development.md)；实现约束见 [开发规则](./development-rules.md) 和 [DSK 实现与验收](./development.md)。
+本文定义 DSK 的定位、分层、状态流、资源分类和跨环境边界。产品范围见 [Roadmap](../maintainer/roadmap.md)；日常操作见 [配合 Directus 开发](./directus-development.md)；实现约束见 [开发规则](./development-rules.md) 和 [DSK 实现与验收](../maintainer/development.md)。
 
 ## 1. 为什么需要 DSK
 
@@ -350,10 +350,10 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 
 ## 13. 与现有文档的关系
 
-- [Roadmap](./roadmap.md)：产品范围和当前不做项。
+- [Roadmap](../maintainer/roadmap.md)：产品范围和当前不做项。
 - [配合 Directus 开发](./directus-development.md)：日常命令、工作流和环境发布操作。
 - [开发规则](./development-rules.md)：Schema / DBML 命名、AI 编写约束和安全边界。
-- [DSK 实现与验收](./development.md)：模块职责、结果契约、测试和发布检查。
+- [DSK 实现与验收](../maintainer/development.md)：模块职责、结果契约、测试和发布检查。
 - [Manifest V1](./manifest.md)、[Schema DSL](./schema-dsl.md)、[CLI 参考](./cli-reference.md)、[兼容性](./compatibility.md)：具体格式和 API 细节。
 
-本文是架构基线；操作细节与实现契约以对应文档为准。若产品需求与本文冲突，以 [Roadmap](./roadmap.md) 为准并更新本文。
+本文是架构基线；操作细节与实现契约以对应文档为准。若产品需求与本文冲突，以 [Roadmap](../maintainer/roadmap.md) 为准并更新本文。
