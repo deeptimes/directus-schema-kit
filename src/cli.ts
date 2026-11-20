@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import process from 'node:process'
 import { Command } from 'commander'
-import { applyCommand, buildCommand, clearCommand, cleanupCommand, doctorCommand, initCommand, planCommand, resourcesApplyCommand, seedCommand, validateCommand, type CommandContext } from './commands.js'
+import { applyCommand, bootstrapCommand, buildCommand, clearCommand, cleanupCommand, doctorCommand, initCommand, planCommand, resourcesApplyCommand, seedCommand, validateCommand, type CommandContext } from './commands.js'
 import { DskError } from './errors.js'
 import type { CleanupPlan } from './cleanup.js'
 
@@ -60,6 +60,24 @@ program.command('doctor')
       console.log(`环境变量：已配置 ${result.environment.configuredVariables.join(', ') || '(无)'}；缺少 ${result.environment.missingVariables.join(', ') || '(无)'}`)
     })
     if (!result.ok) process.exitCode = 5
+  })
+
+program.command('bootstrap')
+  .description('首次本地开发初始化：build、validate、apply Schema，再同步默认 resources')
+  .option('--dry-run', '只生成 Manifest 和计划，不写入实例')
+  .action(async (options: { dryRun?: boolean }) => {
+    const result = await bootstrapCommand(commandContext(), options)
+    output({ command: 'bootstrap', ok: result.status === 'success', ...result }, () => {
+      console.log(`Manifest: ${result.build.path}`)
+      console.log(`校验：${result.validation.collections} collections，${result.validation.fields} fields，${result.validation.seeds} seed files`)
+      const summary = result.planSummary
+      console.log(`Schema：create ${summary.create}，update ${summary.update}，unchanged ${summary.unchanged}，conflict ${summary.conflict}，dangerous ${summary.dangerous}`)
+      console.log(`Apply：${result.apply?.status ?? '未执行'}`)
+      console.log(`Resources：${result.resources?.status ?? '未执行'}`)
+      if (result.stopped) console.log(`停止阶段：${result.stopped}`)
+    })
+    if (result.status === 'blocked') process.exitCode = 3
+    else if (result.status === 'failed') process.exitCode = 4
   })
 
 program.command('plan')

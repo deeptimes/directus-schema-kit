@@ -26,12 +26,36 @@ const resourceExample = `/** 安全的空 Resource 定义。 */
 export default []
 `
 
-const settingsExample = `/** Directus settings 是 singleton，只允许受控 scalar 字段；按需添加 project_name 等。 */
+const settingsExample = `/** Directus settings 是 singleton，只允许受控字段；按需添加 project_name、custom_css、module_bar、theme overrides 等。 */
 export default {
   type: 'settings',
   key: 'settings',
   data: {},
 }
+`
+
+const presetsExample = `/** 默认 Presets 页面布局：Icon / Color 在前且保持窄列。 */
+export default [
+  {
+    type: 'presets',
+    key: 'directus-presets-table',
+    data: {
+      collection: 'directus_presets',
+      bookmark: null,
+      user: null,
+      role: null,
+      layout: 'tabular',
+      layout_query: {
+        tabular: { page: 1, fields: ['icon', 'color', 'bookmark', 'collection', 'user', 'role'] },
+      },
+      layout_options: {
+        tabular: {
+          widths: { icon: 40, color: 40, bookmark: 200, collection: 245, user: 200, role: 170 },
+        },
+      },
+    },
+  },
+]
 `
 
 const seedExample = JSON.stringify({ schemaVersion: 1, collection: 'example', upsertBy: ['slug'], items: [] }, null, 2) + '\n'
@@ -48,7 +72,7 @@ export function initializeWorkspace(projectRoot: string, dryRun = false): InitRe
     ['dsk/resources/policies.ts', resourceExample],
     ['dsk/resources/access.ts', resourceExample],
     ['dsk/resources/permissions.ts', resourceExample],
-    ['dsk/resources/presets.ts', resourceExample],
+    ['dsk/resources/presets.ts', presetsExample],
     ['dsk/resources/settings.ts', settingsExample],
     ['dsk/seeds/example/10-example.json', seedExample],
   ])

@@ -409,6 +409,18 @@ export interface ResourceSyncOperation {
   changes?: PlanChange[]
 }
 
+export interface BootstrapResult {
+  bootstrapVersion: 1
+  dryRun: boolean
+  status: 'success' | 'blocked' | 'failed'
+  stopped?: 'apply' | 'resources'
+  build: { path: string; changed: boolean }
+  validation: { manifestPath: string; collections: number; fields: number; seeds: number }
+  planSummary: Plan['summary']
+  apply?: ApplyResult
+  resources?: ResourceSyncResult
+}
+
 export interface ResourceSyncResult {
   resourceSyncVersion: 1
   dryRun: boolean

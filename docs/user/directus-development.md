@@ -181,6 +181,7 @@ pnpm dsk apply --dry-run
 
 先建立 Schema，再处理依赖这些 collection 的资源和基础数据。若 seed 依赖 folder 等系统资源，应先同步对应资源。
 
+- 首次本地初始化可用 `pnpm dsk bootstrap`：按 build → validate → plan → apply Schema → resources apply 执行，不跑 seed，不连接生产；任何 Schema/resource 阻断都会停止后续阶段，重复执行应收敛为 unchanged。
 - 系统资源：`pnpm dsk resources apply --dry-run` 查看计划，再执行 `pnpm dsk resources apply`。
 - Settings 是 Directus singleton，使用 `settings()` 声明受控字段，包括 `custom_css`、`module_bar` 和 theme overrides；`resources apply` 只 PATCH 声明字段，未声明字段保持原值。License、AI、存储、邮件、品牌图片等敏感 / 环境本地字段不进入白名单。
 - Folders 按 `name + parent + type` 匹配；`type` 区分文件库 `files` 和流程库 `flows`，省略时按 `files` 处理。

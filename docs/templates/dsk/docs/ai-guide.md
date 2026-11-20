@@ -20,6 +20,7 @@
 | `pnpm dsk build [--check]` | 根据源码生成 Manifest；check 仅检查是否最新 |
 | `pnpm dsk validate` | 离线检查定义、Manifest 新鲜度和 Seed |
 | `pnpm dsk plan` | 只读比较代码声明与实例，查看待创建、更新和冲突项 |
+| `pnpm dsk bootstrap [--dry-run]` | 首次本地初始化：build、validate、apply Schema、resources apply；不执行 seed，不连接生产 |
 | `pnpm dsk apply [--dry-run]` | 应用安全的结构创建／更新；dry-run 只预览；conflict/dangerous 全量阻断 |
 | `pnpm dsk seed [path] [--dry-run] [--plan]` | 默认写入基础数据；dry-run 仅离线校验，plan 连接实例预览；两者互斥 |
 | `pnpm dsk resources apply [--dry-run] [--confirm-destructive]` | 同步 settings、目录、角色、策略、授权、权限、预设和翻译；显式 delete 还需 confirm-destructive |
