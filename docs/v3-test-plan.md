@@ -119,7 +119,7 @@
 - [ ] **Folders**：File Library 和 Flows 各有一个 `V3 Shared`，类型分别为 files / flows。重命名其中一个后，dry-run 应显示 **create**（不是 update），apply 会创建新 folder 并保留旧 folder；这是稳定键语义，旧 folder 需手动删除。移动父级同理，不会自动迁移旧记录。
 - [ ] **Bookmark**：打开 `v3_articles`，确认 `V3 Preset` tabular 视图的字段和宽度；创建一个 personal bookmark，确认它不会进入 d6s pull。
 - [ ] **Translations**：在 Translation Strings 查看 `v3.hello`；如果字段使用了 `$t:v3.hello`，切换 zh-CN / en-US 检查显示。
-- [ ] **简单权限**：创建用户并分配 `V3 Editor`，确认能读 `v3_articles`、不能写；管理员仍可管理。
+- [ ] **简单权限**：创建用户并分配 `V3 Editor`，确认能读 `v3_articles`、不能写；管理员仍可管理。`V3 Editor Policy` 必须 `app_access: true` 才能登录 Studio；`Blog Member` 这类纯 API 角色保持 `app_access: false`。
 - [ ] **d6s 目标**：打开 8057，确认 schema、settings、folders、translation、V3 Editor role / policy、preset；运行 `d6s sync diff --to target --json` 应为 `changes: false`；非交互 mirror 应被拒绝；在 Studio 改 target role name 后 diff 显示差异，push 恢复 dev 名称。
 - [ ] **License 自定义权限**：在 `.v3-runtime/.env` 配置 `LICENSE_KEY` 并重启，使用带过滤、字段限制、validation、presets 的项目验证 Studio 实际行为。
 - [ ] **硬保护抽查**：`dsk doctor` 对 8056 应 pass 并显示 `127.0.0.0/8`；临时把 `PUBLIC_URL` 改为 `http://8.8.8.8:8055`，`plan` 应在 HTTP 请求前失败；恢复后正常。

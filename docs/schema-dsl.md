@@ -121,6 +121,7 @@ export default resource('permissions', {
 权限链的离线校验：
 
 - roles / policies 的 `name` 非空且同一 Manifest 内唯一。
+- `policies.app_access` 控制该 policy 的用户能否登录 Data Studio；需要 Studio 编辑的角色要设为 `true`。纯 API / 前台用户角色可以设为 `false`。`admin_access` 只给管理员，不要与普通编辑器混用。
 - access 必须声明 `policy`；`role` / `user` 可以为 null 或引用。`user` 非 null 的 access 属于环境本地，不应作为跨环境交付内容。
 - permissions 的 `action` 只能是 `read`、`create`、`update`、`delete` 或 `share`；`policy + collection + action` 自然键必须唯一。
 - `admin_access: true` 的 policy 会在 `resources apply` 计划中标记 `dangerous` 并给出审查原因，但不会自动阻断本地开发。
