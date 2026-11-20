@@ -117,6 +117,20 @@ DSK 不能物理阻止 AI 直接操作数据库；它提供的是可审计的默
 - 人在 Studio 探索模型和界面后，需要保留的改动回写 `dsk/`；不回写的改动会在下一次 `plan` 中显示为 drift。
 - 绕过 DSK 的 API / SQL 修改不会自动进入 `dsk/`，因此不能成为跨环境交付的一部分。
 
+### 变更发起权
+
+这条治理原则贯穿项目早期、中期和后期：
+
+- **Schema 和 DSK 管理的系统配置**（settings、folders、roles、policies、access、permissions、presets、translations）：变更应从 `dsk/` 发起，先应用到本地 dev，再由 d6s 发布到目标环境。
+- **Studio** 用于探索模型、验证编辑体验和编辑业务内容。任何需要长期保留的 Schema / 系统配置修改，必须回写 `dsk/`；Studio 不是受管配置的 source of truth。
+- **DSK 不直接写生产**；“由 DSK 发起”指的是作者层和 dev 实例，生产执行仍由 d6s 完成。
+- **业务内容、文件、用户**各环境自管，不属于 DSK / d6s 的系统配置同步范围。
+- **DSK 尚未管理的系统配置**（如 flows、dashboards、部分 settings）必须明确 owner：由 Studio 维护、由 d6s 同步，或后续纳入 DSK；不能默认 DSK 会处理。
+- **紧急生产修改**只能作为明确例外：记录原因、尽快回写 `dsk/`，否则下一次发布会出现 drift 或被覆盖。
+- `clean` / `reset` 只用于一次性 dev 实例；它们不是生产回滚或备份工具。代码层用 `safety.environment` + allowlist 收紧目标，但私网生产如果被显式加入 allowlist 仍可能连接，因此仍需流程审查。
+
+v3.0 的实际识别边界见 [配合 Directus 开发](./directus-development.md) 的“Studio 修改与 DSK 的识别边界（v3.0）”一节。
+
 ## 6. 资源分类
 
 只用“系统资源 / 用户资源”二分容易和 `directus_users`、业务 collection 混淆。建议按以下五类整理，其中“环境本地”是横切的同步属性：

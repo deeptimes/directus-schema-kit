@@ -10,6 +10,7 @@
 - 不手写或编辑 `dsk/generated/manifest.json`。修改定义后重新 build、validate，再查看 plan。
 - collection 全局唯一，一个 collection 只能在一个文件完整定义；其他文件通过 relation 引用。文件名、`source` 和 UI group 不构成 namespace 或局部执行范围。
 - 普通 apply 只允许安全 create/update，不自动删除、重命名、变更类型或迁移存量数据。白名单外差异默认阻断。
+- Schema 和受管系统配置的变更从 `dsk/` 发起；Studio 只用于探索和业务内容编辑，需要保留的配置必须回写 `dsk/`。生产发布由 d6s 执行，不通过 DSK 直连生产。
 
 ## 命名与建模
 
