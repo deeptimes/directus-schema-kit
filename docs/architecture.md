@@ -246,6 +246,21 @@ d6s 使用 `id_map` 记录源 / 目标记录的对应关系；同一条逻辑记
 
 同样的稳定键语义适用于 folders、presets 和 translations：folder 的 `name + parent + type`、preset 的 `bookmark + collection + role + user`、translation 的 `key + language` 都是身份。**在 Studio 改名会被 DSK 视为“旧资源消失 + 新资源创建”，不会原地 update，旧资源也不会自动删除。** 需要改名时应按显式迁移处理：修改声明、规划新资源、手动或显式删除旧资源，并检查引用；不要把 Studio 改名当作普通编辑。
 
+### 受管资源状态（v3.x 设计）
+
+当前 DSK 没有资源所有权状态，只能按业务键匹配；因此无法区分“Studio 改名”和“新资源”。要实现“DSK 管理的内容被 Studio 改动时提示回 `dsk/` 处理”，需要一份本地受管资源状态：
+
+- `dsk/.managed-state.json`（本地、gitignore，不进入 Manifest 或跨环境交付）记录 `projectId -> {dsk key -> Directus ID}`。
+- 首次 apply 创建或认领资源时写入 ID；后续 dry-run 优先按 ID 找回记录，而不是只按名称匹配。
+- ID 存在但业务键（name / bookmark / translation key）变化：标为 `drift` 并阻断该项，提示“在 `dsk/` 修改声明，或在 Studio 恢复原名”，不自动 rename、不创建副本。
+- ID 存在但记录被 Studio 删除：标为 `missing-managed`，提示重建或移除声明。
+- 未登记的资源：作为 `unmanaged` 信息列出，不自动删除；文件库中用户自建 folder 可能很多，默认只做提示。
+- 状态按 Directus `project_id` 而不是 URL 区分，dev 地址变化时仍能保持映射。
+- d6s 继续使用自己的 `id_map.json`；DSK 的本地状态不用于跨环境映射。
+- 首版只覆盖 resources；Schema 的 collection / field 重命名仍属于独立迁移，不自动改名。
+
+这项能力尚未实现；当前行为以本文前面的“改名 = 新资源”说明为准。
+
 治理建议：
 
 - 生产环境的 Studio admin 权限不交给客户；客户只拿业务内容的编辑角色。
